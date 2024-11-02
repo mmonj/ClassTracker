@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "mm-capstone"
+version = "0.1.0"
+description = ""
+authors = ["mmonj <mmonj@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.12.1"
+Django = "5.0.2"
+reactivated = "0.44.4"
+psycopg2-binary = "^2.9.9"
+django-stubs = "^5.0.2"
+django-stubs-ext = "^5.0.2"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

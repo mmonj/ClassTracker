@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  reactivated:
+    container_name: mm-class-searcher-prod
+    build:
+      context: .
+      args:
+        ENV_TYPE: dev
+        # UID: 1000
+    command: >
+      bash -c "
+      python manage.py migrate
+      && python manage.py init_db
+      && python manage.py runserver 0.0.0.0:8000
+      "
+    ports:
+      - 8040:8000
+    volumes:
+      - /app/node_modules
+      - ./:/app
+    env_file:
+      - .dev.env
+    restart: unless-stopped
+    depends_on:
+      - psql
+
+  psql:
+    image: postgres:15.7
+    container_name: mm-psql-class-searcher-prod
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    env_file:
+      - .dev.env
+    ports:
+      - 8041:5432
+    volumes:
+      - ./.postgresql/data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    container_name: mm-adminer-class-searcher-prod
+    environment:
+      ADMINER_DEFAULT_SERVER: psql
+    restart: always
+    ports:
+      - 8042:8080

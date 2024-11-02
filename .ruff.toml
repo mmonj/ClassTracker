@@ -1,0 +1,84 @@
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+line-length = 100
+indent-width = 4
+
+target-version = "py312"
+
+[lint]
+select = [
+    "ALL", # include all the rules, including new ones
+]
+ignore = [
+    "ANN", # flake8-annotations
+    "COM", # flake8-commas
+    "C90", # mccabe complexity
+    # "DJ",      # django
+    "EXE",     # flake8-executable
+    "T10",     # debugger
+    "TID",     # flake8-tidy-imports
+    "FBT",     # boolean trap (broken)
+    "D100",    # D* docstring style rules
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
+    "D104",    # Missing docstring in public package
+    "D105",    # Missing docstring in magic method
+    "D106",    # Missing docstring in public nested class
+    "D107",    # Missing docstring in __init__
+    "D200",    # One-line docstring should fit on one line
+    "D205",    # 1 blank line required between summary line and description
+    "D212",    # Multi-line docstring summary should start at the first line
+    "D400",    # First line should end with a period
+    "D401",    # First line of docstring should be in imperative mood
+    "D406",
+    "D407",    # Missing dashed underline after section
+    "D411",
+    "D413",    # Missing blank line after last section
+    "D415",    # First line should end with a period, question mark, or exclamation point
+    "E402",    # module imports must be at top of file; false positives for local imports
+    "E501",    # line too long
+    "F403",    # undefined-local-with-import-star; mypy analyzes undefined names for wildcards.
+    "F821",    # undefined-name; Reactivated uses literals inside Pick that get flagged as missing variable/names.
+    "EM",      # f-/format/literal strings passed to exceptions
+    "ERA001",  # lingering commented-out code
+    "PLR0913", # too-many-arguments
+    "RUF012",
+    "T201",    # lingering print statements
+    "TRY003",  # external messages in exceptions are too verbose
+    "TRY300",  # Checks for return statements in try blocks
+    "TD002",   # require author in TODO comments
+    "TD003",   # require referencing an issue URL/number in next line
+    "FIX002",  # too verbose descriptions of todos
+    "UP007",   # non-pep604-annotation (prefer | operator for Unions)
+    "UP006",   # non-pep585-annotation (eg. prefer list over List)
+    "UP035",
+]
