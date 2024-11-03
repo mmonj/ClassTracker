@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "mm-capstone"
+name = "globalclasssearcher"
 version = "0.1.0"
 description = ""
 authors = ["mmonj <mmonj@users.noreply.github.com>"]

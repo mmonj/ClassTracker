@@ -1,7 +1,7 @@
 {
-  "name": "mm-capstone",
+  "name": "globalclasssearcher",
   "version": "1.0.0",
-  "description": "## CS50: Capstone Project",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "python manage.py runserver 0.0.0.0:8000",
