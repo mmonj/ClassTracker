@@ -91,7 +91,6 @@ class CourseClass(CommonModel):
         CLOSED = "closed", "Closed"
         WAITLISTED = "waitlisted", "Waitlisted"
 
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="classes")
     section = models.CharField(max_length=20)  # eg "121-LEC Regular"
     instructor = models.ForeignKey(Instructor, on_delete=models.CASCADE, related_name="classes")
     room = models.CharField(max_length=50)
@@ -104,9 +103,12 @@ class CourseClass(CommonModel):
     )
     instruction_mode = models.CharField(max_length=50)  # eg. in person, hybrid
 
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="classes")
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="classes")
+
     class Meta:
         verbose_name_plural = "Course Classes"
-        unique_together = ("course", "section")
+        unique_together = ("course", "section", "term")
         ordering = ("course", "section")
 
     def __str__(self) -> str:
