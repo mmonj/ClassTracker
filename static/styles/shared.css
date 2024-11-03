@@ -1,11 +1,3 @@
-body {
-  background: #f6f7f8;
-}
-
-.bg-mm-info {
-  background: #f1f1f1;
-}
-
 .mw-80-rem {
   max-width: 80rem;
 }
@@ -30,14 +22,4 @@ body {
   border-radius: 10px;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.041) !important;
   border-color: rgba(180, 177, 177, 0.308) !important;
-}
-
-.flex-child {
-  flex: 1 1 calc(50% - 1rem);
-}
-
-@media (max-width: 768px) {
-  .flex-child {
-    flex: 1 1 100%;
-  }
 }
