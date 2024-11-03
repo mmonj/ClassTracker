@@ -81,4 +81,7 @@ ignore = [
     "UP007",   # non-pep604-annotation (prefer | operator for Unions)
     "UP006",   # non-pep585-annotation (eg. prefer list over List)
     "UP035",
+    "PT009",   # Use a regular `assert` instead of unittest-style `assertTrue`
+    "PT027",   # Use `pytest.raises` instead of unittest-style `assertRaises`
+
 ]
