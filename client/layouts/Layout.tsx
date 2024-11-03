@@ -1,4 +1,4 @@
-import "bootswatch/dist/darkly/bootstrap.min.css";
+import "/static/styles/bs-dark.css";
 import "/static/styles/reset.css";
 import "/static/styles/shared.css";
 
@@ -46,10 +46,10 @@ export const Layout = ({
           type="image/x-icon"
           href={`${djangoContext.STATIC_URL}public/favicon.png`}
         />
+
         <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
           rel="stylesheet"
-          type="text/css"
-          href={`${djangoContext.STATIC_URL}admin/css/fonts.css`}
         />
 
         {djangoStaticStylePaths.map((staticBasePath, idx) => (
