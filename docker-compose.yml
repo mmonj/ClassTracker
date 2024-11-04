@@ -1,7 +1,8 @@
 version: "3.9"
 
 services:
-  reactivated:
+  django_app:
+    image: mm-class-searcher-image
     container_name: mm-class-searcher
     build:
       context: .
@@ -27,6 +28,7 @@ services:
     restart: unless-stopped
     depends_on:
       - psql
+      - redis
 
   psql:
     image: postgres:15.7
@@ -49,3 +51,32 @@ services:
     restart: always
     ports:
       - 8032:8080
+
+  # redis-overcommit-on-host
+  redis-overcommit:
+    build: https://github.com/bkuhl/redis-overcommit-on-host.git
+    restart: "no"
+    privileged: true
+    volumes:
+      - /proc/sys/vm:/mnt/vm
+
+  redis:
+    image: redis
+    container_name: redis-class-searcher
+    command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
+    env_file:
+      - .dev.env
+    restart: unless-stopped
+
+  rq_worker_default:
+    image: mm-class-searcher-image
+    container_name: class-searcher-rq-worker-default
+    command: poetry run python manage.py rqworker default
+    user: "1000"
+    volumes:
+      - ./:/app
+    env_file:
+      - .dev.env
+    restart: unless-stopped
+    depends_on:
+      - django_app

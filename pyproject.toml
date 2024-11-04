@@ -12,6 +12,7 @@ reactivated = "0.44.4"
 psycopg2-binary = "^2.9.9"
 django-stubs = "^5.0.2"
 django-stubs-ext = "^5.0.2"
+django-tasks-scheduler = "^2.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
