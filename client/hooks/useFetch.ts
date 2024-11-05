@@ -18,13 +18,13 @@ export function useFetch<T>() {
 
   async function fetchData(
     fetchCallback: () => ApiPromise<T>,
-    _identifier?: number,
+    identifier?: number,
     onSuccess?: () => void
   ): Promise<TUseFetchResult<T>> {
     setData(() => null);
     setIsLoading(() => true);
     setErrorMessages(() => []);
-    setIdentifier(() => _identifier);
+    setIdentifier(() => identifier);
 
     return fetchCallback()
       .then((resp) => {
