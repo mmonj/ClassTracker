@@ -1,6 +1,8 @@
-from typing import NamedTuple
+from typing import List, NamedTuple
 
-from reactivated import template
+from reactivated import Pick, template
+
+from .models import Term
 
 
 @template
@@ -11,6 +13,7 @@ class Index(NamedTuple):
 @template
 class Admin(NamedTuple):
     title: str
+    terms_available: List[Pick[Term, "id", "name", "year"]]
 
 
 @template

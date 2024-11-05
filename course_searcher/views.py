@@ -30,7 +30,10 @@ def logout_view(request: HttpRequest) -> HttpResponse:
 
 
 def admin(request: HttpRequest) -> HttpResponse:
-    return Admin(title="Hello there").render(request)
+    terms_available = list(Term.objects.filter(is_available=True))
+    terms_available.sort(key=lambda term: term.year)
+
+    return Admin(title="Hello there", terms_available=terms_available).render(request)
 
 
 def add_classes(request: HttpRequest) -> HttpResponse:
