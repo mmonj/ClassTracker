@@ -9,5 +9,10 @@ class Index(NamedTuple):
 
 
 @template
+class Admin(NamedTuple):
+    title: str
+
+
+@template
 class AddClasses(NamedTuple):
     title: str

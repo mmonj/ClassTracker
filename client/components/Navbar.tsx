@@ -16,6 +16,7 @@ export function Navbar() {
         <BSNavbar.Collapse>
           <Nav className="me-auto mb-2 mb-lg-0">
             <NavLink href={reverse("course_searcher:add_classes")}>Add Classes</NavLink>
+            <NavLink href={reverse("course_searcher:admin")}>Admin</NavLink>
           </Nav>
 
           <Nav className="mb-2 mb-lg-0">
