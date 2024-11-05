@@ -13,10 +13,15 @@ psycopg2-binary = "^2.9.9"
 django-stubs = "^5.0.2"
 django-stubs-ext = "^5.0.2"
 django-tasks-scheduler = "^2.1.0"
+requests = "^2.32.3"
+djangorestframework = "^3.15.2"
+beautifulsoup4 = "^4.12.3"
 
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.3"
+djangorestframework-stubs = "^3.15.1"
+types-beautifulsoup4 = "^4.12.0.20241020"
 
 [build-system]
 requires = ["poetry-core"]
