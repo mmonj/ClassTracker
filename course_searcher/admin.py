@@ -14,8 +14,8 @@ class SchoolAdmin(admin.ModelAdmin[models.School]):
 
 @admin.register(models.Term)
 class TermAdmin(admin.ModelAdmin[models.Term]):
-    list_display = ("name", "year", "globalsearch_key")
-    list_filter = ("year", "schools")
+    list_display = ("name", "year", "globalsearch_key", "is_available")
+    list_filter = ("year", "schools", "is_available")
     search_fields = ("name", "globalsearch_key")
     filter_horizontal = ("schools",)
     readonly_fields = ("datetime_created", "datetime_modified")

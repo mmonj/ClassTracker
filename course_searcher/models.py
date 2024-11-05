@@ -22,6 +22,7 @@ class Term(CommonModel):
     name = models.CharField(max_length=100)
     year = models.IntegerField(blank=False)
     schools = models.ManyToManyField(School, related_name="terms")
+    is_available = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ("name", "year")
