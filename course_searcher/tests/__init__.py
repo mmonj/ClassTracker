@@ -11,11 +11,13 @@ class ModelTests(TestCase):
         )
 
         self.term1 = models.Term.objects.create(
-            name="Fall", year=2024, globalsearch_key="fall_2024", school=self.school1
+            name="Fall", year=2024, globalsearch_key="fall_2024"
         )
 
+        self.term1.schools.add(self.school1)
+
         self.undergrad_course_career = models.CourseCareer.objects.create(
-            name=models.CourseCareer.CareerType.UNDERGRADUATE, school=self.school1
+            name=models.CourseCareer.CareerType.UNDERGRADUATE
         )
 
         self.csci_subject = models.Subject.objects.create(
@@ -42,18 +44,15 @@ class ModelTests(TestCase):
                 name=self.term1.name,
                 year=self.term1.year,
                 globalsearch_key=self.term1.globalsearch_key,
-                school=self.term1.school,
             )
 
     def test_career_types(self) -> None:
         grad_career = models.CourseCareer.objects.create(
-            name=models.CourseCareer.CareerType.GRADUATE, school=self.school1
+            name=models.CourseCareer.CareerType.GRADUATE
         )
 
         with self.assertRaises(IntegrityError):
-            models.CourseCareer.objects.create(
-                name=grad_career.CareerType.GRADUATE, school=grad_career.school
-            )
+            models.CourseCareer.objects.create(name=grad_career.CareerType.GRADUATE)
 
     def test_subject_relationships(self) -> None:
         self.assertIn(self.csci_subject, self.school1.subjects.all())

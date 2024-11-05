@@ -11,21 +11,20 @@ class CommonModel(models.Model):
 
 class School(CommonModel):
     name = models.CharField(max_length=100)
-    globalsearch_key = models.CharField(max_length=100)
+    globalsearch_key = models.CharField(max_length=100, unique=True)
 
     def __str__(self) -> str:
         return self.name
 
 
 class Term(CommonModel):
+    globalsearch_key = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     year = models.IntegerField(blank=False)
-    globalsearch_key = models.CharField(max_length=100)
-
-    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="terms")
+    schools = models.ManyToManyField(School, related_name="terms")
 
     class Meta:
-        unique_together = ("name", "year", "school")
+        unique_together = ("name", "year")
 
     def __str__(self) -> str:
         return self.name
@@ -37,15 +36,12 @@ class CourseCareer(CommonModel):
         UNDERGRADUATE = "Undergraduate", "Undergraduate"
 
     name = models.CharField(
-        max_length=20, choices=CareerType.choices, default=CareerType.UNDERGRADUATE
+        max_length=20, choices=CareerType.choices, default=CareerType.UNDERGRADUATE, unique=True
     )
-    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="careers")
-
-    class Meta:
-        unique_together = ("name", "school")
+    schools = models.ManyToManyField(School, related_name="careers")
 
     def __str__(self) -> str:
-        return f"{self.name} - {self.school.name}"
+        return f"{self.name}"
 
 
 class Subject(CommonModel):
