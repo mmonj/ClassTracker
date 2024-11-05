@@ -46,16 +46,16 @@ def refresh_semester_listing(request: HttpRequest) -> HttpResponse:
         resp.raise_for_status()
 
     try:
-        terms = get_terms_available(resp.text)
-        logger.info(terms)
+        terms_parsed = get_terms_available(resp.text)
+        logger.info(terms_parsed)
     except HTTPError as ex:
         raise DRFNotFound([str(ex)]) from ex
 
-    if len(terms) == 0:
+    if len(terms_parsed) == 0:
         raise APIException("Parsed 0 terms")
 
     count = 0
-    for term in terms:
+    for term in terms_parsed:
         try:
             term.save()
             count += 1
@@ -68,10 +68,17 @@ def refresh_semester_listing(request: HttpRequest) -> HttpResponse:
         globalsearch_key__in=[f.globalsearch_key for f in schools]
     )
 
+    terms_queryset = Term.objects.all()
+    for term in terms_queryset:
+        term.is_available = False
+    Term.objects.bulk_update(terms_queryset, batch_size=100, fields=["is_available"])
+
     terms_queryset = Term.objects.filter(
-        name__in=[f.name for f in terms], year__in=[f.year for f in terms]
+        name__in=[f.name for f in terms_parsed], year__in=[f.year for f in terms_parsed]
     )
     for term in terms_queryset:
+        term.is_available = True
+        term.save()
         term.schools.add(*schools_queryset)
 
     return interfaces.BasicResponse(is_success=True, message=f"{count} new terms created").render(
