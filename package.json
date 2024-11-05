@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "python manage.py runserver 0.0.0.0:8000",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "python manage.py test course_searcher.tests"
   },
   "author": "",
   "license": "ISC",
