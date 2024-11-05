@@ -20,6 +20,16 @@ class TermAdmin(admin.ModelAdmin[models.Term]):
     filter_horizontal = ("schools",)
     readonly_fields = ("datetime_created", "datetime_modified")
 
+    actions = ["mark_available", "mark_unavailable"]
+
+    @admin.action(description="Mark selected terms as available")
+    def mark_available(self, _request: HttpRequest, queryset: QuerySet[models.Term]) -> None:
+        queryset.update(is_available=True)
+
+    @admin.action(description="Mark selected terms as unavailable")
+    def mark_unavailable(self, _request: HttpRequest, queryset: QuerySet[models.Term]) -> None:
+        queryset.update(is_available=False)
+
 
 @admin.register(models.CourseCareer)
 class CourseCareerAdmin(admin.ModelAdmin[models.CourseCareer]):
@@ -67,15 +77,15 @@ class CourseClassAdmin(admin.ModelAdmin[models.CourseClass]):
     actions = ["mark_as_open", "mark_as_closed", "mark_as_waitlisted"]
 
     @admin.action(description="Mark selected classes as open")
-    def mark_as_open(self, request: HttpRequest, queryset: QuerySet[models.CourseClass]) -> None:
+    def mark_as_open(self, _request: HttpRequest, queryset: QuerySet[models.CourseClass]) -> None:
         queryset.update(status=models.CourseClass.StatusChoices.OPEN)
 
     @admin.action(description="Mark selected classes as closed")
-    def mark_as_closed(self, request: HttpRequest, queryset: QuerySet[models.CourseClass]) -> None:
+    def mark_as_closed(self, _request: HttpRequest, queryset: QuerySet[models.CourseClass]) -> None:
         queryset.update(status=models.CourseClass.StatusChoices.CLOSED)
 
     @admin.action(description="Mark selected classes as waitlisted")
     def mark_as_waitlisted(
-        self, request: HttpRequest, queryset: QuerySet[models.CourseClass]
+        self, _request: HttpRequest, queryset: QuerySet[models.CourseClass]
     ) -> None:
         queryset.update(status=models.CourseClass.StatusChoices.WAITLISTED)
