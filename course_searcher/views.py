@@ -2,30 +2,60 @@ import logging
 import time
 
 from bs4 import BeautifulSoup
+from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
+from django.shortcuts import redirect
+from django.utils.encoding import iri_to_uri
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_GET, require_http_methods
 from requests import HTTPError, Session
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound as DRFNotFound
 
-from . import interfaces
+from . import interfaces, templates
 from .global_search.navigator import get_main_page, get_subject_selection_page
 from .global_search.parser import create_careers_and_subjects, get_terms_available, parse_schools
 from .models import School, Term
-from .templates import AddClasses, Admin
 
 logger = logging.getLogger("main")
 
 
-def index(request: HttpRequest) -> HttpResponse:
-    pass
-
-
+@require_http_methods(["GET", "POST"])
 def login_view(request: HttpRequest) -> HttpResponse:
-    pass
+    if request.user.is_authenticated:
+        logger.info(
+            "User %s is already logged in. Redirecting to homepage index",
+            request.user.get_username(),
+        )
+        return redirect("lms_app:home")
+
+    if request.method == "GET":
+        return templates.Login().render(request)
+
+    username = request.POST["username"]
+    password = request.POST["password"]
+    user = authenticate(request, username=username, password=password)
+
+    if user is None:
+        return templates.Login(is_invalid_credentials=True).render(request)
+
+    login(request, user)
+
+    next_url = iri_to_uri(request.POST.get("next", ""))
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+        return redirect(next_url)
+
+    return redirect("course_searcher:index")
 
 
+@require_GET
 def logout_view(request: HttpRequest) -> HttpResponse:
+    logout(request)
+    return redirect("course_searcher:login_view")
+
+
+def index(request: HttpRequest) -> HttpResponse:
     pass
 
 
@@ -36,16 +66,18 @@ def admin(request: HttpRequest) -> HttpResponse:
     schools = list(set(School.objects.filter(terms__in=terms_available)))
     schools = [School(id=0, name="All", globalsearch_key="-1"), *schools]
 
-    return Admin(title="Hello there", terms_available=terms_available, schools=schools).render(
-        request
-    )
+    return templates.Admin(
+        title="Hello there", terms_available=terms_available, schools=schools
+    ).render(request)
 
 
 def add_classes(request: HttpRequest) -> HttpResponse:
     terms_available = list(Term.objects.filter(is_available=True))
     terms_available.sort(key=lambda term: term.year)
 
-    return AddClasses(title="Hello there", terms_available=terms_available).render(request)
+    return templates.AddClasses(title="Hello there", terms_available=terms_available).render(
+        request
+    )
 
 
 def refresh_available_terms(request: HttpRequest) -> HttpResponse:

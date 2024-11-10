@@ -9,6 +9,11 @@ SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
 
 
 @template
+class Login(NamedTuple):
+    is_invalid_credentials: bool = False
+
+
+@template
 class Index(NamedTuple):
     title: str
 

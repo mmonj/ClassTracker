@@ -1,0 +1,65 @@
+import React from "react";
+
+import { CSRFToken, Context, reverse, templates } from "@reactivated";
+import { Card } from "react-bootstrap";
+
+import { Navbar } from "@client/components/Navbar";
+import { Layout } from "@client/layouts/Layout";
+
+export function Template(props: templates.Login) {
+  const djangoContext = React.useContext(Context);
+
+  const queryString = djangoContext.request.path.split("?")[1];
+  const params = new URLSearchParams(queryString);
+  const nextValue = params.get("next");
+
+  return (
+    <Layout title="Log In" Navbar={Navbar}>
+      <Card className="border-light-shadow p-4 py-3">
+        <form action={reverse("course_searcher:login_view")} method="POST">
+          <CSRFToken />
+          {props.is_invalid_credentials && (
+            <div className="alert alert-danger" role="alert">
+              Invalid username or password.
+            </div>
+          )}
+          <fieldset>
+            <legend className="mb-4">Log In</legend>
+            <p>
+              <label htmlFor="logger-username" className="form-label">
+                Username
+              </label>
+              <input
+                id="logger-username"
+                name="username"
+                type="text"
+                className="form-control"
+                autoComplete="username"
+                required
+              />
+            </p>
+            <p>
+              <label htmlFor="logger-password" className="form-label">
+                Password
+              </label>
+              <input
+                id="logger-password"
+                name="password"
+                type="password"
+                className="form-control"
+                autoComplete="current-password"
+                required
+              />
+            </p>
+            <p>
+              <button type="submit" className="btn btn-primary col-12">
+                Submit
+              </button>
+            </p>
+            <input type="hidden" name="next" value={nextValue ?? ""} />
+          </fieldset>
+        </form>
+      </Card>
+    </Layout>
+  );
+}

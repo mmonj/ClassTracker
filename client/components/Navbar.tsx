@@ -22,8 +22,13 @@ export function Navbar() {
           <Nav className="mb-2 mb-lg-0">
             {!djangoContext.user.is_authenticated && (
               <>
-                <NavLink href={"/fix-me"}>Create Account</NavLink>
-                <NavLink href={"/fix-me"}>Log In</NavLink>
+                <NavLink href={"#fix-me"}>Create Account</NavLink>
+                <NavLink href={reverse("course_searcher:login_view")}>Log In</NavLink>
+              </>
+            )}
+            {djangoContext.user.is_authenticated && (
+              <>
+                <NavLink href={reverse("course_searcher:logout_view")}>Log Out</NavLink>
               </>
             )}
           </Nav>
