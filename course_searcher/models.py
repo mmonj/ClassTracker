@@ -74,6 +74,7 @@ class Course(CommonModel):
     title = models.CharField(max_length=100)  # eg. "Principles of Programming Lang"
     career = models.ForeignKey(CourseCareer, on_delete=models.CASCADE, related_name="courses")
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="courses")
+    terms = models.ManyToManyField(Term, related_name="courses")
 
     class Meta:
         unique_together = ("level", "school")
