@@ -1,9 +1,13 @@
+import logging
+
 from requests import Session
 
 from ..models import School, Term
-from . import get_page_resp_text, get_response
+from . import get_response
 
-GLOBALSEARCH_URL = "https://globalsearch.cuny.edu/CFGlobalSearchTool/search.jsp"
+logger = logging.getLogger("main")
+
+GLOBALSEARCH_URL = "https://globalsearch.cuny.edu/CFGlobalSearchTool/CFSearchToolController"
 BASE_GLOBALSEARCH_URL = "https://globalsearch.cuny.edu"
 
 
@@ -22,18 +26,21 @@ def get_new_search_page(session: Session, timeout: float = 10) -> str:
 
 
 def get_main_page(session: Session) -> str:
-    page_src = get_response(lambda: session.get(GLOBALSEARCH_URL, timeout=10))
-    return page_src.text
+    resp = get_response(lambda: session.get(GLOBALSEARCH_URL, timeout=10))
+    return resp.text
 
 
-def get_subject_selection_page(
-    session: Session, school: School, term: Term, skip_first_page: bool = False
-) -> str:
-    if not skip_first_page:
-        get_main_page(session)
+def get_subject_selection_page(session: Session, school: School, term: Term) -> str:
+    headers = _get_request_headers()
+    data = _get_payload_for_subject_data(school, term)
 
-    resp = get_page_resp_text(
-        GLOBALSEARCH_URL, session, "POST", payload=_get_payload_for_subject_data(school, term)
+    resp = get_response(
+        lambda: session.post(
+            GLOBALSEARCH_URL,
+            headers=headers,
+            data=data,
+            timeout=10,
+        )
     )
 
     return resp.text
@@ -64,7 +71,7 @@ def _get_payload_for_subject_data(school: School, term: Term) -> dict[str, str]:
     return {
         "selectedInstName": f"{school.name} | ",
         "inst_selection": school.globalsearch_key,
-        "selectedTermName": term.name,
+        "selectedTermName": term.full_term_name,
         "term_value": term.globalsearch_key,
         "next_btn": "Next",
     }

@@ -1,8 +1,11 @@
-from typing import List, NamedTuple
+from typing import List, Literal, NamedTuple
 
 from reactivated import Pick, template
 
-from .models import Term
+from .models import School, Term
+
+TermPick = Pick[Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
+SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
 
 
 @template
@@ -13,9 +16,11 @@ class Index(NamedTuple):
 @template
 class Admin(NamedTuple):
     title: str
-    terms_available: List[Pick[Term, "id", "name", "year"]]
+    schools: List[SchoolPick]
+    terms_available: List[TermPick]
 
 
 @template
 class AddClasses(NamedTuple):
     title: str
+    terms_available: List[TermPick]
