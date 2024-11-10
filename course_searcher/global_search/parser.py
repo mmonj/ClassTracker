@@ -107,4 +107,4 @@ def create_careers_and_subjects(
     term.subjects.add(*subjects)
     school.subjects.add(*subjects)
 
-    return list(careers), subjects_to_create
+    return list(careers), list(subjects)
