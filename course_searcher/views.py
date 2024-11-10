@@ -3,12 +3,13 @@ import logging
 import requests
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from requests import HTTPError
+from requests import HTTPError, Session
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound as DRFNotFound
 
 from . import interfaces
-from .global_search_util.parser import get_terms_available, parse_schools
+from .global_search.navigator import get_main_page, get_subject_selection_page
+from .global_search.parser import get_terms_available, parse_schools
 from .models import School, Term
 from .templates import AddClasses, Admin
 
@@ -41,13 +42,11 @@ def add_classes(request: HttpRequest) -> HttpResponse:
 
 
 def refresh_semester_listing(request: HttpRequest) -> HttpResponse:
-    resp = requests.get(GLOBAL_SEARCH_URL, timeout=15)
-    if not resp.ok:
-        resp.raise_for_status()
+    session = Session()
+    soup = BeautifulSoup(get_main_page(session), "html.parser")
 
     try:
-        terms_parsed = get_terms_available(resp.text)
-        logger.info(terms_parsed)
+        terms_parsed = get_terms_available(soup)
     except HTTPError as ex:
         raise DRFNotFound([str(ex)]) from ex
 
@@ -62,7 +61,7 @@ def refresh_semester_listing(request: HttpRequest) -> HttpResponse:
         except IntegrityError:
             continue
 
-    schools = parse_schools(resp.text)
+    schools = parse_schools(soup)
     schools = School.objects.bulk_create(schools, 50, ignore_conflicts=True)
     schools_queryset = School.objects.filter(
         globalsearch_key__in=[f.globalsearch_key for f in schools]

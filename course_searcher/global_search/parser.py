@@ -10,9 +10,7 @@ logger = logging.getLogger("main")
 TERM_YEAR_REGEX = r" *(\d+) *(.+)"
 
 
-def parse_schools(document_str: str) -> list[School]:
-    soup = BeautifulSoup(document_str, "html.parser")
-
+def parse_schools(soup: BeautifulSoup) -> list[School]:
     checkboxes = soup.find_all("input", attrs={"name": "inst_selection"})
 
     schools: list[School] = []
@@ -27,9 +25,7 @@ def parse_schools(document_str: str) -> list[School]:
     return schools
 
 
-def get_terms_available(document_str: str) -> list[Term]:
-    soup = BeautifulSoup(document_str, "html.parser")
-
+def get_terms_available(soup: BeautifulSoup) -> list[Term]:
     select = soup.find("select", attrs={"name": "term_value"})
     if not select or not isinstance(select, Tag):
         return []
