@@ -7,9 +7,20 @@ from . import models
 
 @admin.register(models.School)
 class SchoolAdmin(admin.ModelAdmin[models.School]):
-    list_display = ("name", "globalsearch_key", "datetime_created")
+    list_display = ("name", "globalsearch_key", "is_preferred", "datetime_created")
     search_fields = ("name", "globalsearch_key")
     readonly_fields = ("datetime_created", "datetime_modified")
+
+    actions = ["toggle_is_preferred"]
+
+    @admin.action(description="Toggle 'Is Preferred' attribute")
+    def toggle_is_preferred(self, _request: HttpRequest, queryset: QuerySet[models.School]) -> None:
+        updated_schools: list[models.School] = []
+        for school in queryset:
+            school.is_preferred = not school.is_preferred
+            updated_schools.append(school)
+
+        models.School.objects.bulk_update(updated_schools, fields=["is_preferred"])
 
 
 @admin.register(models.Term)
@@ -20,31 +31,45 @@ class TermAdmin(admin.ModelAdmin[models.Term]):
     filter_horizontal = ("schools",)
     readonly_fields = ("datetime_created", "datetime_modified")
 
-    actions = ["mark_available", "mark_unavailable"]
+    actions = ["toggle_is_available"]
 
-    @admin.action(description="Mark selected terms as available")
-    def mark_available(self, _request: HttpRequest, queryset: QuerySet[models.Term]) -> None:
-        queryset.update(is_available=True)
+    @admin.action(description="Toggle 'Is Available' attribute")
+    def toggle_is_available(self, _request: HttpRequest, queryset: QuerySet[models.Term]) -> None:
+        updated_terms: list[models.Term] = []
+        for term in queryset:
+            term.is_available = not term.is_available
+            updated_terms.append(term)
 
-    @admin.action(description="Mark selected terms as unavailable")
-    def mark_unavailable(self, _request: HttpRequest, queryset: QuerySet[models.Term]) -> None:
-        queryset.update(is_available=False)
+        models.Term.objects.bulk_update(updated_terms, fields=["is_preferred"])
 
 
 @admin.register(models.CourseCareer)
 class CourseCareerAdmin(admin.ModelAdmin[models.CourseCareer]):
-    list_display = ("name",)
-    list_filter = ("name", "schools")
+    list_display = ("name", "globalsearch_key")
+    list_filter = ("name", "globalsearch_key", "schools")
     search_fields = ("school__name",)
     readonly_fields = ("datetime_created", "datetime_modified")
 
 
 @admin.register(models.Subject)
 class SubjectAdmin(admin.ModelAdmin[models.Subject]):
-    list_display = ("name", "short_name", "school", "term", "career")
-    list_filter = ("school", "term", "career")
+    list_display = ("name", "short_name", "is_preferred")
+    list_filter = ("schools",)
     search_fields = ("name", "short_name", "globalsearch_key")
     readonly_fields = ("datetime_created", "datetime_modified")
+
+    actions = ["toggle_is_preferred"]
+
+    @admin.action(description="Toggle 'Is Preferred' attribute")
+    def toggle_is_preferred(
+        self, _request: HttpRequest, queryset: QuerySet[models.Subject]
+    ) -> None:
+        updated_subjects: list[models.Subject] = []
+        for subject in queryset:
+            subject.is_preferred = not subject.is_preferred
+            updated_subjects.append(subject)
+
+        models.Subject.objects.bulk_update(updated_subjects, fields=["is_preferred"])
 
 
 @admin.register(models.Instructor)

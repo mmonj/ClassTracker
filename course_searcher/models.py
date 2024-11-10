@@ -12,6 +12,7 @@ class CommonModel(models.Model):
 class School(CommonModel):
     name = models.CharField(max_length=100)
     globalsearch_key = models.CharField(max_length=100, unique=True)
+    is_preferred = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.name
@@ -35,31 +36,14 @@ class Term(CommonModel):
         return f"{self.year} {self.name}"
 
 
-class CourseCareer(CommonModel):
-    class CareerType(models.TextChoices):
-        GRADUATE = "GRAD", "Graduate"
-        UNDERGRADUATE = "UGRD", "Undergraduate"
-
-    name = models.CharField(
-        max_length=20, choices=CareerType.choices, default=CareerType.UNDERGRADUATE, unique=True
-    )
-    schools = models.ManyToManyField(School, related_name="careers")
-
-    def __str__(self) -> str:
-        return f"{self.name}"
-
-
 class Subject(CommonModel):
     name = models.CharField(max_length=100)
     short_name = models.CharField(max_length=100)
-    globalsearch_key = models.TextField(max_length=100)
+    globalsearch_key = models.TextField(max_length=100, unique=True)
+    is_preferred = models.BooleanField(default=False)
 
-    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="subjects")
-    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="subjects")
-    career = models.ForeignKey(CourseCareer, on_delete=models.CASCADE, related_name="subjects")
-
-    class Meta:
-        unique_together = ("name", "school", "term", "career")
+    terms = models.ManyToManyField(Term, related_name="subjects")
+    schools = models.ManyToManyField(School, related_name="subjects")
 
     def __str__(self) -> str:
         return f"{self.name}"
@@ -71,6 +55,15 @@ class Instructor(CommonModel):
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+
+class CourseCareer(CommonModel):
+    name = models.CharField(max_length=50)
+    globalsearch_key = models.CharField(max_length=50, unique=True)
+    schools = models.ManyToManyField(School, related_name="careers")
+
+    def __str__(self) -> str:
+        return f"{self.name}"
 
 
 class Course(CommonModel):
