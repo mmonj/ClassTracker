@@ -1,4 +1,5 @@
 import logging
+import time
 
 from bs4 import BeautifulSoup
 from django.db import IntegrityError
@@ -109,5 +110,7 @@ def refresh_semester_data(request: HttpRequest, school_id: int, term_id: int) ->
         )
 
         course_careers, subjects = create_careers_and_subjects(subjects_page_soup, school, term)
+
+        time.sleep(0.5)
 
     return interfaces.BasicResponse().render(request)
