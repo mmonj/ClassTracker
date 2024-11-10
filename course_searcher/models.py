@@ -30,11 +30,15 @@ class Term(CommonModel):
     def __str__(self) -> str:
         return self.name
 
+    @property
+    def full_term_name(self) -> str:
+        return f"{self.year} {self.name}"
+
 
 class CourseCareer(CommonModel):
     class CareerType(models.TextChoices):
-        GRADUATE = "Graduate", "Graduate"
-        UNDERGRADUATE = "Undergraduate", "Undergraduate"
+        GRADUATE = "GRAD", "Graduate"
+        UNDERGRADUATE = "UGRD", "Undergraduate"
 
     name = models.CharField(
         max_length=20, choices=CareerType.choices, default=CareerType.UNDERGRADUATE, unique=True
