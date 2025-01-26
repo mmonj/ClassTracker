@@ -16,6 +16,7 @@ django-tasks-scheduler = "^2.1.0"
 requests = "^2.32.3"
 djangorestframework = "^3.15.2"
 beautifulsoup4 = "^4.12.3"
+lxml = "^5.3.0"
 
 
 [tool.poetry.group.dev.dependencies]
