@@ -29,7 +29,8 @@ ENV PYTHONUNBUFFERED=1 \
 
 
 RUN if [ "$ENV_TYPE" = "dev" ]; then \
-        apt-get install git -y \
+	apt-get update -y \
+        && apt-get install git -y \
     ;fi
 
 RUN adduser -u ${UID} --disabled-password --gecos "" appuser && chown -R appuser /app \
