@@ -89,12 +89,10 @@ class CourseAdmin(admin.ModelAdmin[models.Course]):
 
 @admin.register(models.CourseClass)
 class CourseClassAdmin(admin.ModelAdmin[models.CourseClass]):
-    list_display = ("course", "section", "instructor", "status", "instruction_mode", "term")
+    list_display = ("course", "section", "status", "instruction_mode", "term")
     list_filter = ("status", "instruction_mode", "term", "course__school")
     search_fields = (
         "section",
-        "instructor__first_name",
-        "instructor__last_name",
         "course__level",
         "course__title",
     )
