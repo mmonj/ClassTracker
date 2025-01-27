@@ -1,57 +1,61 @@
 import logging
-import re
+from typing import Iterable, cast
 
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, Comment, Doctype, PageElement, ProcessingInstruction, Tag
+
+from server.util import bulk_create_and_get
 
 from .. import models
 
 logger = logging.getLogger("main")
 
-TERM_YEAR_REGEX = r" *(\d+) *(.+)"
-
-
-def parse_schools(soup: BeautifulSoup) -> list[models.School]:
-    checkboxes = soup.find_all("input", attrs={"name": "inst_selection"})
-
-    schools: list[models.School] = []
-    for checkbox in checkboxes:
-        school_id = checkbox.get("value")
-        label = checkbox.find_next("label")
-
-        if label and school_id:
-            school = models.School(name=label.text.strip(), globalsearch_key=school_id)
-            schools.append(school)
-
-    return schools
-
 
 def get_terms_available(soup: BeautifulSoup) -> list[models.Term]:
-    select = soup.find("select", attrs={"name": "term_value"})
-    if not select or not isinstance(select, Tag):
+    term_select_elm = soup.find("select", attrs={"name": "term_value"})
+    if not term_select_elm or not isinstance(term_select_elm, Tag):
         return []
 
     terms: list[models.Term] = []
-    for option in select.find_all("option"):
-        value = option.get("value")
-        full_term_name = option.text.strip()
-        if value == "" or full_term_name == "":
+
+    for term_option in term_select_elm.find_all("option"):
+        global_search_key = term_option.get("value").strip()
+        full_term_name = term_option.text.strip()
+        if global_search_key == "" or full_term_name == "":
             continue
 
-        term_year_name_match = re.match(TERM_YEAR_REGEX, full_term_name)
+        term_name, term_year = models.Term.get_term_name_and_year(full_term_name)
 
-        if term_year_name_match is None:
+        if term_name is None or term_year is None:
             raise ValueError("Term_year_name match not found")
 
-        if value:
-            terms.append(
-                models.Term(
-                    name=term_year_name_match.group(2),
-                    year=int(term_year_name_match.group(1)),
-                    globalsearch_key=value,
-                )
+        terms.append(
+            models.Term(
+                name=term_name,
+                year=term_year,
+                globalsearch_key=global_search_key,
             )
+        )
 
     return terms
+
+
+def parse_schools(soup: BeautifulSoup) -> list[models.School]:
+    institution_checkboxes = soup.find_all("input", attrs={"name": "inst_selection"})
+
+    schools: list[models.School] = []
+    for institution_checkbox in institution_checkboxes:
+        school_globalsearch_key = institution_checkbox.get("value").strip()
+        school_name = institution_checkbox.find_next("label")
+
+        if school_name is None or school_globalsearch_key == "":
+            continue
+
+        school = models.School(
+            name=school_name.text.strip(), globalsearch_key=school_globalsearch_key
+        )
+        schools.append(school)
+
+    return schools
 
 
 def create_careers_and_subjects(
@@ -69,42 +73,59 @@ def create_careers_and_subjects(
     ]
 
     # Bulk create careers
-    models.CourseCareer.objects.bulk_create(
-        careers_to_create,
-        ignore_conflicts=True,
+    careers = bulk_create_and_get(
+        models.CourseCareer, careers_to_create, unique_fieldname="globalsearch_key"
     )
 
-    careers = models.CourseCareer.objects.filter(name__in=[f.name for f in careers_to_create])
-
-    # Add M2M relationship to school
-    for career in careers:
-        career.schools.add(school)
-
-    # Parse subjects
+    # Parse department
     subject_select = soup.select_one("#subject_ld")
     if not subject_select:
         raise ValueError("Element with selector #subject_ld not found")
 
     subjects_to_create: list[models.Subject] = []
-    for option in subject_select.select("option"):
-        value = option.get("value")
-        if not value:
+    for subject_option in subject_select.select("option"):
+        subject_globalsearch_key = subject_option.get("value")
+        if not subject_globalsearch_key:
             continue
 
         subjects_to_create.append(
             models.Subject(
-                name=option.text,
-                globalsearch_key=str(value),
-                short_name=str(value),
+                name=subject_option.text,
+                globalsearch_key=str(subject_globalsearch_key),
             )
         )
 
-    models.Subject.objects.bulk_create(subjects_to_create, ignore_conflicts=True)
-    subjects = models.Subject.objects.filter(
-        globalsearch_key__in=[f.globalsearch_key for f in subjects_to_create]
+    subjects = bulk_create_and_get(
+        models.Subject, subjects_to_create, unique_fieldname="globalsearch_key"
     )
 
     term.subjects.add(*subjects)
     school.subjects.add(*subjects)
 
+    term.careers.add(*careers)
+    school.careers.add(*careers)
+
     return list(careers), list(subjects)
+
+
+def _is_proper_tag_element(element: PageElement) -> bool:
+    return (
+        isinstance(element, Tag)
+        and element.name != "br"
+        and not isinstance(element, Comment | Doctype | ProcessingInstruction)
+    )
+
+
+def _find_next_tag_sibling(tag: Tag) -> Tag | None:
+    next_sibling = tag.next_sibling
+
+    while next_sibling is not None:
+        if _is_proper_tag_element(next_sibling):
+            return cast(Tag, next_sibling)
+        next_sibling = next_sibling.next_sibling
+
+    return None
+
+
+def _filter_for_tag_elements(elements: Iterable[Tag | PageElement]) -> list[Tag]:
+    return [cast(Tag, elm) for elm in elements if _is_proper_tag_element(elm)]
