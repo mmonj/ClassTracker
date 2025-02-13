@@ -1,116 +1,136 @@
 from django.contrib import admin
+from django.db import models
 from django.db.models import QuerySet
 from django.http import HttpRequest
 
-from . import models
+from .models import (
+    Course,
+    CourseCareer,
+    CourseSection,
+    InstructionEntry,
+    Instructor,
+    School,
+    Subject,
+    Term,
+)
 
 
-@admin.register(models.School)
-class SchoolAdmin(admin.ModelAdmin[models.School]):
+@admin.register(School)
+class SchoolAdmin(admin.ModelAdmin[School]):
     list_display = ("name", "globalsearch_key", "is_preferred", "datetime_created")
     search_fields = ("name", "globalsearch_key")
     readonly_fields = ("datetime_created", "datetime_modified")
+    list_filter = ("is_preferred",)
+    ordering = ("name",)
 
     actions = ["toggle_is_preferred"]
 
     @admin.action(description="Toggle 'Is Preferred' attribute")
-    def toggle_is_preferred(self, _request: HttpRequest, queryset: QuerySet[models.School]) -> None:
-        updated_schools: list[models.School] = []
-        for school in queryset:
-            school.is_preferred = not school.is_preferred
-            updated_schools.append(school)
-
-        models.School.objects.bulk_update(updated_schools, fields=["is_preferred"])
+    def toggle_is_preferred(self, _request: HttpRequest, queryset: QuerySet[School]) -> None:
+        queryset.update(is_preferred=~models.F("is_preferred"))
 
 
-@admin.register(models.Term)
-class TermAdmin(admin.ModelAdmin[models.Term]):
-    list_display = ("name", "year", "globalsearch_key", "is_available")
-    list_filter = ("year", "schools", "is_available")
+@admin.register(Term)
+class TermAdmin(admin.ModelAdmin[Term]):
+    list_display = ("name", "year", "globalsearch_key", "is_available", "is_preferred")
+    list_filter = ("year", "schools", "is_available", "is_preferred")
     search_fields = ("name", "globalsearch_key")
     filter_horizontal = ("schools",)
     readonly_fields = ("datetime_created", "datetime_modified")
+    ordering = ("-year", "name")
 
-    actions = ["toggle_is_available"]
+    actions = ["toggle_is_available", "toggle_is_preferred"]
 
     @admin.action(description="Toggle 'Is Available' attribute")
-    def toggle_is_available(self, _request: HttpRequest, queryset: QuerySet[models.Term]) -> None:
-        updated_terms: list[models.Term] = []
-        for term in queryset:
-            term.is_available = not term.is_available
-            updated_terms.append(term)
+    def toggle_is_available(self, _request: HttpRequest, queryset: QuerySet[Term]) -> None:
+        queryset.update(is_available=~models.F("is_available"))
 
-        models.Term.objects.bulk_update(updated_terms, fields=["is_preferred"])
-
-
-@admin.register(models.CourseCareer)
-class CourseCareerAdmin(admin.ModelAdmin[models.CourseCareer]):
-    list_display = ("name", "globalsearch_key")
-    list_filter = ("name", "globalsearch_key", "schools")
-    search_fields = ("school__name",)
-    readonly_fields = ("datetime_created", "datetime_modified")
+    @admin.action(description="Toggle 'Is Preferred' attribute")
+    def toggle_is_preferred(self, _request: HttpRequest, queryset: QuerySet[Term]) -> None:
+        queryset.update(is_preferred=~models.F("is_preferred"))
 
 
-@admin.register(models.Subject)
-class SubjectAdmin(admin.ModelAdmin[models.Subject]):
-    list_display = ("name", "is_preferred")
-    list_filter = ("schools",)
+@admin.register(CourseCareer)
+class CourseCareerAdmin(admin.ModelAdmin[CourseCareer]):
+    list_display = ("name", "globalsearch_key", "is_preferred")
+    list_filter = ("name", "globalsearch_key", "schools", "terms", "is_preferred")
     search_fields = ("name", "globalsearch_key")
+    filter_horizontal = ("schools", "terms")
     readonly_fields = ("datetime_created", "datetime_modified")
+    ordering = ("name",)
+
+
+@admin.register(Subject)
+class SubjectAdmin(admin.ModelAdmin[Subject]):
+    list_display = ("name", "globalsearch_key", "is_preferred")
+    list_filter = ("schools", "is_preferred")
+    search_fields = ("name", "globalsearch_key")
+    filter_horizontal = ("schools", "terms")
+    readonly_fields = ("datetime_created", "datetime_modified")
+    ordering = ("name",)
 
     actions = ["toggle_is_preferred"]
 
     @admin.action(description="Toggle 'Is Preferred' attribute")
-    def toggle_is_preferred(
-        self, _request: HttpRequest, queryset: QuerySet[models.Subject]
-    ) -> None:
-        updated_subjects: list[models.Subject] = []
-        for subject in queryset:
-            subject.is_preferred = not subject.is_preferred
-            updated_subjects.append(subject)
-
-        models.Subject.objects.bulk_update(updated_subjects, fields=["is_preferred"])
+    def toggle_is_preferred(self, _request: HttpRequest, queryset: QuerySet[Subject]) -> None:
+        queryset.update(is_preferred=~models.F("is_preferred"))
 
 
-@admin.register(models.Instructor)
-class InstructorAdmin(admin.ModelAdmin[models.Instructor]):
-    list_display = ("name", "datetime_created")
+@admin.register(Instructor)
+class InstructorAdmin(admin.ModelAdmin[Instructor]):
+    list_display = ("name", "school", "datetime_created")
+    list_filter = ("school", "terms")
     search_fields = ("name",)
+    filter_horizontal = ("terms",)
     readonly_fields = ("datetime_created", "datetime_modified")
+    ordering = ("name",)
 
 
-@admin.register(models.Course)
-class CourseAdmin(admin.ModelAdmin[models.Course]):
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin[Course]):
     list_display = ("code", "level", "title", "career", "school")
-    list_filter = ("career", "school")
+    list_filter = ("career", "school", "terms")
     search_fields = ("code", "level", "title")
+    filter_horizontal = ("terms",)
+    readonly_fields = ("datetime_created", "datetime_modified")
+    ordering = ("code", "level")
+
+
+class InstructionEntryInline(admin.TabularInline[InstructionEntry, CourseSection]):
+    model = InstructionEntry
+    extra = 1
     readonly_fields = ("datetime_created", "datetime_modified")
 
 
-@admin.register(models.CourseSection)
-class CourseSectionAdmin(admin.ModelAdmin[models.CourseSection]):
+@admin.register(CourseSection)
+class CourseSectionAdmin(admin.ModelAdmin[CourseSection]):
     list_display = ("course", "section", "status", "instruction_mode", "term")
     list_filter = ("status", "instruction_mode", "term", "course__school")
-    search_fields = (
-        "section",
-        "course__level",
-        "course__title",
-    )
+    search_fields = ("section", "course__level", "course__title")
     readonly_fields = ("datetime_created", "datetime_modified")
+    ordering = ("course", "section")
+
+    inlines = [InstructionEntryInline]
+
     actions = ["mark_as_open", "mark_as_closed", "mark_as_waitlisted"]
 
     @admin.action(description="Mark selected classes as open")
-    def mark_as_open(self, _request: HttpRequest, queryset: QuerySet[models.CourseSection]) -> None:
-        queryset.update(status=models.CourseSection.StatusChoices.OPEN)
+    def mark_as_open(self, _request: HttpRequest, queryset: QuerySet[CourseSection]) -> None:
+        queryset.update(status=CourseSection.StatusChoices.OPEN)
 
     @admin.action(description="Mark selected classes as closed")
-    def mark_as_closed(
-        self, _request: HttpRequest, queryset: QuerySet[models.CourseSection]
-    ) -> None:
-        queryset.update(status=models.CourseSection.StatusChoices.CLOSED)
+    def mark_as_closed(self, _request: HttpRequest, queryset: QuerySet[CourseSection]) -> None:
+        queryset.update(status=CourseSection.StatusChoices.CLOSED)
 
     @admin.action(description="Mark selected classes as waitlisted")
-    def mark_as_waitlisted(
-        self, _request: HttpRequest, queryset: QuerySet[models.CourseSection]
-    ) -> None:
-        queryset.update(status=models.CourseSection.StatusChoices.WAITLISTED)
+    def mark_as_waitlisted(self, _request: HttpRequest, queryset: QuerySet[CourseSection]) -> None:
+        queryset.update(status=CourseSection.StatusChoices.WAITLISTED)
+
+
+@admin.register(InstructionEntry)
+class InstructionEntryAdmin(admin.ModelAdmin[InstructionEntry]):
+    list_display = ("instructor", "course_section", "days_and_times", "room", "term")
+    list_filter = ("term", "course_section__course", "instructor")
+    search_fields = ("instructor__name", "course_section__course__title", "room")
+    readonly_fields = ("datetime_created", "datetime_modified")
+    ordering = ("course_section", "instructor")
