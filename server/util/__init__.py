@@ -29,6 +29,20 @@ def bulk_create_and_get(
 
     filter_criteria = {}
     for field in unique_fieldnames:
-        filter_criteria[f"{field}__in"] = {getattr(item, field) for item in items}
+        if "__" in field:
+            *related_fields, final_field = field.split("__")
+            filter_values = set()
+            for item in items:
+                related_obj = item
+                for attr in related_fields:
+                    related_obj = getattr(related_obj, attr, None)  # type: ignore [assignment]
+                    if related_obj is None:
+                        break
+                if related_obj is not None:
+                    filter_values.add(getattr(related_obj, final_field, None))
+        else:
+            filter_values = {getattr(item, field) for item in items}
+
+        filter_criteria[f"{field}__in"] = filter_values
 
     return model_class.objects.filter(**filter_criteria)  # type: ignore [no-any-return, attr-defined]
