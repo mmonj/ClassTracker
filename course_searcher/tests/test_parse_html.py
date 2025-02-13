@@ -1,9 +1,9 @@
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from bs4 import BeautifulSoup
 from django.db import IntegrityError
-from django.db.models import QuerySet
 from django.test import TestCase
 
 from server.util import bulk_create_and_get
@@ -16,6 +16,9 @@ from ..global_search.parser import (
 )
 from ..models import CourseCareer, CourseSection, School, Subject, Term
 from ..util import create_db_courses
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
 
 
 class HtmlParser(TestCase):
