@@ -28,7 +28,7 @@ class ModelTests(TestCase):
         self.csci_subject.terms.add(self.term1)
         self.csci_subject.schools.add(self.school1)
 
-        self.instructor = models.Instructor.objects.create(name="John Doe")
+        self.instructor = models.Instructor.objects.create(name="John Doe", school=self.school1)
 
         self.course = models.Course.objects.create(
             code="CSCI",
