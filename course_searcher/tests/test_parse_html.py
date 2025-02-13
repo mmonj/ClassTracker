@@ -1,15 +1,21 @@
+import time
 from pathlib import Path
 
 from bs4 import BeautifulSoup
 from django.db import IntegrityError
+from django.db.models import QuerySet
 from django.test import TestCase
+
+from server.util import bulk_create_and_get
 
 from ..global_search.parser import (
     create_careers_and_subjects,
     get_terms_available,
+    parse_gs_courses,
     parse_schools,
 )
-from ..models import CourseCareer, School, Subject, Term
+from ..models import CourseCareer, CourseSection, School, Subject, Term
+from ..util import create_db_courses
 
 
 class HtmlParser(TestCase):
@@ -37,7 +43,9 @@ class HtmlParser(TestCase):
         CourseCareer.objects.filter(globalsearch_key="UGRD").update(is_preferred=True)
         Subject.objects.filter(globalsearch_key="CMSC").update(is_preferred=True)
 
-        self._refresh_class_data(qc_school.id, fall24.id)
+        csci_subject = Subject.objects.get(globalsearch_key="CMSC")
+
+        self._refresh_class_data(qc_school.id, fall24.id, csci_subject.id)
 
     def _parse_main_page(self) -> tuple[School, Term]:
         terms_parsed = get_terms_available(self.main_page_soup)
@@ -53,11 +61,8 @@ class HtmlParser(TestCase):
                 continue
 
         schools = sorted(parse_schools(self.main_page_soup), key=lambda school: school.name)
-
-        schools = School.objects.bulk_create(schools, 50, ignore_conflicts=True)
-        schools_db = School.objects.filter(
-            globalsearch_key__in=[f.globalsearch_key for f in schools]
-        )
+        schools_db = bulk_create_and_get(School, schools, unique_fieldnames=["globalsearch_key"])
+        self.assertTrue(len(schools_db) > 0)
 
         Term.objects.all().update(is_available=False)
 
@@ -116,24 +121,32 @@ class HtmlParser(TestCase):
             self.assertTrue(len(term.subjects.all()) > 0)
             self.assertTrue(len(term.careers.all()) > 0)
 
-    def _refresh_class_data(self, school_id: int, term_id: int) -> None:
+    def _refresh_class_data(self, school_id: int, term_id: int, subject_id: int) -> None:
         schools = (
             list(School.objects.prefetch_related("terms").all())
             if school_id == 0
             else [School.objects.prefetch_related("terms").get(id=school_id)]
         )
 
+        term = Term.objects.get(id=term_id)
+
+        num_csci_courses_expected = 31
+        minimum_num_sections_expected = 100
+
         for school in schools:
             print(f"Processing school: {school!r}")
-
-            term = Term.objects.get(id=term_id)
 
             course_careers = CourseCareer.objects.filter(terms__id=term_id, schools__id=school.id)
             for career in course_careers:
                 print(repr(career))
             print()
 
-            subjects = Subject.objects.filter(terms__id=term_id, schools__id=school.id)
+            subjects: QuerySet[Subject]
+            if subject_id == 0:
+                subjects = Subject.objects.filter(terms__id=term_id, schools__id=school.id)
+            else:
+                subjects = Subject.objects.filter(id=subject_id)
+
             for subject in subjects:
                 print(repr(subject))
             print()
@@ -142,6 +155,22 @@ class HtmlParser(TestCase):
             # get_subject_selection_page(session, school, term)
 
             for career in course_careers:
-                print(f"Processing career: {career!r}")
+                #### TODO: REMOVE
+                if career.globalsearch_key != "UGRD":
+                    continue
+                for subject in subjects:
+                    #### TODO: REMOVE
+                    if subject.globalsearch_key != "CMSC":
+                        continue
 
-                # class_result_soup = get_classlist_result_page(session, career, subject)
+                    # class_result_soup = get_classlist_result_page(session, career, subject)
+                    class_result_soup = self.class_results_page_soup
+
+                    gs_courses = parse_gs_courses(class_result_soup)
+                    courses = create_db_courses(gs_courses, subject, career, school, term)
+
+                    self.assertTrue(len(courses) == num_csci_courses_expected)
+
+                    time.sleep(0.5)
+
+        self.assertTrue(len(CourseSection.objects.all()) > minimum_num_sections_expected)
