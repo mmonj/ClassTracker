@@ -96,8 +96,9 @@ class Subject(CommonModel):
 class Course(CommonModel):
     # custom shortname (eg. CSCI, MAC, MATH), not associated with globalsearch_key (such as CMSC)
     code = models.CharField(max_length=100, default="", verbose_name="Course Code")
-    level = models.CharField(max_length=10)  # eg. "316"
+    level = models.CharField(max_length=10, default="")  # eg. "316"
     title = models.CharField(max_length=100)  # eg. "Principles of Programming Lang"
+    designation = models.CharField(max_length=10, default="")  # eg. W (writing-intensive)
 
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="courses")
     career = models.ForeignKey(CourseCareer, on_delete=models.CASCADE, related_name="courses")
@@ -124,6 +125,7 @@ class Course(CommonModel):
             code=gs_course.code,
             level=gs_course.level,
             title=gs_course.title,
+            designation="W" if gs_course.level.endswith("W") else "",
         )
         course.subject = subject
         course.career = career
