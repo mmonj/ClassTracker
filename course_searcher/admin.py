@@ -53,9 +53,9 @@ class CourseCareerAdmin(admin.ModelAdmin[models.CourseCareer]):
 
 @admin.register(models.Subject)
 class SubjectAdmin(admin.ModelAdmin[models.Subject]):
-    list_display = ("name", "short_name", "is_preferred")
+    list_display = ("name", "is_preferred")
     list_filter = ("schools",)
-    search_fields = ("name", "short_name", "globalsearch_key")
+    search_fields = ("name", "globalsearch_key")
     readonly_fields = ("datetime_created", "datetime_modified")
 
     actions = ["toggle_is_preferred"]
@@ -74,21 +74,21 @@ class SubjectAdmin(admin.ModelAdmin[models.Subject]):
 
 @admin.register(models.Instructor)
 class InstructorAdmin(admin.ModelAdmin[models.Instructor]):
-    list_display = ("first_name", "last_name", "datetime_created")
-    search_fields = ("first_name", "last_name")
+    list_display = ("name", "datetime_created")
+    search_fields = ("name",)
     readonly_fields = ("datetime_created", "datetime_modified")
 
 
 @admin.register(models.Course)
 class CourseAdmin(admin.ModelAdmin[models.Course]):
-    list_display = ("level", "title", "career", "school")
+    list_display = ("code", "level", "title", "career", "school")
     list_filter = ("career", "school")
-    search_fields = ("level", "title")
+    search_fields = ("code", "level", "title")
     readonly_fields = ("datetime_created", "datetime_modified")
 
 
-@admin.register(models.CourseClass)
-class CourseClassAdmin(admin.ModelAdmin[models.CourseClass]):
+@admin.register(models.CourseSection)
+class CourseSectionAdmin(admin.ModelAdmin[models.CourseSection]):
     list_display = ("course", "section", "status", "instruction_mode", "term")
     list_filter = ("status", "instruction_mode", "term", "course__school")
     search_fields = (
@@ -100,15 +100,17 @@ class CourseClassAdmin(admin.ModelAdmin[models.CourseClass]):
     actions = ["mark_as_open", "mark_as_closed", "mark_as_waitlisted"]
 
     @admin.action(description="Mark selected classes as open")
-    def mark_as_open(self, _request: HttpRequest, queryset: QuerySet[models.CourseClass]) -> None:
-        queryset.update(status=models.CourseClass.StatusChoices.OPEN)
+    def mark_as_open(self, _request: HttpRequest, queryset: QuerySet[models.CourseSection]) -> None:
+        queryset.update(status=models.CourseSection.StatusChoices.OPEN)
 
     @admin.action(description="Mark selected classes as closed")
-    def mark_as_closed(self, _request: HttpRequest, queryset: QuerySet[models.CourseClass]) -> None:
-        queryset.update(status=models.CourseClass.StatusChoices.CLOSED)
+    def mark_as_closed(
+        self, _request: HttpRequest, queryset: QuerySet[models.CourseSection]
+    ) -> None:
+        queryset.update(status=models.CourseSection.StatusChoices.CLOSED)
 
     @admin.action(description="Mark selected classes as waitlisted")
     def mark_as_waitlisted(
-        self, _request: HttpRequest, queryset: QuerySet[models.CourseClass]
+        self, _request: HttpRequest, queryset: QuerySet[models.CourseSection]
     ) -> None:
-        queryset.update(status=models.CourseClass.StatusChoices.WAITLISTED)
+        queryset.update(status=models.CourseSection.StatusChoices.WAITLISTED)
