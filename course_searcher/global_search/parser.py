@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup, Comment, Doctype, PageElement, ProcessingInstruct
 from server.util import bulk_create_and_get
 
 from .. import models
+from .types import GSCourse, GSCourseSection
 
 logger = logging.getLogger("main")
 
@@ -74,7 +75,7 @@ def create_careers_and_subjects(
 
     # Bulk create careers
     careers = bulk_create_and_get(
-        models.CourseCareer, careers_to_create, unique_fieldname="globalsearch_key"
+        models.CourseCareer, careers_to_create, unique_fieldnames=["globalsearch_key"]
     )
 
     # Parse department
@@ -96,7 +97,7 @@ def create_careers_and_subjects(
         )
 
     subjects = bulk_create_and_get(
-        models.Subject, subjects_to_create, unique_fieldname="globalsearch_key"
+        models.Subject, subjects_to_create, unique_fieldnames=["globalsearch_key"]
     )
 
     term.subjects.add(*subjects)
@@ -106,6 +107,36 @@ def create_careers_and_subjects(
     school.careers.add(*careers)
 
     return list(careers), list(subjects)
+
+
+def parse_gs_courses(course_results_soup: BeautifulSoup) -> list[GSCourse]:
+    course_label_containers = course_results_soup.select("[id^='content'] .testing_msg")
+    courses: list[GSCourse] = []
+
+    for course_label_container in course_label_containers:
+        course_full_title = course_label_container.text.replace("\xa0", " ").strip()
+        course_sections_container = _find_next_tag_sibling(course_label_container)
+
+        if course_sections_container is None:
+            value_error = ValueError("No next sibling found")
+            logger.exception(value_error)
+            raise value_error
+        if not course_sections_container.has_attr("id") or not str(
+            course_sections_container.get("id")
+        ).startswith("contentDivImg"):
+            logger.info("No class listing for %s", course_full_title)
+            continue
+
+        course_sections = [
+            GSCourseSection(_filter_for_tag_elements(course_section_attrs_container.children))
+            for course_section_attrs_container in course_sections_container.select(
+                "table.classinfo > tbody > tr"
+            )
+        ]
+
+        courses.append(GSCourse(course_full_title, course_sections))
+
+    return courses
 
 
 def _is_proper_tag_element(element: PageElement) -> bool:
