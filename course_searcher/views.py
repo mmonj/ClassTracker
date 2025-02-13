@@ -1,4 +1,6 @@
 import logging
+import time
+from typing import TYPE_CHECKING
 
 from bs4 import BeautifulSoup
 from django.contrib.auth import authenticate, login, logout
@@ -17,11 +19,21 @@ from server.util import bulk_create_and_get
 from . import interfaces, templates
 from .global_search import init_http_retrier
 from .global_search.navigator import (
+    get_classlist_result_page,
     get_main_page,
     get_subject_selection_page,
 )
-from .global_search.parser import create_careers_and_subjects, get_terms_available, parse_schools
-from .models import School, Term
+from .global_search.parser import (
+    create_careers_and_subjects,
+    get_terms_available,
+    parse_gs_courses,
+    parse_schools,
+)
+from .models import CourseCareer, School, Subject, Term
+from .util import create_db_courses
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
 
 logger = logging.getLogger("main")
 
@@ -140,5 +152,44 @@ def refresh_semester_data(request: HttpRequest, school_id: int, term_id: int) ->
         )
 
         course_careers, subjects = create_careers_and_subjects(subjects_page_soup, school, term)
+
+    return interfaces.BasicResponse().render(request)
+
+
+def refresh_class_data(
+    request: HttpRequest, school_id: int, term_id: int, subject_id: int
+) -> HttpResponse:
+    schools = (
+        list(School.objects.prefetch_related("terms").all())
+        if school_id == 0
+        else [School.objects.prefetch_related("terms").get(id=school_id)]
+    )
+
+    term = Term.objects.get(id=term_id)
+
+    for school in schools:
+        logger.info("Processing school: %s", repr(school))
+
+        course_careers = CourseCareer.objects.filter(terms__id=term_id, schools__id=school.id)
+
+        subjects: QuerySet[Subject]
+        if subject_id == 0:
+            subjects = Subject.objects.filter(terms__id=term_id, schools__id=school.id)
+        else:
+            subjects = Subject.objects.filter(id=subject_id)
+
+        session = init_http_retrier()
+        get_subject_selection_page(session, school, term)
+
+        for career in course_careers:
+            for subject in subjects:
+                class_result_soup = BeautifulSoup(
+                    get_classlist_result_page(session, career, subject), "lxml"
+                )
+
+                gs_courses = parse_gs_courses(class_result_soup)
+                create_db_courses(gs_courses, subject, career, school, term)
+
+                time.sleep(0.5)
 
     return interfaces.BasicResponse().render(request)

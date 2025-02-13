@@ -16,4 +16,9 @@ urlpatterns = [
         views.refresh_semester_data,
         name="refresh_semester_data",
     ),
+    path(
+        "refresh_class_data/<int:school_id>/<int:term_id>/<int:subject_id>/",
+        views.refresh_class_data,
+        name="refresh_class_data",
+    ),
 ]
