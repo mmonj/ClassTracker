@@ -1,36 +1,33 @@
 import logging
-import time
 from typing import Callable
 
-from requests import RequestException, Response
+import requests
+from requests import RequestException, Response, Session
+from requests.adapters import HTTPAdapter, Retry
+
+from .types import Failure, Result, Success
 
 logger = logging.getLogger("main")
 
 
-def get_response(
-    callback: Callable[[], Response],
-    max_retries: int = 2,
-    delay_secs: float = 2.0,
-) -> Response:
-    attempts = 0
-    while attempts < max_retries:
-        try:
-            attempts += 1
-            resp = callback()
+def init_http_retrier(num_retries: int = 3, backoff_factor: float = 0.1) -> Session:
+    session = requests.Session()
 
-            if not resp.ok:
-                if attempts >= max_retries:
-                    resp.raise_for_status()
-                time.sleep(delay_secs)
-                continue
+    retry_strategy = Retry(
+        total=num_retries, backoff_factor=backoff_factor, status_forcelist=[500, 502, 503, 504]
+    )
 
-            return resp
+    session.mount("http://", HTTPAdapter(max_retries=retry_strategy))
+    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
 
-        except RequestException as _exc:
-            if attempts >= max_retries:
-                raise
+    return session
 
-            time.sleep(delay_secs)
-            continue
 
-    raise RequestException(f"Failed after {max_retries} attempts")
+def get_response_result(
+    request_callback: Callable[[], Response],
+) -> Result[Response, RequestException]:
+    try:
+        resp = request_callback()
+        return Success(value=resp)
+    except RequestException as exc:
+        return Failure(err=exc)
