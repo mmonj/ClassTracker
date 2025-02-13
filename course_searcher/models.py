@@ -151,7 +151,7 @@ class CourseSection(CommonModel):
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="classes")
 
     class Meta:
-        verbose_name_plural = "Course Classes"
+        verbose_name_plural = "Course Sections"
         ordering = ("course", "section")
 
     def __str__(self) -> str:
