@@ -22,16 +22,16 @@ class ModelTests(TestCase):
 
         self.csci_subject = models.Subject.objects.create(
             name="Computer Science",
-            short_name="CS",
             globalsearch_key="CMSC",
         )
 
         self.csci_subject.terms.add(self.term1)
         self.csci_subject.schools.add(self.school1)
 
-        self.instructor = models.Instructor.objects.create(first_name="John", last_name="Doe")
+        self.instructor = models.Instructor.objects.create(name="John Doe")
 
         self.course = models.Course.objects.create(
+            code="CSCI",
             level="316",
             title="Programming Languages",
             career=self.undergrad_course_career,
@@ -58,24 +58,23 @@ class ModelTests(TestCase):
         with self.assertRaises(IntegrityError):
             models.Subject.objects.create(
                 name="Computer Science",
-                short_name="CS",
                 globalsearch_key="CMSC",
             )
 
-    def test_course_class_creation(self) -> None:
-        course_class = models.CourseClass.objects.create(
+    def test_course_section_creation(self) -> None:
+        course_section = models.CourseSection.objects.create(
             course=self.course,
             section="121-LEC Regular",
-            status=models.CourseClass.StatusChoices.OPEN,
+            status=models.CourseSection.StatusChoices.OPEN,
             instruction_mode="In Person",
             term=self.term1,
         )
 
         with self.assertRaises(IntegrityError):
-            models.CourseClass.objects.create(
+            models.CourseSection.objects.create(
                 course=self.course,
-                section=course_class.section,  # duplicate section for same course
-                status=models.CourseClass.StatusChoices.CLOSED,
+                section=course_section.section,  # duplicate section for same course
+                status=models.CourseSection.StatusChoices.CLOSED,
                 instruction_mode="Hybrid",
-                term=course_class.term,
+                term=course_section.term,
             )
