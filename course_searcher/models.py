@@ -1,11 +1,18 @@
+import datetime
 import re
 
+import pytz
 from django.db import models
 
 from .global_search.types import GSCourse, GSCourseSection
 
 TTermName = str
 TTermYear = int
+
+BuildingName = str
+RoomNumber = str
+
+NYC_TZ = pytz.timezone("America/New_York")
 
 
 class CommonModel(models.Model):
@@ -198,10 +205,36 @@ class Instructor(CommonModel):
         return f"<Instructor(id={self.id}, full_name='{self.name}')>"
 
 
+class Day(models.Model):
+    class DayChoices(models.TextChoices):
+        MONDAY = ("Mo", "Monday")
+        TUESDAY = ("Tu", "Tuesday")
+        WEDNESDAY = ("We", "Wednesday")
+        THURSDAY = ("Th", "Thursday")
+        FRIDAY = ("Fr", "Friday")
+        SATURDAY = ("Sa", "Saturday")
+        SUNDAY = ("Su", "Sunday")
+
+    name = models.CharField(max_length=10, choices=DayChoices.choices, unique=True)
+
+    def __str__(self) -> str:
+        return self.get_name_display()
+
+    def __repr__(self) -> str:
+        return f"<Day(id={self.id}, name='{self.get_name_display()}')>"
+
+
 class InstructionEntry(CommonModel):
-    days_and_times = models.CharField(max_length=100)
-    room = models.CharField(max_length=50)
-    meeting_dates = models.CharField(max_length=100)
+    days = models.ManyToManyField(Day, related_name="instruction_entries")
+    start_time = models.TimeField()  # eg. 10:45AM
+    end_time = models.TimeField()  # eg. 12:00PM
+
+    building = models.CharField(max_length=100)  # Extracted from `room`
+    room_number = models.CharField(max_length=20)  # Extracted from `room`
+    floor_number = models.CharField(max_length=20)
+
+    start_date = models.DateField()
+    end_date = models.DateField()
 
     instructor = models.ForeignKey(
         Instructor, on_delete=models.CASCADE, related_name="instruction_entries"
@@ -212,13 +245,86 @@ class InstructionEntry(CommonModel):
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="instruction_entries")
 
     class Meta:
-        unique_together = ("term", "course_section", "days_and_times", "meeting_dates", "room")
+        unique_together = (
+            "term",
+            "course_section",
+            "start_time",
+            "end_time",
+            "start_date",
+            "end_date",
+            "building",
+            "room_number",
+        )
 
     def __str__(self) -> str:
-        return f"Instruction Entry: {self.id}"
+        days_display = ", ".join(day.get_name_display() for day in self.days.all())
+        return f"{days_display} {self.start_time.strftime('%I:%M %p')} - {self.end_time.strftime('%I:%M %p')} in {self.building} {self.room_number}"
 
     def __repr__(self) -> str:
-        return f"<InstructionEntry(id={self.id}, room='{self.room}', instructor_id={self.instructor.id})>"
+        days_display = ", ".join(day.get_name_display() for day in self.days.all())
+        return f"<InstructionEntry(id={self.id}, days='{days_display}', start_time={self.start_time.strftime('%I:%M %p')}, end_time={self.end_time.strftime('%I:%M %p')}, building='{self.building}', room_number='{self.room_number}')>"
+
+    @staticmethod
+    def parse_days(days_str: str) -> list[Day]:
+        """Convert a string like 'TuTh' into a list of Day objects."""
+        day_mapping = {d.value: d for d in Day.DayChoices}
+        return [
+            Day.objects.get_or_create(name=day_mapping[abbr])[0]
+            for abbr in [days_str[i : i + 2] for i in range(0, len(days_str), 2)]
+        ]
+
+    @staticmethod
+    def parse_meeting_dates(meeting_dates: str) -> tuple[datetime.date, datetime.date]:
+        """Convert '01/25/2025 - 05/22/2025' into (start_date, end_date) and adjust to NYC timezone."""
+        start_str, end_str = meeting_dates.split(" - ")
+
+        start_naive = datetime.datetime.strptime(start_str, "%m/%d/%Y")  # noqa: DTZ007
+        end_naive = datetime.datetime.strptime(end_str, "%m/%d/%Y")  # noqa: DTZ007
+
+        start_nyc = NYC_TZ.localize(start_naive)
+        end_nyc = NYC_TZ.localize(end_naive)
+
+        return start_nyc.date(), end_nyc.date()
+
+    @staticmethod
+    def parse_room(room_str: str) -> tuple[BuildingName, RoomNumber]:
+        """Convert strings like 'Kiely Hall 258' into ('Kiely Hall', '258')."""
+        parts = room_str.rsplit(" ", 1)
+        if len(parts) > 1:
+            return (parts[0], parts[1])
+        raise ValueError(f"No space found in {room_str} to separate building and room number")
+
+    @staticmethod
+    def parse_floor_number(room_number: str) -> str:
+        floor_number_re = re.compile("[a-z]*(0-9)", flags=re.IGNORECASE)
+        match = floor_number_re.match(room_number)
+
+        if match is None:
+            raise ValueError(f"{room_number} has no floor number")
+
+        return match.group(1)
+
+    @staticmethod
+    def parse_days_and_times(
+        days_and_times: str,
+    ) -> tuple[list[Day], datetime.time, datetime.time]:
+        """Convert 'TuTh 5:00PM - 5:30PM' into a tuple of ([listDay], start_time, end_time) using NYC as the timezone"""
+        parts = days_and_times.split()
+        days_part = parts[0]  # eg. yields 'TuTh'
+        time_part = parts[1:]  # eg yields ['5:00PM', '-', '5:30PM']
+
+        start_time_naive = datetime.datetime.strptime(time_part[0], "%I:%M%p")  # noqa: DTZ007
+        end_time_naive = datetime.datetime.strptime(time_part[2], "%I:%M%p")  # noqa: DTZ007
+
+        start_time_nyc = NYC_TZ.localize(start_time_naive)
+        end_time_nyc = NYC_TZ.localize(end_time_naive)
+
+        start_time = start_time_nyc.time()
+        end_time = end_time_nyc.time()
+
+        days = InstructionEntry.parse_days(days_part)
+
+        return days, start_time, end_time
 
     @staticmethod
     def entries_from_gs_course_section(
@@ -236,15 +342,25 @@ class InstructionEntry(CommonModel):
             gs_course_section.meeting_dates.split("\n"),
             strict=True,
         ):
-            instruction_entry = InstructionEntry(
-                days_and_times=days_and_times,
-                room=room,
-                meeting_dates=meeting_dates,
+            days, start_time, end_time = InstructionEntry.parse_days_and_times(days_and_times)
+            start_date, end_date = InstructionEntry.parse_meeting_dates(meeting_dates)
+            building, room_number = InstructionEntry.parse_room(room)
+            floor_number = InstructionEntry.parse_floor_number(room_number)
+
+            instruction_entry = InstructionEntry.objects.create(
+                start_time=start_time,
+                end_time=end_time,
+                start_date=start_date,
+                end_date=end_date,
+                building=building,
+                room_number=room_number,
+                floor_number=floor_number,
                 instructor=name_to_instructors_map[instructor_name],
                 course_section=course_section,
                 term=term,
             )
 
+            instruction_entry.days.set(days)
             instruction_entries.append(instruction_entry)
 
         return instruction_entries
