@@ -53,9 +53,12 @@ def create_db_courses(
                     unique_fieldnames=[
                         "term__id",
                         "course_section__id",
-                        "days_and_times",
-                        "meeting_dates",
-                        "room",
+                        "start_time",
+                        "end_time",
+                        "start_date",
+                        "end_date",
+                        "building",
+                        "room_number",
                     ],
                 )
             )
