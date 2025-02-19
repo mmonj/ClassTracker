@@ -31,11 +31,11 @@ class GSCourseSection:
     unique_id: str  # gathered from url query param
     number: str
     section_name: str
-    days_and_times: str
-    room: str
+    days_and_times: str  # eg. TuTh 5:00PM - 5:30PM
+    room: str  # eg Kiely Hall 258
     instructor: str  # could be Bryan Nevarez\nAdam Kapelner\nAdam Kapelner
     instruction_mode: str
-    meeting_dates: str
+    meeting_dates: str  # eg. 01/25/2025 - 05/22/2025
     status: str
     topic: str
     url: str
