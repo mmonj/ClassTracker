@@ -129,8 +129,24 @@ class CourseSectionAdmin(admin.ModelAdmin[CourseSection]):
 
 @admin.register(InstructionEntry)
 class InstructionEntryAdmin(admin.ModelAdmin[InstructionEntry]):
-    list_display = ("instructor", "course_section", "days_and_times", "room", "term")
+    list_display = (
+        "instructor",
+        "course_section",
+        "get_days_and_times",
+        "get_start_and_end_dates",
+        "get_room",
+        "term",
+    )
     list_filter = ("term", "course_section__course", "instructor")
     search_fields = ("instructor__name", "course_section__course__title", "room")
     readonly_fields = ("datetime_created", "datetime_modified")
     ordering = ("course_section", "instructor")
+
+    def get_days_and_times(self, obj: InstructionEntry) -> str:
+        return obj.get_days_and_times()
+
+    def get_start_and_end_dates(self, obj: InstructionEntry) -> str:
+        return obj.get_start_and_end_dates()
+
+    def get_room(self, obj: InstructionEntry) -> str:
+        return f"{obj.building} {obj.room_number}"
