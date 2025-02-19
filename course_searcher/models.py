@@ -226,15 +226,15 @@ class Day(models.Model):
 
 class InstructionEntry(CommonModel):
     days = models.ManyToManyField(Day, related_name="instruction_entries")
-    start_time = models.TimeField()  # eg. 10:45AM
-    end_time = models.TimeField()  # eg. 12:00PM
+    start_time = models.TimeField(null=True)  # eg. 10:45AM; `null=True` due to TBA designation
+    end_time = models.TimeField(null=True)  # eg. 12:00PM; `null=True` due to TBA designation
 
     building = models.CharField(max_length=100)  # Extracted from `room`
     room_number = models.CharField(max_length=20)  # Extracted from `room`
     floor_number = models.CharField(max_length=20)
 
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(null=True)  # `null=True` due to '-' designation
+    end_date = models.DateField(null=True)  # `null=True` due to '-' designation
 
     instructor = models.ForeignKey(
         Instructor, on_delete=models.CASCADE, related_name="instruction_entries"
@@ -257,12 +257,34 @@ class InstructionEntry(CommonModel):
         )
 
     def __str__(self) -> str:
-        days_display = ", ".join(day.get_name_display() for day in self.days.all())
-        return f"{days_display} {self.start_time.strftime('%I:%M %p')} - {self.end_time.strftime('%I:%M %p')} in {self.building} {self.room_number}"
+        days_display = ", ".join(day.name for day in self.days.all())
+        return f"{days_display} {self._get_time_str(self.start_time)} - {self._get_time_str(self.end_time)} in {self.building} {self.room_number}"
 
     def __repr__(self) -> str:
         days_display = ", ".join(day.get_name_display() for day in self.days.all())
-        return f"<InstructionEntry(id={self.id}, days='{days_display}', start_time={self.start_time.strftime('%I:%M %p')}, end_time={self.end_time.strftime('%I:%M %p')}, building='{self.building}', room_number='{self.room_number}')>"
+        return f"<InstructionEntry(id={self.id}, days='{days_display}', start_time={self._get_time_str(self.start_time)}, end_time={self._get_time_str(self.end_time)}, building='{self.building}', room_number='{self.room_number}')>"
+
+    def get_days_and_times(self) -> str:
+        """Get strin like 'Tu, Thu 10:45AM - 12:00PM'"""
+        days: models.QuerySet[Day] = self.days.all()
+        days_display = ", ".join(day.name for day in days)
+
+        start_time = self._get_time_str(self.start_time)
+        end_time = self._get_time_str(self.end_time)
+
+        if start_time is None or end_time is None:
+            return "TBA"
+
+        return f"{days_display} {start_time} - {end_time}"
+
+    def get_start_and_end_dates(self) -> str:
+        """Get string like '01/25/2025 - 05/22/2025'"""
+        if self.start_date is None or self.end_date is None:
+            return "-"
+        return f"{self.start_date.strftime('%m/%d/%Y')} - {self.end_date.strftime('%m/%d/%Y')}"
+
+    def _get_time_str(self, time: datetime.time | None) -> str | None:
+        return time and time.strftime("%I:%M %p") or None
 
     @staticmethod
     def parse_days(days_str: str) -> list[Day]:
@@ -274,9 +296,18 @@ class InstructionEntry(CommonModel):
         ]
 
     @staticmethod
-    def parse_meeting_dates(meeting_dates: str) -> tuple[datetime.date, datetime.date]:
+    def parse_meeting_dates(
+        meeting_dates: str,
+    ) -> tuple[datetime.date | None, datetime.date | None]:
         """Convert '01/25/2025 - 05/22/2025' into (start_date, end_date) and adjust to NYC timezone."""
-        start_str, end_str = meeting_dates.split(" - ")
+        result = meeting_dates.split(" - ")
+        if len(result) > 2:
+            raise ValueError(f"Unexpected value: {meeting_dates=}")
+
+        if len(result) != 2:
+            return (None, None)
+
+        start_str, end_str = result
 
         start_naive = datetime.datetime.strptime(start_str, "%m/%d/%Y")  # noqa: DTZ007
         end_naive = datetime.datetime.strptime(end_str, "%m/%d/%Y")  # noqa: DTZ007
@@ -287,28 +318,34 @@ class InstructionEntry(CommonModel):
         return start_nyc.date(), end_nyc.date()
 
     @staticmethod
-    def parse_room(room_str: str) -> tuple[BuildingName, RoomNumber]:
+    def parse_room(location: str) -> tuple[BuildingName, RoomNumber]:
         """Convert strings like 'Kiely Hall 258' into ('Kiely Hall', '258')."""
-        parts = room_str.rsplit(" ", 1)
+        parts = location.rsplit(" ", 1)
         if len(parts) > 1:
             return (parts[0], parts[1])
-        raise ValueError(f"No space found in {room_str} to separate building and room number")
+
+        print(f"   >> No whitespace found in {location!r} to separate building and room number")
+        return ("", location)
 
     @staticmethod
-    def parse_floor_number(room_number: str) -> str:
-        floor_number_re = re.compile("[a-z]*(0-9)", flags=re.IGNORECASE)
+    def parse_floor_number(room_number: str) -> str | None:
+        floor_number_re = re.compile("[a-z]*([0-9])", flags=re.IGNORECASE)
         match = floor_number_re.match(room_number)
 
         if match is None:
-            raise ValueError(f"{room_number} has no floor number")
+            return None
 
         return match.group(1)
 
     @staticmethod
     def parse_days_and_times(
         days_and_times: str,
-    ) -> tuple[list[Day], datetime.time, datetime.time]:
+    ) -> tuple[list[Day], datetime.time | None, datetime.time | None]:
         """Convert 'TuTh 5:00PM - 5:30PM' into a tuple of ([listDay], start_time, end_time) using NYC as the timezone"""
+
+        if days_and_times == "TBA":
+            return ([], None, None)
+
         parts = days_and_times.split()
         days_part = parts[0]  # eg. yields 'TuTh'
         time_part = parts[1:]  # eg yields ['5:00PM', '-', '5:30PM']
@@ -334,18 +371,28 @@ class InstructionEntry(CommonModel):
         name_to_instructors_map: dict[str, Instructor],
     ) -> list["InstructionEntry"]:
         instruction_entries: list[InstructionEntry] = []
+        print(f"Processing course section: {course_section!r}")
 
-        for days_and_times, room, instructor_name, meeting_dates in zip(
+        for days_and_times, location, instructor_name, meeting_dates in zip(
             gs_course_section.days_and_times.split("\n"),
             gs_course_section.room.split("\n"),
             gs_course_section.instructor.split("\n"),
             gs_course_section.meeting_dates.split("\n"),
             strict=True,
         ):
+            print(
+                f" > Parsing {days_and_times=}, {location=}, {instructor_name=}, {meeting_dates=}"
+            )
+
             days, start_time, end_time = InstructionEntry.parse_days_and_times(days_and_times)
             start_date, end_date = InstructionEntry.parse_meeting_dates(meeting_dates)
-            building, room_number = InstructionEntry.parse_room(room)
+            building, room_number = InstructionEntry.parse_room(location)
             floor_number = InstructionEntry.parse_floor_number(room_number)
+            if floor_number is None:
+                print(
+                    f"      >>> Location {location!r} (room: {room_number!r}) has no floor number"
+                )
+                floor_number = ""
 
             instruction_entry = InstructionEntry.objects.create(
                 start_time=start_time,
