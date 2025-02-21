@@ -184,7 +184,7 @@ def refresh_class_data(
         for career in course_careers:
             for subject in subjects:
                 class_result_soup = BeautifulSoup(
-                    get_classlist_result_page(session, career, subject), "lxml"
+                    get_classlist_result_page(session, career, subject), "html.parser"
                 )
 
                 gs_courses = parse_gs_courses(class_result_soup)

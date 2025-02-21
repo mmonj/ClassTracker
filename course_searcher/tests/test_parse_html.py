@@ -25,15 +25,22 @@ class HtmlParser(TestCase):
     def setUp(self) -> None:
         self.main_page_soup: BeautifulSoup = BeautifulSoup(
             (Path(__file__).parent / "html/Page 1 - institution_term_page.html").read_text(),
-            "lxml",
+            "html.parser",
         )
         self.dept_selection_page_soup: BeautifulSoup = BeautifulSoup(
             (Path(__file__).parent / "html/Page 2 - criteria_selection_qc.html").read_text(),
-            "lxml",
+            "html.parser",
         )
         self.class_results_page_soup: BeautifulSoup = BeautifulSoup(
             (Path(__file__).parent / "html/Page 3 - class results qc-csci.html").read_text(),
-            "lxml",
+            "html.parser",
+        )
+
+        self.updated_class_results_page_soup: BeautifulSoup = BeautifulSoup(
+            (
+                Path(__file__).parent / "html/Page 3 - class results qc-csci-updated.html"
+            ).read_text(),
+            "html.parser",
         )
 
     def test_parse_pages(self) -> None:
