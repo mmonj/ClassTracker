@@ -147,7 +147,9 @@ class CourseSection(CommonModel):
         CLOSED = ("closed", "Closed")
         WAITLISTED = ("waitlisted", "Waitlisted")
 
-    gs_unique_id = models.CharField(max_length=100, blank=False, unique=True)
+    gs_unique_id = models.CharField(max_length=100, blank=False, unique=True)  # found in url
+    number = models.IntegerField(blank=False)  # eg. class number 43070
+    section = models.CharField(max_length=20, blank=False)  # eg "121-LEC Regular"
     topic = models.CharField(max_length=200, blank=False)
     url = models.CharField(max_length=1000, blank=False)
     section = models.CharField(max_length=20, blank=False)  # eg "121-LEC Regular"
@@ -178,10 +180,11 @@ class CourseSection(CommonModel):
     ) -> "CourseSection":
         instance = cls(
             gs_unique_id=gs_course_section.unique_id,
-            topic=gs_course_section.topic,
-            url=gs_course_section.url,
+            number=gs_course_section.number,
             section=gs_course_section.section_name,
             instruction_mode=gs_course_section.instruction_mode,
+            url=gs_course_section.url,
+            topic=gs_course_section.topic,
         )
         instance.course = course
         instance.term = term

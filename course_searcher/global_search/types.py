@@ -29,8 +29,8 @@ __all__ = ["Result"]
 
 class GSCourseSection:
     unique_id: str  # gathered from url query param
-    number: str
-    section_name: str
+    number: int
+    section_name: str  # eg 60-INT Regular
     days_and_times: str  # eg. TuTh 5:00PM - 5:30PM
     room: str  # eg Kiely Hall 258
     instructor: str  # could be Bryan Nevarez\nAdam Kapelner\nAdam Kapelner
@@ -53,7 +53,7 @@ class GSCourseSection:
 
         match data_label:
             case "Class":
-                self.number = section_attr_element.get_text(separator="\n").strip()
+                self.number = int(section_attr_element.get_text(separator="\n").strip())
 
                 anchor_tag = section_attr_element.select_one("a")
                 if anchor_tag is None:
