@@ -152,14 +152,13 @@ class CourseSection(CommonModel):
     section = models.CharField(max_length=20, blank=False)  # eg "121-LEC Regular"
     topic = models.CharField(max_length=200, blank=False)
     url = models.CharField(max_length=1000, blank=False)
-    section = models.CharField(max_length=20, blank=False)  # eg "121-LEC Regular"
     instruction_mode = models.CharField(max_length=50)  # eg. in person, hybrid
     status = models.CharField(
         max_length=20, choices=StatusChoices.choices, default=StatusChoices.OPEN
     )
 
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="classes")
-    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="classes")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="sections")
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name="sections")
 
     class Meta:
         verbose_name_plural = "Course Sections"
