@@ -9,8 +9,9 @@ from .global_search.types import GSCourse, GSCourseSection
 TTermName = str
 TTermYear = int
 
-BuildingName = str
-RoomNumber = str
+TBuildingName = str
+TRoom = str
+TFloorNumber = str
 
 NYC_TZ = pytz.timezone("America/New_York")
 
@@ -231,8 +232,8 @@ class InstructionEntry(CommonModel):
     start_time = models.TimeField(null=True)  # eg. 10:45AM; `null=True` due to TBA designation
     end_time = models.TimeField(null=True)  # eg. 12:00PM; `null=True` due to TBA designation
 
-    building = models.CharField(max_length=100)  # Extracted from `room`
-    room_number = models.CharField(max_length=20)  # Extracted from `room`
+    building = models.CharField(max_length=100)  # Extracted from `location`
+    room = models.CharField(max_length=20)  # Extracted from `location`
     floor_number = models.CharField(max_length=20)
 
     start_date = models.DateField(null=True)  # `null=True` due to '-' designation
@@ -255,16 +256,16 @@ class InstructionEntry(CommonModel):
             "start_date",
             "end_date",
             "building",
-            "room_number",
+            "room",
         )
 
     def __str__(self) -> str:
         days_display = ", ".join(day.name for day in self.days.all())
-        return f"{days_display} {self._get_time_str(self.start_time)} - {self._get_time_str(self.end_time)} in {self.building} {self.room_number}"
+        return f"{days_display} {self._get_time_str(self.start_time)} - {self._get_time_str(self.end_time)} in {self.building} {self.room}"
 
     def __repr__(self) -> str:
         days_display = ", ".join(day.get_name_display() for day in self.days.all())
-        return f"<InstructionEntry(id={self.id}, days='{days_display}', start_time={self._get_time_str(self.start_time)}, end_time={self._get_time_str(self.end_time)}, building='{self.building}', room_number='{self.room_number}')>"
+        return f"<InstructionEntry(id={self.id}, days='{days_display}', start_time={self._get_time_str(self.start_time)}, end_time={self._get_time_str(self.end_time)}, building='{self.building}', room_number='{self.room}')>"
 
     def get_days_and_times(self) -> str:
         """Get strin like 'Tu, Thu 10:45AM - 12:00PM'"""
@@ -288,6 +289,10 @@ class InstructionEntry(CommonModel):
     def _get_time_str(self, time: datetime.time | None) -> str | None:
         return time and time.strftime("%I:%M %p") or None
 
+    @property
+    def location(self) -> str:
+        return self.building + self.room
+
     @staticmethod
     def parse_days(days_str: str) -> list[Day]:
         """Convert a string like 'TuTh' into a list of Day objects."""
@@ -302,14 +307,16 @@ class InstructionEntry(CommonModel):
         meeting_dates: str,
     ) -> tuple[datetime.date | None, datetime.date | None]:
         """Convert '01/25/2025 - 05/22/2025' into (start_date, end_date) and adjust to NYC timezone."""
-        result = meeting_dates.split(" - ")
-        if len(result) > 2:
+        parts = meeting_dates.split(" - ")
+        num_expected_values = 2
+
+        if len(parts) > num_expected_values:
             raise ValueError(f"Unexpected value: {meeting_dates=}")
 
-        if len(result) != 2:
+        if len(parts) != num_expected_values:
             return (None, None)
 
-        start_str, end_str = result
+        start_str, end_str = parts
 
         start_naive = datetime.datetime.strptime(start_str, "%m/%d/%Y")  # noqa: DTZ007
         end_naive = datetime.datetime.strptime(end_str, "%m/%d/%Y")  # noqa: DTZ007
@@ -320,35 +327,30 @@ class InstructionEntry(CommonModel):
         return start_nyc.date(), end_nyc.date()
 
     @staticmethod
-    def parse_room(location: str) -> tuple[BuildingName, RoomNumber]:
-        """Convert strings like 'Kiely Hall 258' into ('Kiely Hall', '258')."""
+    def parse_location(location: str) -> tuple[TBuildingName, TRoom, TFloorNumber]:
+        """Decompose strings like 'Kiely Hall 258' into ('Kiely Hall', '258', '2')."""
         parts = location.rsplit(" ", 1)
-        if len(parts) > 1:
-            return (parts[0], parts[1])
+        if len(parts) == 1:
+            return "", location, ""
 
-        print(f"   >> No whitespace found in {location!r} to separate building and room number")
-        return ("", location)
+        floor_number_re = re.compile(r"\b[a-z]*([0-9]{1,2})[0-9]{2,}$", flags=re.IGNORECASE)
+        match = floor_number_re.match(location)
 
-    @staticmethod
-    def parse_floor_number(room_number: str) -> str | None:
-        floor_number_re = re.compile("[a-z]*([0-9])", flags=re.IGNORECASE)
-        match = floor_number_re.match(room_number)
+        # if no trailing numbers found, like with 'Online Synchronous'
+        if not match:
+            return "", location, ""
 
-        if match is None:
-            return None
-
-        return match.group(1)
+        return parts[0], parts[1], match.group(1)
 
     @staticmethod
     def parse_days_and_times(
         days_and_times: str,
     ) -> tuple[list[Day], datetime.time | None, datetime.time | None]:
         """Convert 'TuTh 5:00PM - 5:30PM' into a tuple of ([listDay], start_time, end_time) using NYC as the timezone"""
-
-        if days_and_times == "TBA":
+        parts = days_and_times.split()
+        if len(parts) == 1:
             return ([], None, None)
 
-        parts = days_and_times.split()
         days_part = parts[0]  # eg. yields 'TuTh'
         time_part = parts[1:]  # eg yields ['5:00PM', '-', '5:30PM']
 
@@ -373,8 +375,6 @@ class InstructionEntry(CommonModel):
         name_to_instructors_map: dict[str, Instructor],
     ) -> list["InstructionEntry"]:
         instruction_entries: list[InstructionEntry] = []
-        print(f"Processing course section: {course_section!r}")
-
         for days_and_times, location, instructor_name, meeting_dates in zip(
             gs_course_section.days_and_times.split("\n"),
             gs_course_section.room.split("\n"),
@@ -382,19 +382,9 @@ class InstructionEntry(CommonModel):
             gs_course_section.meeting_dates.split("\n"),
             strict=True,
         ):
-            print(
-                f" > Parsing {days_and_times=}, {location=}, {instructor_name=}, {meeting_dates=}"
-            )
-
             days, start_time, end_time = InstructionEntry.parse_days_and_times(days_and_times)
             start_date, end_date = InstructionEntry.parse_meeting_dates(meeting_dates)
-            building, room_number = InstructionEntry.parse_room(location)
-            floor_number = InstructionEntry.parse_floor_number(room_number)
-            if floor_number is None:
-                print(
-                    f"      >>> Location {location!r} (room: {room_number!r}) has no floor number"
-                )
-                floor_number = ""
+            building, room, floor_number = InstructionEntry.parse_location(location)
 
             instruction_entry = InstructionEntry.objects.create(
                 start_time=start_time,
@@ -402,7 +392,7 @@ class InstructionEntry(CommonModel):
                 start_date=start_date,
                 end_date=end_date,
                 building=building,
-                room_number=room_number,
+                room=room,
                 floor_number=floor_number,
                 instructor=name_to_instructors_map[instructor_name],
                 course_section=course_section,

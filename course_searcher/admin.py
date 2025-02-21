@@ -149,4 +149,4 @@ class InstructionEntryAdmin(admin.ModelAdmin[InstructionEntry]):
         return obj.get_start_and_end_dates()
 
     def get_room(self, obj: InstructionEntry) -> str:
-        return f"{obj.building} {obj.room_number}"
+        return f"{obj.building} {obj.room}"

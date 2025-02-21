@@ -58,7 +58,7 @@ def create_db_courses(
                         "start_date",
                         "end_date",
                         "building",
-                        "room_number",
+                        "room",
                     ],
                 )
             )
