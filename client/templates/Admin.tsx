@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Context, interfaces, reverse, templates } from "@reactivated";
-import { Card } from "react-bootstrap";
+import { Card, ListGroup } from "react-bootstrap";
 
 import { fetchByReactivated } from "@client/utils";
 
@@ -15,18 +15,22 @@ export function Template(props: templates.Admin) {
   const [selectedSchool, setSelectedSchool] = React.useState(props.schools.at(0));
 
   const refreshTermsFetchState = useFetch<interfaces.BasicResponse>();
-  const refreshClassesFetchState = useFetch();
+  const refreshSubjectsFetchState = useFetch<interfaces.BasicResponse>();
+  const refreshClassesFetchState = useFetch<interfaces.BasicResponse>();
+
   const djangoContext = React.useContext(Context);
 
   const isAnyFetcherLoading =
-    refreshTermsFetchState.isLoading || refreshClassesFetchState.isLoading;
+    refreshTermsFetchState.isLoading ||
+    refreshSubjectsFetchState.isLoading ||
+    refreshClassesFetchState.isLoading;
 
   async function handleRefreshTerms() {
     const fetchCallback = () =>
       fetchByReactivated(
         reverse("course_searcher:refresh_available_terms"),
         djangoContext.csrf_token,
-        "GET"
+        "POST"
       );
 
     const fetchResult = await refreshTermsFetchState.fetchData(fetchCallback);
@@ -35,7 +39,7 @@ export function Template(props: templates.Admin) {
     console.log(fetchResult.data);
   }
 
-  async function handleRefreshClassesData() {
+  async function handleRefreshSubjectsData() {
     if (selectedSchool === undefined || selectedTerm === undefined) {
       console.error("No school or term exists");
       return;
@@ -48,7 +52,29 @@ export function Template(props: templates.Admin) {
           term_id: selectedTerm.id,
         }),
         djangoContext.csrf_token,
-        "GET"
+        "POST"
+      );
+
+    const result = await refreshSubjectsFetchState.fetchData(callback);
+    if (result.ok) console.log(result.data);
+  }
+
+  async function handleRefreshClassesData(subjectId: number) {
+    if (selectedSchool === undefined || selectedTerm === undefined) {
+      console.error("No school or term exists");
+      return;
+    }
+
+    const callback = () =>
+      fetchByReactivated(
+        reverse("course_searcher:refresh_class_data", {
+          school_id: selectedSchool.id,
+          term_id: selectedTerm.id,
+          subject_id: subjectId,
+        }),
+        djangoContext.csrf_token,
+        "POST",
+        JSON.stringify({})
       );
 
     const result = await refreshClassesFetchState.fetchData(callback);
@@ -57,6 +83,33 @@ export function Template(props: templates.Admin) {
 
   return (
     <Layout title="Course Searcher Admin" Navbar={Navbar}>
+      <Card className="p-3">
+        <Card.Title>Currently available terms and schools</Card.Title>
+        <Card.Body>
+          <p>{props.schools.length} schools available</p>
+          <p>{props.terms_available.length} terms available</p>
+          <ListGroup as="ol" variant="flush" numbered className="mb-3 mh-75-vh overflow-auto">
+            {props.terms_available.map((term) => (
+              <ListGroup.Item key={term.id} as="li">
+                {term.full_term_name}
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+
+          <ButtonWithSpinner
+            className="btn btn-primary d-block mb-3"
+            isLoadingState={isAnyFetcherLoading}
+            hideChildren={false}
+            type="button"
+            size="sm"
+            spinnerVariant="light"
+            onClick={handleRefreshTerms}
+          >
+            Refresh Available Terms and Schools
+          </ButtonWithSpinner>
+        </Card.Body>
+      </Card>
+
       <Card className="p-3">
         <Card.Title>
           <h3>Refresh Classes</h3>
@@ -95,29 +148,31 @@ export function Template(props: templates.Admin) {
               );
             })}
           </select>
-          <ButtonWithSpinner
-            className="btn btn-primary d-block mb-3"
-            isLoadingState={isAnyFetcherLoading}
-            hideChildren={false}
-            type="button"
-            size="sm"
-            spinnerVariant="light"
-            onClick={handleRefreshTerms}
-          >
-            Refresh Available Terms and Schools
-          </ButtonWithSpinner>
 
-          {selectedSchool !== undefined && (
-            <ButtonWithSpinner
-              type="button"
-              className="btn btn-primary d-block mb-3"
-              size="sm"
-              spinnerVariant="light"
-              onClick={handleRefreshClassesData}
-              isLoadingState={isAnyFetcherLoading}
-            >
-              Refresh Available Subjects for {selectedSchool.name}, {selectedTerm?.full_term_name}
-            </ButtonWithSpinner>
+          {selectedSchool !== undefined && selectedTerm !== undefined && (
+            <>
+              <ButtonWithSpinner
+                type="button"
+                className="btn btn-primary d-block mb-3"
+                size="sm"
+                spinnerVariant="light"
+                onClick={handleRefreshSubjectsData}
+                isLoadingState={isAnyFetcherLoading}
+              >
+                Refresh Available Subjects for {selectedSchool.name}
+                {selectedSchool.id === 0 ? " schools" : ""}, {selectedTerm.full_term_name}
+              </ButtonWithSpinner>
+              <ButtonWithSpinner
+                type="button"
+                className="btn btn-primary d-block mb-3"
+                size="sm"
+                spinnerVariant="light"
+                onClick={handleRefreshClassesData}
+                isLoadingState={isAnyFetcherLoading}
+              >
+                Refresh Class List {selectedSchool.name}, {selectedTerm.full_term_name}
+              </ButtonWithSpinner>
+            </>
           )}
         </Card.Body>
       </Card>
