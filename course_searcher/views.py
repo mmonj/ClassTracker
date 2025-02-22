@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from bs4 import BeautifulSoup
 from django.contrib.auth import authenticate, login, logout
-from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.utils.encoding import iri_to_uri
@@ -99,10 +98,9 @@ def add_classes(request: HttpRequest) -> HttpResponse:
 
 def refresh_available_terms(request: HttpRequest) -> HttpResponse:
     session = init_http_retrier()
-    main_page_soup = BeautifulSoup(get_main_page(session), "html.parser")
 
     try:
-        terms_parsed = get_terms_available(main_page_soup)
+        main_page_soup = BeautifulSoup(get_main_page(session), "html.parser")
     except HTTPError as ex:
         raise DRFNotFound([str(ex)]) from ex
 
@@ -110,28 +108,22 @@ def refresh_available_terms(request: HttpRequest) -> HttpResponse:
     if len(terms_parsed) == 0:
         raise APIException("Parsed 0 terms")
 
-    count = 0
-    for term in terms_parsed:
-        try:
-            term.save()
-            count += 1
-        except IntegrityError:
-            continue
+    prev_terms_count = len(Term.objects.all())
+    terms = bulk_create_and_get(Term, terms_parsed, fields=["globalsearch_key"])
+    new_terms_count = len(Term.objects.all()) - prev_terms_count
 
     schools = sorted(parse_schools(main_page_soup), key=lambda school: school.name)
-    schools_db = bulk_create_and_get(School, schools, fields=["globalsearch_key"])
+    schools = list(bulk_create_and_get(School, schools, fields=["globalsearch_key"]))
 
     Term.objects.all().update(is_available=False)
-
-    terms_db = Term.objects.filter(globalsearch_key__in=[f.globalsearch_key for f in terms_parsed])
-    for term in terms_db:
+    for term in terms:
         term.is_available = True
         term.save(update_fields=["is_available"])
-        term.schools.add(*schools_db)
+        term.schools.add(*schools)
 
-    return interfaces.BasicResponse(is_success=True, message=f"{count} new terms created").render(
-        request
-    )
+    return interfaces.BasicResponse(
+        is_success=True, message=f"{new_terms_count} new terms created"
+    ).render(request)
 
 
 def refresh_semester_data(request: HttpRequest, school_id: int, term_id: int) -> HttpResponse:
