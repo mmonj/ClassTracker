@@ -65,7 +65,7 @@ class HtmlParser(TestCase):
                 number=56226
             )
 
-            self.assertTrue(len(csci_section.instruction_entries.all()) == 1)
+            self.assertEqual(len(csci_section.instruction_entries.all()), 1)
 
     def _parse_main_page(self) -> tuple[School, Term]:
         terms_parsed = get_terms_available(self.main_page_soup)
@@ -78,7 +78,7 @@ class HtmlParser(TestCase):
 
         schools = sorted(parse_schools(self.main_page_soup), key=lambda school: school.name)
         schools_db = bulk_create_and_get(School, schools, fields=["globalsearch_key"])
-        self.assertTrue(len(schools_db) > 0)
+        self.assertGreater(len(schools_db), 0)
 
         Term.objects.all().update(is_available=False)
         for term in terms_db:
@@ -89,10 +89,10 @@ class HtmlParser(TestCase):
         # begin check
 
         for term in terms_db:
-            self.assertTrue(len(term.schools.all()) > 0)
+            self.assertGreater(len(term.schools.all()), 0)
 
         for school in schools_db:
-            self.assertTrue(len(school.terms.all()) > 0)
+            self.assertGreater(len(school.terms.all()), 0)
 
         # for term in terms_db:
         #     for school in term.schools.all():
@@ -131,10 +131,10 @@ class HtmlParser(TestCase):
 
             course_careers, subjects = create_careers_and_subjects(subjects_page_soup, school, term)
 
-            self.assertTrue(len(school.subjects.all()) > 0)
-            self.assertTrue(len(school.careers.all()) > 0)
-            self.assertTrue(len(term.subjects.all()) > 0)
-            self.assertTrue(len(term.careers.all()) > 0)
+            self.assertGreater(len(school.subjects.all()), 0)
+            self.assertGreater(len(school.careers.all()), 0)
+            self.assertGreater(len(term.subjects.all()), 0)
+            self.assertGreater(len(term.careers.all()), 0)
 
     def _refresh_class_data(
         self, school_id: int, term_id: int, subject_id: int, class_results_soup: BeautifulSoup
@@ -186,8 +186,8 @@ class HtmlParser(TestCase):
                     gs_courses = parse_gs_courses(class_result_soup)
                     courses = create_db_courses(gs_courses, subject, career, school, term)
 
-                    self.assertTrue(len(courses) == num_csci_courses_expected)
+                    self.assertEqual(len(courses), num_csci_courses_expected)
 
                     time.sleep(0.5)
 
-        self.assertTrue(len(CourseSection.objects.all()) > minimum_num_sections_expected)
+        self.assertGreater(len(CourseSection.objects.all()), minimum_num_sections_expected)
