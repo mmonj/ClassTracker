@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from bs4 import BeautifulSoup
-from django.db import IntegrityError
 from django.test import TestCase
 
 from server.util import bulk_create_and_get
@@ -44,41 +43,44 @@ class HtmlParser(TestCase):
         )
 
     def test_parse_pages(self) -> None:
-        qc_school, fall24 = self._parse_main_page()
-        self._refresh_semester_data(qc_school.id, fall24.id)
+        for class_results_soup in [
+            self.class_results_page_soup,
+            self.updated_class_results_page_soup,
+        ]:
+            qc_school, fall24 = self._parse_main_page()
+            self._refresh_semester_data(qc_school.id, fall24.id)
 
-        School.objects.filter(globalsearch_key="QNS01").update(is_preferred=True)
-        Term.objects.filter(name="Fall", year=2024).update(is_preferred=True)
+            School.objects.filter(globalsearch_key="QNS01").update(is_preferred=True)
+            Term.objects.filter(name="Fall", year=2024).update(is_preferred=True)
 
-        CourseCareer.objects.filter(globalsearch_key="UGRD").update(is_preferred=True)
-        Subject.objects.filter(globalsearch_key="CMSC").update(is_preferred=True)
+            CourseCareer.objects.filter(globalsearch_key="UGRD").update(is_preferred=True)
+            Subject.objects.filter(globalsearch_key="CMSC").update(is_preferred=True)
 
-        csci_subject = Subject.objects.get(globalsearch_key="CMSC")
+            csci_subject = Subject.objects.get(globalsearch_key="CMSC")
 
-        self._refresh_class_data(qc_school.id, fall24.id, csci_subject.id)
+            self._refresh_class_data(qc_school.id, fall24.id, csci_subject.id, class_results_soup)
+
+            # course section that is expected to have updated instruction entries
+            csci_section = CourseSection.objects.prefetch_related("instruction_entries").get(
+                number=56226
+            )
+
+            self.assertTrue(len(csci_section.instruction_entries.all()) == 1)
 
     def _parse_main_page(self) -> tuple[School, Term]:
         terms_parsed = get_terms_available(self.main_page_soup)
         if len(terms_parsed) == 0:
             raise ValueError("Parsed 0 terms")
 
-        count = 0
-        for term in terms_parsed:
-            try:
-                term.save()
-                count += 1
-            except IntegrityError:
-                continue
+        prev_terms_count = len(Term.objects.all())
+        terms_db = bulk_create_and_get(Term, terms_parsed, fields=["globalsearch_key"])
+        new_terms_count = len(Term.objects.all()) - prev_terms_count
 
         schools = sorted(parse_schools(self.main_page_soup), key=lambda school: school.name)
-        schools_db = bulk_create_and_get(School, schools, unique_fieldnames=["globalsearch_key"])
+        schools_db = bulk_create_and_get(School, schools, fields=["globalsearch_key"])
         self.assertTrue(len(schools_db) > 0)
 
         Term.objects.all().update(is_available=False)
-
-        terms_db = Term.objects.filter(
-            globalsearch_key__in=[f.globalsearch_key for f in terms_parsed]
-        )
         for term in terms_db:
             term.is_available = True
             term.save(update_fields=["is_available"])
@@ -108,6 +110,9 @@ class HtmlParser(TestCase):
             (f for f in terms_db if f.name == "Fall Term" and f.year == 2024),  # noqa: PLR2004
         )
 
+        # TODO: remove
+        print(f"{new_terms_count} new terms created")
+
         return qc_school, fall24
 
     def _refresh_semester_data(self, school_id: int, term_id: int) -> None:
@@ -131,7 +136,9 @@ class HtmlParser(TestCase):
             self.assertTrue(len(term.subjects.all()) > 0)
             self.assertTrue(len(term.careers.all()) > 0)
 
-    def _refresh_class_data(self, school_id: int, term_id: int, subject_id: int) -> None:
+    def _refresh_class_data(
+        self, school_id: int, term_id: int, subject_id: int, class_results_soup: BeautifulSoup
+    ) -> None:
         schools = (
             list(School.objects.prefetch_related("terms").all())
             if school_id == 0
@@ -174,7 +181,7 @@ class HtmlParser(TestCase):
                         continue
 
                     # class_result_soup = get_classlist_result_page(session, career, subject)
-                    class_result_soup = self.class_results_page_soup
+                    class_result_soup = class_results_soup
 
                     gs_courses = parse_gs_courses(class_result_soup)
                     courses = create_db_courses(gs_courses, subject, career, school, term)
