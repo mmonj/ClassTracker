@@ -369,7 +369,7 @@ class InstructionEntry(CommonModel):
         return days, start_time, end_time
 
     @staticmethod
-    def entries_from_gs_course_section(
+    def create_entries_from_gs_course_section(
         gs_course_section: GSCourseSection,
         course_section: CourseSection,
         term: Term,
@@ -387,7 +387,7 @@ class InstructionEntry(CommonModel):
             start_date, end_date = InstructionEntry.parse_meeting_dates(meeting_dates)
             building, room, floor_number = InstructionEntry.parse_location(location)
 
-            instruction_entry = InstructionEntry.objects.create(
+            instruction_entry, _ = InstructionEntry.objects.get_or_create(
                 start_time=start_time,
                 end_time=end_time,
                 start_date=start_date,

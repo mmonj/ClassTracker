@@ -1,4 +1,4 @@
-from server.util import bulk_create_and_get
+from server.util import atomic_get_or_create, bulk_create_and_get
 
 from ..global_search.types import GSCourse
 from ..models import (
@@ -40,31 +40,13 @@ def create_db_courses(
         for gs_course_section in gs_course.sections:
             course = course_name_to_course_map[gs_course.get_name()]
             course_section = CourseSection.from_gs_course_section(gs_course_section, course, term)
-            course_section.save()
+            course_section, _ = atomic_get_or_create(course_section, fields=["gs_unique_id"])
 
-            instruction_entries = InstructionEntry.entries_from_gs_course_section(
+            InstructionEntry.objects.filter(course_section=course_section).delete()
+
+            InstructionEntry.create_entries_from_gs_course_section(
                 gs_course_section, course_section, term, name_to_instructor_map
             )
-
-            instruction_entries = list(
-                bulk_create_and_get(
-                    InstructionEntry,
-                    instruction_entries,
-                    unique_fieldnames=[
-                        "term__id",
-                        "course_section__id",
-                        "start_time",
-                        "end_time",
-                        "start_date",
-                        "end_date",
-                        "building",
-                        "room",
-                    ],
-                )
-            )
-
-            for instruction_entry in instruction_entries:
-                instruction_entry.course_section = course_section
 
     term.courses.add(*courses)
 
