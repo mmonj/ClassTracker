@@ -261,8 +261,7 @@ class InstructionEntry(CommonModel):
         )
 
     def __str__(self) -> str:
-        days_display = ", ".join(day.name for day in self.days.all())
-        return f"{days_display} {self._get_time_str(self.start_time)} - {self._get_time_str(self.end_time)} in {self.building} {self.room}"
+        return f"Times: {self.get_days_and_times()}; location: {self.location}"
 
     def __repr__(self) -> str:
         days_display = ", ".join(day.get_name_display() for day in self.days.all())
