@@ -164,6 +164,7 @@ class CourseSection(CommonModel):
     class Meta:
         verbose_name_plural = "Course Sections"
         ordering = ("course", "section")
+        unique_together = ("term", "number")
 
     def __str__(self) -> str:
         instruction_entries = self.instruction_entries.all()
