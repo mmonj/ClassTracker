@@ -75,7 +75,7 @@ def create_careers_and_subjects(
 
     # Bulk create careers
     careers = bulk_create_and_get(
-        models.CourseCareer, careers_to_create, unique_fieldnames=["globalsearch_key"]
+        models.CourseCareer, careers_to_create, fields=["globalsearch_key"]
     )
 
     # Parse department
@@ -96,9 +96,7 @@ def create_careers_and_subjects(
             )
         )
 
-    subjects = bulk_create_and_get(
-        models.Subject, subjects_to_create, unique_fieldnames=["globalsearch_key"]
-    )
+    subjects = bulk_create_and_get(models.Subject, subjects_to_create, fields=["globalsearch_key"])
 
     term.subjects.add(*subjects)
     school.subjects.add(*subjects)

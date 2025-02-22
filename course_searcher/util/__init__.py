@@ -30,7 +30,7 @@ def create_db_courses(
             bulk_create_and_get(
                 Course,
                 [Course.from_gs_course(c, subject, career, school) for c in gs_courses],
-                unique_fieldnames=["code", "level", "school__id"],
+                fields=["code", "level", "school__id"],
             )
         )
     }
@@ -80,8 +80,8 @@ def _create_instructors_from_gs_courses(
             instructor_names.update(course_section.instructor.split("\n"))
 
     instructors = [Instructor(name=name, school=school) for name in instructor_names]
-    instructors = list(
-        bulk_create_and_get(Instructor, instructors, unique_fieldnames=["name", "school__id"])
-    )
+    instructors = list(bulk_create_and_get(Instructor, instructors, fields=["name", "school__id"]))
+
+    term.instructors.add(*instructors)
 
     return {f.name: f for f in instructors}

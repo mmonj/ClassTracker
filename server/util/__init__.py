@@ -1,15 +1,16 @@
-from typing import Type, TypeVar
+from typing import Any, Type, TypeVar
 
-from django.db import models
+from django.db import IntegrityError, models, transaction
 
 T = TypeVar("T", bound=models.Model)
+TIsNewRecord = bool
 
 
 def bulk_create_and_get(
     model_class: Type[T],
     items: list[T],
     *,
-    unique_fieldnames: list[str],
+    fields: list[str],
     batch_size: int | None = None,
 ) -> models.QuerySet[T]:
     """
@@ -20,13 +21,31 @@ def bulk_create_and_get(
         model_class (Type[models.Model]): The Django model class.
         items (List[models.Model]): A list of model instances to be created.
         batch_size (int|None): Limit committed records to a specified batch size.
-        unique_fieldnames (List[str]): The field names based on which to re-query after bulk_create and return them.
+        fields (List[str]): The field names based on which to re-query after bulk_create and return them.
 
     Returns:
         QuerySet[models.Model]: The successfully inserted records with primary keys.
     """
     model_class.objects.bulk_create(items, batch_size=batch_size, ignore_conflicts=True)  # type: ignore [attr-defined]
 
+    filter_criteria = _get_filter_criteria(items, fields)
+
+    return model_class.objects.filter(**filter_criteria)  # type: ignore [no-any-return, attr-defined]
+
+
+def atomic_get_or_create(instance: T, *, fields: list[str]) -> tuple[T, TIsNewRecord]:
+    model_class: Type[T] = type(instance)
+
+    try:
+        with transaction.atomic():
+            instance.save()
+            return instance, True
+    except IntegrityError:
+        filter_criteria = _get_filter_criteria([instance], fields)
+        return model_class.objects.get(**filter_criteria), False  # type: ignore [attr-defined]
+
+
+def _get_filter_criteria(items: list[T], unique_fieldnames: list[str]) -> dict[str, Any]:
     filter_criteria = {}
     for field in unique_fieldnames:
         if "__" in field:
@@ -44,5 +63,4 @@ def bulk_create_and_get(
             filter_values = {getattr(item, field) for item in items}
 
         filter_criteria[f"{field}__in"] = filter_values
-
-    return model_class.objects.filter(**filter_criteria)  # type: ignore [no-any-return, attr-defined]
+    return filter_criteria

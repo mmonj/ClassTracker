@@ -119,7 +119,7 @@ def refresh_available_terms(request: HttpRequest) -> HttpResponse:
             continue
 
     schools = sorted(parse_schools(main_page_soup), key=lambda school: school.name)
-    schools_db = bulk_create_and_get(School, schools, unique_fieldnames=["globalsearch_key"])
+    schools_db = bulk_create_and_get(School, schools, fields=["globalsearch_key"])
 
     Term.objects.all().update(is_available=False)
 
