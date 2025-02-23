@@ -3,6 +3,9 @@ import React from "react";
 import { Context, interfaces, reverse, templates } from "@reactivated";
 import { Card, ListGroup } from "react-bootstrap";
 
+import { faSync } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import { fetchByReactivated } from "@client/utils";
 
 import { ButtonWithSpinner } from "@client/components/ButtonWithSpinner";
@@ -28,6 +31,7 @@ export function Template(props: templates.Admin) {
 
   const refreshTermsFetchState = useFetch<interfaces.RespSchoolsTermsUpdate>();
   const refreshSubjectsFetchState = useFetch<interfaces.RespSubjectsUpdate>();
+  const getSubjectsFetchState = useFetch<interfaces.RespGetSubjects>();
   const refreshClassesFetchState = useFetch<interfaces.BasicResponse>();
 
   const djangoContext = React.useContext(Context);
@@ -37,7 +41,9 @@ export function Template(props: templates.Admin) {
     refreshSubjectsFetchState.isLoading ||
     refreshClassesFetchState.isLoading;
 
-  // ====================== Begin functions ======================
+  // =======================================================================================================================
+  // =================================================== Begin functions ===================================================
+  // =======================================================================================================================
 
   async function handleRefreshTerms() {
     const fetchCallback = () =>
@@ -107,17 +113,38 @@ export function Template(props: templates.Admin) {
     if (result.ok) console.log(result.data);
   }
 
+  async function getSubjects() {
+    if (selectedSchool === undefined || selectedTerm === undefined) return;
+    if (selectedSchool.id == ALL_SCHOOLS_ID) return;
+
+    const callback = () =>
+      fetchByReactivated(
+        reverse("course_searcher:get_subjects", {
+          school_id: selectedSchool.id,
+          term_id: selectedTerm.id,
+        }),
+        djangoContext.csrf_token,
+        "GET"
+      );
+    const result = await getSubjectsFetchState.fetchData(callback);
+    if (result.ok) {
+      setAvailableSubjects(result.data.subjects);
+    }
+  }
+
   function handleSchoolChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    setSelectedSchool(
-      availableSchools.find((school) => school.id.toString() === event.target.value)
-    );
+    const school = availableSchools.find((school) => school.id.toString() === event.target.value);
+    setSelectedSchool(school);
   }
 
   function handleTermChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    setSelectedTerm(availableTerms.find((term) => term.id.toString() === event.target.value));
+    const term = availableTerms.find((term) => term.id.toString() === event.target.value);
+    setSelectedTerm(term);
   }
 
-  // ====================== End functions ======================
+  // =======================================================================================================================
+  // ==================================================== End functions ====================================================
+  // =======================================================================================================================
 
   return (
     <Layout title="Course Searcher Admin" Navbar={Navbar}>
@@ -138,13 +165,13 @@ export function Template(props: templates.Admin) {
           <ButtonWithSpinner
             type="button"
             size="sm"
-            spinnerVariant="light"
+            variant="light"
             hideChildren={false}
             className="btn btn-primary d-block mb-3"
             onClick={handleRefreshTerms}
             isLoadingState={isAnyFetcherLoading}
           >
-            Refresh Available Terms and Schools
+            Parse for new Terms and Schools
           </ButtonWithSpinner>
         </Card.Body>
       </Card>
@@ -179,11 +206,24 @@ export function Template(props: templates.Admin) {
           {selectedSchool !== undefined && selectedSchool.id != ALL_SCHOOLS_ID && (
             <div className="mb-3">
               <label className="form-label">Subject</label>
-              <select className="form-select">
-                {availableSubjects.map((subject) => (
-                  <option key={subject.id}>{subject.name}</option>
-                ))}
-              </select>
+              <div className="d-flex">
+                <select className="form-select">
+                  {availableSubjects.map((subject) => (
+                    <option key={subject.id}>{subject.name}</option>
+                  ))}
+                </select>
+                <ButtonWithSpinner
+                  type="button"
+                  size="sm"
+                  hideChildren={true}
+                  className="btn btn-primary ms-2"
+                  disabled={selectedSchool.id === ALL_SCHOOLS_ID}
+                  isLoadingState={getSubjectsFetchState.isLoading}
+                  onClick={getSubjects}
+                >
+                  <FontAwesomeIcon icon={faSync} size="1x" />
+                </ButtonWithSpinner>
+              </div>
             </div>
           )}
 
@@ -192,12 +232,12 @@ export function Template(props: templates.Admin) {
               <ButtonWithSpinner
                 type="button"
                 size="sm"
-                spinnerVariant="light"
+                variant="light"
                 className="btn btn-primary d-block mb-3"
                 onClick={handleRefreshSemesterData}
                 isLoadingState={isAnyFetcherLoading}
               >
-                Refresh Available Subjects for{" "}
+                Parse for new Subjects for{" "}
                 <b>
                   {selectedSchool.name}
                   {selectedSchool.id === ALL_SCHOOLS_ID ? " schools" : ""},{" "}
@@ -209,12 +249,12 @@ export function Template(props: templates.Admin) {
                 <ButtonWithSpinner
                   type="button"
                   size="sm"
-                  spinnerVariant="light"
+                  variant="light"
                   className="btn btn-primary d-block mb-3"
                   onClick={handleRefreshClassesData}
                   isLoadingState={isAnyFetcherLoading}
                 >
-                  Refresh Class List for{" "}
+                  Parse for new Course sections for{" "}
                   <b>
                     {selectedSchool.name}, {selectedTerm.full_term_name}
                   </b>

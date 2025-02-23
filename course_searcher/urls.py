@@ -1,10 +1,12 @@
 from django.urls import path
 
+from course_searcher.views import ajax
+
 from .views import ssr
 
 app_name = "course_searcher"
 
-urlpatterns = [
+ssr_urlpatterns = [
     path("", ssr.index, name="index"),
     path("login_view/", ssr.login_view, name="login_view"),
     path("logout_view/", ssr.logout_view, name="logout_view"),
@@ -22,3 +24,10 @@ urlpatterns = [
         name="refresh_class_data",
     ),
 ]
+
+ajax_urlpatterns = [
+    path("get_subjects/<int:school_id>/<int:term_id>/", ajax.get_subjects, name="get_subjects"),
+]
+
+
+urlpatterns = ssr_urlpatterns + ajax_urlpatterns
