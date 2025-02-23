@@ -63,7 +63,7 @@ class CourseCareerAdmin(admin.ModelAdmin[CourseCareer]):
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin[Subject]):
     list_display = ("name", "globalsearch_key", "is_preferred")
-    list_filter = ("schools", "is_preferred")
+    list_filter = ("schools", "terms", "is_preferred")
     search_fields = ("name", "globalsearch_key")
     filter_horizontal = ("schools", "terms")
     readonly_fields = ("datetime_created", "datetime_modified")
