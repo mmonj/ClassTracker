@@ -2,7 +2,7 @@ from typing import List, Literal, NamedTuple
 
 from reactivated import Pick, interface
 
-from .models import School, Subject, Term
+from ..models import School, Subject, Term
 
 TermPick = Pick[Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
 SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]

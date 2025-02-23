@@ -15,21 +15,21 @@ from rest_framework.exceptions import NotFound as DRFNotFound
 
 from server.util import bulk_create_and_get
 
-from . import interfaces, templates
-from .global_search import init_http_retrier
-from .global_search.navigator import (
+from ..global_search import init_http_retrier
+from ..global_search.navigator import (
     get_classlist_result_page,
     get_main_page,
     get_subject_selection_page,
 )
-from .global_search.parser import (
+from ..global_search.parser import (
     create_careers_and_subjects,
     get_terms_available,
     parse_gs_courses,
     parse_schools,
 )
-from .models import CourseCareer, School, Subject, Term
-from .util import create_db_courses
+from ..models import CourseCareer, School, Subject, Term
+from ..util import create_db_courses
+from . import interfaces, templates
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
