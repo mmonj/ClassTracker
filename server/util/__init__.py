@@ -1,9 +1,14 @@
 from typing import Any, Type, TypeVar
 
 from django.db import IntegrityError, models, transaction
+from django.http import JsonResponse
 
 T = TypeVar("T", bound=models.Model)
 TIsNewRecord = bool
+
+
+def error_json_response(errors: list[str], *, status: int, **kwargs: Any) -> JsonResponse:
+    return JsonResponse(errors, status=status, safe=False, **kwargs)
 
 
 def bulk_create_and_get(
