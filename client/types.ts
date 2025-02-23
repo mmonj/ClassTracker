@@ -33,8 +33,10 @@ export type TUseFetchResult<T> =
   | {
       ok: false;
       data: null;
+      errors: string[];
     }
   | {
       ok: true;
       data: T;
+      errors: string[];
     };

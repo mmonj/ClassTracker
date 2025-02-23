@@ -38,7 +38,7 @@ export function useFetch<T>() {
         setData(() => data);
         onSuccess?.();
 
-        return { ok: true, data: data } as const;
+        return { ok: true, data: data, errors: [] as string[] } as const;
       })
       .catch(async function (errorResp: ApiResponse<IHttpError | TNotFoundErrorList | Error>) {
         setData(() => null);
@@ -48,6 +48,7 @@ export function useFetch<T>() {
         return {
           ok: false,
           data: null,
+          errors: errorList,
         } as const;
       })
       .finally(() => {
