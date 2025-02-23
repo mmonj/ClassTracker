@@ -11,7 +11,10 @@ import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 
 export function Template(props: templates.Admin) {
-  const [availableSchools, setAvailableSchools] = React.useState(props.schools);
+  const [availableSchools, setAvailableSchools] = React.useState([
+    { id: 0, name: "All" },
+    ...props.schools,
+  ]);
   const [availableTerms, setAvailableTerms] = React.useState(props.terms_available);
 
   const [selectedSchool, setSelectedSchool] = React.useState(availableSchools.at(0));
@@ -94,7 +97,8 @@ export function Template(props: templates.Admin) {
       <Card className="p-3">
         <Card.Title>Currently available terms and schools</Card.Title>
         <Card.Body>
-          <p>{availableSchools.length} schools available</p>
+          {/* to account for the 'All' option */}
+          <p>{availableSchools.length - 1} schools available</p>
           <p>{availableTerms.length} terms available</p>
           <ListGroup as="ol" variant="flush" numbered className="mb-3 mh-75-vh overflow-auto">
             {availableTerms.map((term) => (
@@ -161,24 +165,30 @@ export function Template(props: templates.Admin) {
             <>
               <ButtonWithSpinner
                 type="button"
-                className="btn btn-primary d-block mb-3"
                 size="sm"
                 spinnerVariant="light"
+                className="btn btn-primary d-block mb-3"
                 onClick={handleRefreshSubjectsData}
                 isLoadingState={isAnyFetcherLoading}
               >
-                Refresh Available Subjects for {selectedSchool.name}
-                {selectedSchool.id === 0 ? " schools" : ""}, {selectedTerm.full_term_name}
+                Refresh Available Subjects for{" "}
+                <b>
+                  {selectedSchool.name}
+                  {selectedSchool.id === 0 ? " schools" : ""}, {selectedTerm.full_term_name}
+                </b>
               </ButtonWithSpinner>
               <ButtonWithSpinner
                 type="button"
-                className="btn btn-primary d-block mb-3"
                 size="sm"
                 spinnerVariant="light"
+                className="btn btn-primary d-block mb-3"
                 onClick={handleRefreshClassesData}
                 isLoadingState={isAnyFetcherLoading}
               >
-                Refresh Class List {selectedSchool.name}, {selectedTerm.full_term_name}
+                Refresh Class List for{" "}
+                <b>
+                  {selectedSchool.name}, {selectedTerm.full_term_name}
+                </b>
               </ButtonWithSpinner>
             </>
           )}
