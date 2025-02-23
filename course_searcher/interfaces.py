@@ -1,9 +1,21 @@
-from typing import NamedTuple
+from typing import List, Literal, NamedTuple
 
-from reactivated import interface
+from reactivated import Pick, interface
+
+from .models import School, Term
+
+TermPick = Pick[Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
+SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
 
 
 @interface
 class BasicResponse(NamedTuple):
     is_success: bool = True
     message: str = ""
+
+
+@interface
+class RespSchoolsTermsUpdate(NamedTuple):
+    available_schools: List[SchoolPick]
+    available_terms: List[TermPick]
+    new_terms_count: int

@@ -79,12 +79,9 @@ def admin(request: HttpRequest) -> HttpResponse:
     terms_available = list(Term.objects.filter(is_available=True))
     terms_available.sort(key=lambda term: term.year)
 
-    schools = list(set(School.objects.filter(terms__in=terms_available)))
-    schools = [School(id=0, name="All", globalsearch_key="-1"), *schools]
+    schools = list(School.objects.all())
 
-    return templates.Admin(
-        title="Hello there", terms_available=terms_available, schools=schools
-    ).render(request)
+    return templates.Admin(terms_available=terms_available, schools=schools).render(request)
 
 
 def add_classes(request: HttpRequest) -> HttpResponse:
@@ -121,8 +118,8 @@ def refresh_available_terms(request: HttpRequest) -> HttpResponse:
         term.save(update_fields=["is_available"])
         term.schools.add(*schools)
 
-    return interfaces.BasicResponse(
-        is_success=True, message=f"{new_terms_count} new terms created"
+    return interfaces.RespSchoolsTermsUpdate(
+        available_schools=schools, available_terms=list(terms), new_terms_count=new_terms_count
     ).render(request)
 
 

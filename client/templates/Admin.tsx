@@ -11,10 +11,13 @@ import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 
 export function Template(props: templates.Admin) {
-  const [selectedTerm, setSelectedTerm] = React.useState(props.terms_available.at(0));
-  const [selectedSchool, setSelectedSchool] = React.useState(props.schools.at(0));
+  const [availableSchools, setAvailableSchools] = React.useState(props.schools);
+  const [availableTerms, setAvailableTerms] = React.useState(props.terms_available);
 
-  const refreshTermsFetchState = useFetch<interfaces.BasicResponse>();
+  const [selectedSchool, setSelectedSchool] = React.useState(availableSchools.at(0));
+  const [selectedTerm, setSelectedTerm] = React.useState(availableTerms.at(0));
+
+  const refreshTermsFetchState = useFetch<interfaces.RespSchoolsTermsUpdate>();
   const refreshSubjectsFetchState = useFetch<interfaces.BasicResponse>();
   const refreshClassesFetchState = useFetch<interfaces.BasicResponse>();
 
@@ -34,9 +37,14 @@ export function Template(props: templates.Admin) {
       );
 
     const fetchResult = await refreshTermsFetchState.fetchData(fetchCallback);
-    if (fetchResult.ok) window.location.reload();
+    if (!fetchResult.ok) {
+      console.log(fetchResult.errors);
+      return;
+    }
 
-    console.log(fetchResult.data);
+    setAvailableSchools(fetchResult.data.available_schools);
+    setAvailableTerms(fetchResult.data.available_terms);
+    alert(`${fetchResult.data.new_terms_count} new terms added`);
   }
 
   async function handleRefreshSubjectsData() {
@@ -86,10 +94,10 @@ export function Template(props: templates.Admin) {
       <Card className="p-3">
         <Card.Title>Currently available terms and schools</Card.Title>
         <Card.Body>
-          <p>{props.schools.length} schools available</p>
-          <p>{props.terms_available.length} terms available</p>
+          <p>{availableSchools.length} schools available</p>
+          <p>{availableTerms.length} terms available</p>
           <ListGroup as="ol" variant="flush" numbered className="mb-3 mh-75-vh overflow-auto">
-            {props.terms_available.map((term) => (
+            {availableTerms.map((term) => (
               <ListGroup.Item key={term.id} as="li">
                 {term.full_term_name}
               </ListGroup.Item>
@@ -97,13 +105,13 @@ export function Template(props: templates.Admin) {
           </ListGroup>
 
           <ButtonWithSpinner
-            className="btn btn-primary d-block mb-3"
-            isLoadingState={isAnyFetcherLoading}
-            hideChildren={false}
             type="button"
             size="sm"
             spinnerVariant="light"
+            hideChildren={false}
+            className="btn btn-primary d-block mb-3"
             onClick={handleRefreshTerms}
+            isLoadingState={isAnyFetcherLoading}
           >
             Refresh Available Terms and Schools
           </ButtonWithSpinner>
@@ -120,11 +128,11 @@ export function Template(props: templates.Admin) {
             className="form-select"
             onChange={(e) => {
               setSelectedSchool(
-                () => props.schools.find((school) => school.id.toString() === e.target.value)!
+                () => availableSchools.find((school) => school.id.toString() === e.target.value)!
               );
             }}
           >
-            {props.schools.map((school) => (
+            {availableSchools.map((school) => (
               <option key={school.id} value={school.id}>
                 {school.name}
               </option>
@@ -136,11 +144,11 @@ export function Template(props: templates.Admin) {
             className="form-select mb-3"
             onChange={(e) =>
               setSelectedTerm(
-                () => props.terms_available.find((term) => term.id.toString() === e.target.value)!
+                () => availableTerms.find((term) => term.id.toString() === e.target.value)!
               )
             }
           >
-            {props.terms_available.map((term) => {
+            {availableTerms.map((term) => {
               return (
                 <option key={term.id} value={term.id}>
                   {term.full_term_name}
