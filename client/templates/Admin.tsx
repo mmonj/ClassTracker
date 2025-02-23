@@ -10,18 +10,24 @@ import { Navbar } from "@client/components/Navbar";
 import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 
+const ALL_SCHOOLS_ID = 0;
+
 export function Template(props: templates.Admin) {
   const [availableSchools, setAvailableSchools] = React.useState([
-    { id: 0, name: "All" },
+    { id: ALL_SCHOOLS_ID, name: "All" },
     ...props.schools,
   ]);
   const [availableTerms, setAvailableTerms] = React.useState(props.terms_available);
+  const [availableSubjects, setAvailableSubjects] = React.useState<
+    interfaces.RespSubjectsUpdate["available_subjects"]
+  >([]);
 
   const [selectedSchool, setSelectedSchool] = React.useState(availableSchools.at(0));
   const [selectedTerm, setSelectedTerm] = React.useState(availableTerms.at(0));
+  const [selectedSubject, setSelectedSubject] = React.useState(availableSubjects.at(0));
 
   const refreshTermsFetchState = useFetch<interfaces.RespSchoolsTermsUpdate>();
-  const refreshSubjectsFetchState = useFetch<interfaces.BasicResponse>();
+  const refreshSubjectsFetchState = useFetch<interfaces.RespSubjectsUpdate>();
   const refreshClassesFetchState = useFetch<interfaces.BasicResponse>();
 
   const djangoContext = React.useContext(Context);
@@ -30,6 +36,8 @@ export function Template(props: templates.Admin) {
     refreshTermsFetchState.isLoading ||
     refreshSubjectsFetchState.isLoading ||
     refreshClassesFetchState.isLoading;
+
+  // ====================== Begin functions ======================
 
   async function handleRefreshTerms() {
     const fetchCallback = () =>
@@ -50,10 +58,15 @@ export function Template(props: templates.Admin) {
     alert(`${fetchResult.data.new_terms_count} new terms added`);
   }
 
-  async function handleRefreshSubjectsData() {
+  async function handleRefreshSemesterData() {
     if (selectedSchool === undefined || selectedTerm === undefined) {
       console.error("No school or term exists");
       return;
+    }
+
+    if (selectedSchool.id === ALL_SCHOOLS_ID) {
+      const userResp = confirm("Are you sure you want to get semester data for All schools?");
+      if (!userResp) return;
     }
 
     const callback = () =>
@@ -67,7 +80,9 @@ export function Template(props: templates.Admin) {
       );
 
     const result = await refreshSubjectsFetchState.fetchData(callback);
-    if (result.ok) console.log(result.data);
+    if (!result.ok) return;
+
+    setAvailableSubjects(result.data.available_subjects);
   }
 
   async function handleRefreshClassesData(subjectId: number) {
@@ -91,6 +106,18 @@ export function Template(props: templates.Admin) {
     const result = await refreshClassesFetchState.fetchData(callback);
     if (result.ok) console.log(result.data);
   }
+
+  function handleSchoolChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    setSelectedSchool(
+      availableSchools.find((school) => school.id.toString() === event.target.value)
+    );
+  }
+
+  function handleTermChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    setSelectedTerm(availableTerms.find((term) => term.id.toString() === event.target.value));
+  }
+
+  // ====================== End functions ======================
 
   return (
     <Layout title="Course Searcher Admin" Navbar={Navbar}>
@@ -123,43 +150,42 @@ export function Template(props: templates.Admin) {
       </Card>
 
       <Card className="p-3">
-        <Card.Title>
-          <h3>Refresh Classes</h3>
-        </Card.Title>
+        <Card.Title>Refresh Classes</Card.Title>
         <Card.Body>
-          <label className="mb-3 form-label">Schools</label>
-          <select
-            className="form-select"
-            onChange={(e) => {
-              setSelectedSchool(
-                () => availableSchools.find((school) => school.id.toString() === e.target.value)!
-              );
-            }}
-          >
-            {availableSchools.map((school) => (
-              <option key={school.id} value={school.id}>
-                {school.name}
-              </option>
-            ))}
-          </select>
-
-          <label className="mb-3 form-label">Available Terms:</label>
-          <select
-            className="form-select mb-3"
-            onChange={(e) =>
-              setSelectedTerm(
-                () => availableTerms.find((term) => term.id.toString() === e.target.value)!
-              )
-            }
-          >
-            {availableTerms.map((term) => {
-              return (
-                <option key={term.id} value={term.id}>
-                  {term.full_term_name}
+          <div className="mb-3">
+            <label className="form-label">School</label>
+            <select className="form-select" onChange={handleSchoolChange}>
+              {availableSchools.map((school) => (
+                <option key={school.id} value={school.id}>
+                  {school.name}
                 </option>
-              );
-            })}
-          </select>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Term:</label>
+            <select className="form-select" onChange={handleTermChange}>
+              {availableTerms.map((term) => {
+                return (
+                  <option key={term.id} value={term.id}>
+                    {term.full_term_name}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          {selectedSchool !== undefined && selectedSchool.id != ALL_SCHOOLS_ID && (
+            <div className="mb-3">
+              <label className="form-label">Subject</label>
+              <select className="form-select">
+                {availableSubjects.map((subject) => (
+                  <option key={subject.id}>{subject.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {selectedSchool !== undefined && selectedTerm !== undefined && (
             <>
@@ -168,28 +194,32 @@ export function Template(props: templates.Admin) {
                 size="sm"
                 spinnerVariant="light"
                 className="btn btn-primary d-block mb-3"
-                onClick={handleRefreshSubjectsData}
+                onClick={handleRefreshSemesterData}
                 isLoadingState={isAnyFetcherLoading}
               >
                 Refresh Available Subjects for{" "}
                 <b>
                   {selectedSchool.name}
-                  {selectedSchool.id === 0 ? " schools" : ""}, {selectedTerm.full_term_name}
+                  {selectedSchool.id === ALL_SCHOOLS_ID ? " schools" : ""},{" "}
+                  {selectedTerm.full_term_name}
                 </b>
               </ButtonWithSpinner>
-              <ButtonWithSpinner
-                type="button"
-                size="sm"
-                spinnerVariant="light"
-                className="btn btn-primary d-block mb-3"
-                onClick={handleRefreshClassesData}
-                isLoadingState={isAnyFetcherLoading}
-              >
-                Refresh Class List for{" "}
-                <b>
-                  {selectedSchool.name}, {selectedTerm.full_term_name}
-                </b>
-              </ButtonWithSpinner>
+
+              {selectedSchool.id !== ALL_SCHOOLS_ID && (
+                <ButtonWithSpinner
+                  type="button"
+                  size="sm"
+                  spinnerVariant="light"
+                  className="btn btn-primary d-block mb-3"
+                  onClick={handleRefreshClassesData}
+                  isLoadingState={isAnyFetcherLoading}
+                >
+                  Refresh Class List for{" "}
+                  <b>
+                    {selectedSchool.name}, {selectedTerm.full_term_name}
+                  </b>
+                </ButtonWithSpinner>
+              )}
             </>
           )}
         </Card.Body>

@@ -2,10 +2,11 @@ from typing import List, Literal, NamedTuple
 
 from reactivated import Pick, interface
 
-from .models import School, Term
+from .models import School, Subject, Term
 
 TermPick = Pick[Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
 SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
+SubjectPick = Pick[Subject, Literal["id", "name"]]
 
 
 @interface
@@ -19,3 +20,13 @@ class RespSchoolsTermsUpdate(NamedTuple):
     available_schools: List[SchoolPick]
     available_terms: List[TermPick]
     new_terms_count: int
+
+
+@interface
+class RespSubjectsUpdate(NamedTuple):
+    available_subjects: List[SubjectPick]
+
+
+@interface
+class RespGetSubjects(NamedTuple):
+    subjects: List[SubjectPick]

@@ -140,9 +140,12 @@ def refresh_semester_data(request: HttpRequest, school_id: int, term_id: int) ->
             get_subject_selection_page(session, school, term), "html.parser"
         )
 
-        course_careers, subjects = create_careers_and_subjects(subjects_page_soup, school, term)
+        _, subjects = create_careers_and_subjects(subjects_page_soup, school, term)
 
-    return interfaces.BasicResponse().render(request)
+    if school_id == 0:
+        subjects = []
+
+    return interfaces.RespSubjectsUpdate(available_subjects=subjects).render(request)
 
 
 def refresh_class_data(
