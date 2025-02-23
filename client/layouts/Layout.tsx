@@ -29,7 +29,7 @@ interface Props {
 export const Layout = ({
   Navbar,
   djangoStaticStylePaths = [],
-  baseClassName = "mw-80-rem mx-auto p-2",
+  baseClassName = "mw-80-rem mx-auto p-2 px-3",
   className = "",
   ...props
 }: Props) => {
