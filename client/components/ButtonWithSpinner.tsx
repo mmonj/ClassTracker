@@ -3,7 +3,7 @@ import React from "react";
 import { Spinner } from "react-bootstrap";
 
 interface Props {
-  /** Whether to replace children elements with loading spinner or display beside them */
+  /** If set to true, the children are replaced with loading spinner; otherwise spinner appears besides them */
   hideChildren?: boolean;
   isLoadingState: boolean;
   isIdentifierMatching?: boolean;
