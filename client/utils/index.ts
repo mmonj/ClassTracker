@@ -46,9 +46,9 @@ export async function getErrorList(
     } else if (typeof jsonData === "object" && "detail" in jsonData) {
       return [jsonData.detail];
     } else {
-      return ["Unknown error occurred"];
+      return ["An unexpected error occurred"];
     }
   } catch (jsonError) {
-    return ["Error parsing response"];
+    return ["An unexpected error occurred"];
   }
 }
