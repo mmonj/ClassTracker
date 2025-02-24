@@ -258,6 +258,7 @@ class InstructionEntry(CommonModel):
             "end_date",
             "building",
             "room",
+            "instructor",
         )
 
     def __str__(self) -> str:
