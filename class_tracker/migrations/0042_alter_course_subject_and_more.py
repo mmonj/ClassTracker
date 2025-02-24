@@ -7,14 +7,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('course_searcher', '0001_squashed_0041_day_alter_instructionentry_unique_together_and_more'),
+        ('class_tracker', '0001_squashed_0041_day_alter_instructionentry_unique_together_and_more'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='course',
             name='subject',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='course_searcher.subject'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='class_tracker.subject'),
         ),
         migrations.AlterField(
             model_name='coursecareer',
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='coursesection',
             name='term',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='classes', to='course_searcher.term'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='classes', to='class_tracker.term'),
         ),
         migrations.AlterField(
             model_name='coursesection',
@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='instructionentry',
             name='term',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='instruction_entries', to='course_searcher.term'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='instruction_entries', to='class_tracker.term'),
         ),
         migrations.AlterField(
             model_name='instructor',

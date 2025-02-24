@@ -62,13 +62,13 @@ def login_view(request: HttpRequest) -> HttpResponse:
     if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
         return redirect(next_url)
 
-    return redirect("course_searcher:index")
+    return redirect("class_tracker:index")
 
 
 @require_GET
 def logout_view(request: HttpRequest) -> HttpResponse:
     logout(request)
-    return redirect("course_searcher:login_view")
+    return redirect("class_tracker:login_view")
 
 
 def index(request: HttpRequest) -> HttpResponse:

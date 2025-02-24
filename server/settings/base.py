@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "reactivated",
-    "course_searcher",
+    "class_tracker",
     "scheduler",
 ]
 
@@ -189,7 +189,7 @@ LOGGING = {
         },
         "main_handler": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": LOGS_DIR / "course_searcher.log",
+            "filename": LOGS_DIR / "class_tracker.log",
             "mode": "a",
             "encoding": "utf-8",
             "formatter": "simple",

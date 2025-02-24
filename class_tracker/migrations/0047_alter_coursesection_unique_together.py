@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('course_searcher', '0046_rename_room_number_instructionentry_room_and_more'),
+        ('class_tracker', '0046_rename_room_number_instructionentry_room_and_more'),
     ]
 
     operations = [

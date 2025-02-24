@@ -7,18 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('course_searcher', '0044_coursesection_number'),
+        ('class_tracker', '0044_coursesection_number'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='coursesection',
             name='course',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sections', to='course_searcher.course'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sections', to='class_tracker.course'),
         ),
         migrations.AlterField(
             model_name='coursesection',
             name='term',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sections', to='course_searcher.term'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sections', to='class_tracker.term'),
         ),
     ]

@@ -15,20 +15,20 @@ export function Navbar() {
         <BSNavbar.Toggle aria-controls="navbar-nav" />
         <BSNavbar.Collapse>
           <Nav className="me-auto mb-2 mb-lg-0">
-            <NavLink href={reverse("course_searcher:add_classes")}>Add Classes</NavLink>
-            <NavLink href={reverse("course_searcher:admin")}>Admin</NavLink>
+            <NavLink href={reverse("class_tracker:add_classes")}>Add Classes</NavLink>
+            <NavLink href={reverse("class_tracker:admin")}>Admin</NavLink>
           </Nav>
 
           <Nav className="mb-2 mb-lg-0">
             {!djangoContext.user.is_authenticated && (
               <>
                 <NavLink href={"#fix-me"}>Create Account</NavLink>
-                <NavLink href={reverse("course_searcher:login_view")}>Log In</NavLink>
+                <NavLink href={reverse("class_tracker:login_view")}>Log In</NavLink>
               </>
             )}
             {djangoContext.user.is_authenticated && (
               <>
-                <NavLink href={reverse("course_searcher:logout_view")}>Log Out</NavLink>
+                <NavLink href={reverse("class_tracker:logout_view")}>Log Out</NavLink>
               </>
             )}
           </Nav>

@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [('course_searcher', '0001_initial'), ('course_searcher', '0002_alter_courseclass_options_and_more'), ('course_searcher', '0003_term_term_id'), ('course_searcher', '0004_rename_term_id_term_external_id'), ('course_searcher', '0005_remove_term_external_id'), ('course_searcher', '0006_alter_term_unique_together_term_schools_and_more'), ('course_searcher', '0007_alter_school_globalsearch_key'), ('course_searcher', '0008_alter_coursecareer_unique_together_and_more'), ('course_searcher', '0009_remove_coursecareer_school_coursecareer_schools'), ('course_searcher', '0010_term_is_available'), ('course_searcher', '0011_course_terms'), ('course_searcher', '0012_alter_coursecareer_name'), ('course_searcher', '0013_alter_subject_unique_together_remove_subject_career'), ('course_searcher', '0014_coursecareer_globalsearch_key_and_more'), ('course_searcher', '0015_school_is_preferred'), ('course_searcher', '0016_subject_is_preferred'), ('course_searcher', '0017_alter_subject_unique_together_subject_terms_and_more'), ('course_searcher', '0018_alter_subject_unique_together_subject_schools_and_more'), ('course_searcher', '0019_coursecareer_terms'), ('course_searcher', '0020_remove_courseclass_days_and_times_and_more'), ('course_searcher', '0021_course_subject'), ('course_searcher', '0022_instructionentry_term'), ('course_searcher', '0023_courseclass_url'), ('course_searcher', '0024_alter_subject_short_name'), ('course_searcher', '0025_coursecareer_is_preferred_term_is_preferred'), ('course_searcher', '0026_course_designation'), ('course_searcher', '0027_remove_subject_short_name_and_more'), ('course_searcher', '0028_alter_course_subject_abbreviation'), ('course_searcher', '0029_courseclass_title_alter_courseclass_url'), ('course_searcher', '0030_rename_title_courseclass_topic'), ('course_searcher', '0031_remove_course_designation'), ('course_searcher', '0032_alter_courseclass_unique_together_and_more'), ('course_searcher', '0033_remove_instructor_first_name_and_more'), ('course_searcher', '0034_rename_full_name_instructor_name_and_more'), ('course_searcher', '0035_alter_instructor_unique_together'), ('course_searcher', '0036_remove_course_subject_abbreviation_course_code'), ('course_searcher', '0037_alter_course_unique_together'), ('course_searcher', '0038_rename_courseclass_coursesection_and_more'), ('course_searcher', '0039_alter_coursesection_options'), ('course_searcher', '0040_course_designation_alter_course_level'), ('course_searcher', '0041_day_alter_instructionentry_unique_together_and_more')]
+    replaces = [('class_tracker', '0001_initial'), ('class_tracker', '0002_alter_courseclass_options_and_more'), ('class_tracker', '0003_term_term_id'), ('class_tracker', '0004_rename_term_id_term_external_id'), ('class_tracker', '0005_remove_term_external_id'), ('class_tracker', '0006_alter_term_unique_together_term_schools_and_more'), ('class_tracker', '0007_alter_school_globalsearch_key'), ('class_tracker', '0008_alter_coursecareer_unique_together_and_more'), ('class_tracker', '0009_remove_coursecareer_school_coursecareer_schools'), ('class_tracker', '0010_term_is_available'), ('class_tracker', '0011_course_terms'), ('class_tracker', '0012_alter_coursecareer_name'), ('class_tracker', '0013_alter_subject_unique_together_remove_subject_career'), ('class_tracker', '0014_coursecareer_globalsearch_key_and_more'), ('class_tracker', '0015_school_is_preferred'), ('class_tracker', '0016_subject_is_preferred'), ('class_tracker', '0017_alter_subject_unique_together_subject_terms_and_more'), ('class_tracker', '0018_alter_subject_unique_together_subject_schools_and_more'), ('class_tracker', '0019_coursecareer_terms'), ('class_tracker', '0020_remove_courseclass_days_and_times_and_more'), ('class_tracker', '0021_course_subject'), ('class_tracker', '0022_instructionentry_term'), ('class_tracker', '0023_courseclass_url'), ('class_tracker', '0024_alter_subject_short_name'), ('class_tracker', '0025_coursecareer_is_preferred_term_is_preferred'), ('class_tracker', '0026_course_designation'), ('class_tracker', '0027_remove_subject_short_name_and_more'), ('class_tracker', '0028_alter_course_subject_abbreviation'), ('class_tracker', '0029_courseclass_title_alter_courseclass_url'), ('class_tracker', '0030_rename_title_courseclass_topic'), ('class_tracker', '0031_remove_course_designation'), ('class_tracker', '0032_alter_courseclass_unique_together_and_more'), ('class_tracker', '0033_remove_instructor_first_name_and_more'), ('class_tracker', '0034_rename_full_name_instructor_name_and_more'), ('class_tracker', '0035_alter_instructor_unique_together'), ('class_tracker', '0036_remove_course_subject_abbreviation_course_code'), ('class_tracker', '0037_alter_course_unique_together'), ('class_tracker', '0038_rename_courseclass_coursesection_and_more'), ('class_tracker', '0039_alter_coursesection_options'), ('class_tracker', '0040_course_designation_alter_course_level'), ('class_tracker', '0041_day_alter_instructionentry_unique_together_and_more')]
 
     initial = True
 
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100)),
                 ('year', models.IntegerField()),
                 ('globalsearch_key', models.CharField(max_length=100, unique=True)),
-                ('schools', models.ManyToManyField(related_name='terms', to='course_searcher.school')),
+                ('schools', models.ManyToManyField(related_name='terms', to='class_tracker.school')),
                 ('is_available', models.BooleanField(default=False)),
                 ('is_preferred', models.BooleanField(default=False)),
             ],
@@ -52,9 +52,9 @@ class Migration(migrations.Migration):
                 ('datetime_created', models.DateTimeField(auto_now_add=True)),
                 ('datetime_modified', models.DateTimeField(auto_now=True)),
                 ('name', models.CharField(max_length=50)),
-                ('schools', models.ManyToManyField(related_name='careers', to='course_searcher.school')),
+                ('schools', models.ManyToManyField(related_name='careers', to='class_tracker.school')),
                 ('globalsearch_key', models.CharField(default=None, max_length=50, unique=True)),
-                ('terms', models.ManyToManyField(related_name='careers', to='course_searcher.term')),
+                ('terms', models.ManyToManyField(related_name='careers', to='class_tracker.term')),
                 ('is_preferred', models.BooleanField(default=False)),
             ],
         ),
@@ -67,8 +67,8 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100)),
                 ('globalsearch_key', models.TextField(max_length=100, unique=True)),
                 ('is_preferred', models.BooleanField(default=False)),
-                ('terms', models.ManyToManyField(related_name='subjects', to='course_searcher.term')),
-                ('schools', models.ManyToManyField(related_name='subjects', to='course_searcher.school')),
+                ('terms', models.ManyToManyField(related_name='subjects', to='class_tracker.term')),
+                ('schools', models.ManyToManyField(related_name='subjects', to='class_tracker.school')),
             ],
         ),
         migrations.CreateModel(
@@ -78,8 +78,8 @@ class Migration(migrations.Migration):
                 ('datetime_created', models.DateTimeField(auto_now_add=True)),
                 ('datetime_modified', models.DateTimeField(auto_now=True)),
                 ('name', models.CharField(default=None, max_length=100)),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='instructors', to='course_searcher.school')),
-                ('terms', models.ManyToManyField(related_name='instructors', to='course_searcher.term')),
+                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='instructors', to='class_tracker.school')),
+                ('terms', models.ManyToManyField(related_name='instructors', to='class_tracker.term')),
             ],
             options={
                 'abstract': False,
@@ -94,10 +94,10 @@ class Migration(migrations.Migration):
                 ('datetime_modified', models.DateTimeField(auto_now=True)),
                 ('level', models.CharField(default='', max_length=10)),
                 ('title', models.CharField(max_length=100)),
-                ('career', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='course_searcher.coursecareer')),
-                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='course_searcher.school')),
-                ('terms', models.ManyToManyField(related_name='courses', to='course_searcher.term')),
-                ('subject', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='course_searcher.subject')),
+                ('career', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='class_tracker.coursecareer')),
+                ('school', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='class_tracker.school')),
+                ('terms', models.ManyToManyField(related_name='courses', to='class_tracker.term')),
+                ('subject', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='courses', to='class_tracker.subject')),
                 ('code', models.CharField(default='', max_length=100, verbose_name='Course Code')),
                 ('designation', models.CharField(default='', max_length=10)),
             ],
@@ -114,8 +114,8 @@ class Migration(migrations.Migration):
                 ('section', models.CharField(max_length=20)),
                 ('status', models.CharField(choices=[('open', 'Open'), ('closed', 'Closed'), ('waitlisted', 'Waitlisted')], default='open', max_length=20)),
                 ('instruction_mode', models.CharField(max_length=50)),
-                ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='classes', to='course_searcher.course')),
-                ('term', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='classes', to='course_searcher.term')),
+                ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='classes', to='class_tracker.course')),
+                ('term', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='classes', to='class_tracker.term')),
                 ('url', models.CharField(max_length=1000)),
                 ('topic', models.CharField(default='', max_length=200)),
                 ('gs_unique_id', models.CharField(default='', max_length=100, unique=True)),
@@ -139,9 +139,9 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('datetime_created', models.DateTimeField(auto_now_add=True)),
                 ('datetime_modified', models.DateTimeField(auto_now=True)),
-                ('course_section', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='instruction_entries', to='course_searcher.coursesection')),
-                ('instructor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='instruction_entries', to='course_searcher.instructor')),
-                ('term', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='instruction_entries', to='course_searcher.term')),
+                ('course_section', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='instruction_entries', to='class_tracker.coursesection')),
+                ('instructor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='instruction_entries', to='class_tracker.instructor')),
+                ('term', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='instruction_entries', to='class_tracker.term')),
                 ('building', models.CharField(default=None, max_length=100)),
                 ('end_date', models.DateField(default=None)),
                 ('end_time', models.TimeField(default=None)),
@@ -149,7 +149,7 @@ class Migration(migrations.Migration):
                 ('room_number', models.CharField(default=None, max_length=20)),
                 ('start_date', models.DateField(default=None)),
                 ('start_time', models.TimeField(default=None)),
-                ('days', models.ManyToManyField(related_name='instruction_entries', to='course_searcher.day')),
+                ('days', models.ManyToManyField(related_name='instruction_entries', to='class_tracker.day')),
             ],
             options={
                 'abstract': False,

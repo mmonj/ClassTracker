@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "python manage.py runserver 0.0.0.0:8000",
-    "test": "python manage.py test course_searcher.tests"
+    "dev": "python manage.py runserver 0.0.0.0:8000"
   },
   "author": "",
   "license": "ISC",

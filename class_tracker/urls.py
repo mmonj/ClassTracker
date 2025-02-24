@@ -1,10 +1,9 @@
+from class_tracker.views import ajax
 from django.urls import path
-
-from course_searcher.views import ajax
 
 from .views import ssr
 
-app_name = "course_searcher"
+app_name = "class_tracker"
 
 ssr_urlpatterns = [
     path("", ssr.index, name="index"),

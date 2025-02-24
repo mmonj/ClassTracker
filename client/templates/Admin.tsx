@@ -48,7 +48,7 @@ export function Template(props: templates.Admin) {
   async function handleRefreshTerms() {
     const fetchCallback = () =>
       fetchByReactivated(
-        reverse("course_searcher:refresh_available_terms"),
+        reverse("class_tracker:refresh_available_terms"),
         djangoContext.csrf_token,
         "POST"
       );
@@ -77,7 +77,7 @@ export function Template(props: templates.Admin) {
 
     const callback = () =>
       fetchByReactivated(
-        reverse("course_searcher:refresh_semester_data", {
+        reverse("class_tracker:refresh_semester_data", {
           school_id: selectedSchool.id,
           term_id: selectedTerm.id,
         }),
@@ -94,7 +94,7 @@ export function Template(props: templates.Admin) {
   async function handleRefreshClassesData(schoolId: number, termId: number, subjectId: number) {
     const callback = () =>
       fetchByReactivated(
-        reverse("course_searcher:refresh_class_data", {
+        reverse("class_tracker:refresh_class_data", {
           school_id: schoolId,
           term_id: termId,
           subject_id: subjectId,
@@ -114,7 +114,7 @@ export function Template(props: templates.Admin) {
 
     const callback = () =>
       fetchByReactivated(
-        reverse("course_searcher:get_subjects", {
+        reverse("class_tracker:get_subjects", {
           school_id: selectedSchool.id,
           term_id: selectedTerm.id,
         }),

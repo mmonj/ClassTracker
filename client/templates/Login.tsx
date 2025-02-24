@@ -16,7 +16,7 @@ export function Template(props: templates.Login) {
   return (
     <Layout title="Log In" Navbar={Navbar}>
       <Card className="border-light-shadow p-4 py-3">
-        <form action={reverse("course_searcher:login_view")} method="POST">
+        <form action={reverse("class_tracker:login_view")} method="POST">
           <CSRFToken />
           {props.is_invalid_credentials && (
             <div className="alert alert-danger" role="alert">

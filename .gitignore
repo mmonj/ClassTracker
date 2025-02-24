@@ -34,4 +34,4 @@ log_files/*
 *.njsproj
 *.sln
 *.sw?
-course_searcher/tests/html
+class_tracker/tests/html

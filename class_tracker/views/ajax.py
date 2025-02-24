@@ -1,6 +1,5 @@
+from class_tracker.views import interfaces
 from django.http import HttpRequest, HttpResponse
-
-from course_searcher.views import interfaces
 
 from ..models import Subject
 
