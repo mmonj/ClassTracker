@@ -21,34 +21,22 @@ if TYPE_CHECKING:
 
 
 class HtmlParser(TestCase):
-    def setUp(self) -> None:
-        self.main_page_soup: BeautifulSoup = BeautifulSoup(
-            (Path(__file__).parent / "html/Page 1 - institution_term_page.html").read_text(),
-            "html.parser",
-        )
-        self.dept_selection_page_soup: BeautifulSoup = BeautifulSoup(
-            (Path(__file__).parent / "html/Page 2 - criteria_selection_qc.html").read_text(),
-            "html.parser",
-        )
-        self.class_results_page_soup: BeautifulSoup = BeautifulSoup(
-            (Path(__file__).parent / "html/Page 3 - class results qc-csci.html").read_text(),
-            "html.parser",
+    def test_parse_csci_fall_2024(self) -> None:
+        flow_name = "flow1-2025-january"
+
+        main_page_soup = self._get_soup(flow_name, "page1")
+        dept_selection_page_soup = self._get_soup(flow_name, "page2-qc-fall2024")
+        class_results_page_soup = self._get_soup(flow_name, "page3-qc-fall2024-csci")
+        updated_class_results_page_soup = self._get_soup(
+            flow_name, "page3-qc-fall2024-csci-updated"
         )
 
-        self.updated_class_results_page_soup: BeautifulSoup = BeautifulSoup(
-            (
-                Path(__file__).parent / "html/Page 3 - class results qc-csci-updated.html"
-            ).read_text(),
-            "html.parser",
-        )
-
-    def test_parse_pages(self) -> None:
         for class_results_soup in [
-            self.class_results_page_soup,
-            self.updated_class_results_page_soup,
+            class_results_page_soup,
+            updated_class_results_page_soup,
         ]:
-            qc_school, fall24 = self._parse_main_page()
-            self._refresh_semester_data(qc_school.id, fall24.id)
+            qc_school, fall24 = self._parse_main_page(main_page_soup)
+            self._refresh_semester_data(qc_school.id, fall24.id, dept_selection_page_soup)
 
             School.objects.filter(globalsearch_key="QNS01").update(is_preferred=True)
             Term.objects.filter(name="Fall", year=2024).update(is_preferred=True)
@@ -67,8 +55,12 @@ class HtmlParser(TestCase):
 
             self.assertEqual(len(csci_section.instruction_entries.all()), 1)
 
-    def _parse_main_page(self) -> tuple[School, Term]:
-        terms_parsed = get_terms_available(self.main_page_soup)
+    def _get_soup(self, html_flow: str, doc_name: str) -> BeautifulSoup:
+        file_path = Path(__file__).parent / f"html/{html_flow}/{doc_name}.html"
+        return BeautifulSoup(file_path.read_text(), "html.parser")
+
+    def _parse_main_page(self, main_page_soup: BeautifulSoup) -> tuple[School, Term]:
+        terms_parsed = get_terms_available(main_page_soup)
         if len(terms_parsed) == 0:
             raise ValueError("Parsed 0 terms")
 
@@ -76,7 +68,7 @@ class HtmlParser(TestCase):
         terms_db = bulk_create_and_get(Term, terms_parsed, fields=["globalsearch_key"])
         new_terms_count = len(Term.objects.all()) - prev_terms_count
 
-        schools = sorted(parse_schools(self.main_page_soup), key=lambda school: school.name)
+        schools = sorted(parse_schools(main_page_soup), key=lambda school: school.name)
         schools_db = bulk_create_and_get(School, schools, fields=["globalsearch_key"])
         self.assertGreater(len(schools_db), 0)
 
@@ -115,7 +107,9 @@ class HtmlParser(TestCase):
 
         return qc_school, fall24
 
-    def _refresh_semester_data(self, school_id: int, term_id: int) -> None:
+    def _refresh_semester_data(
+        self, school_id: int, term_id: int, dept_selection_page_soup: BeautifulSoup
+    ) -> None:
         term = Term.objects.filter(id=term_id).first()
         if term is None:
             raise ValueError([f"Term id {term_id} not found"])
@@ -127,7 +121,7 @@ class HtmlParser(TestCase):
         )
 
         for school in schools:
-            subjects_page_soup = self.dept_selection_page_soup
+            subjects_page_soup = dept_selection_page_soup
 
             course_careers, subjects = create_careers_and_subjects(subjects_page_soup, school, term)
 
