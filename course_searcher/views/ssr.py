@@ -97,7 +97,7 @@ def refresh_available_terms(request: HttpRequest) -> HttpResponse:
     session = init_http_retrier()
 
     try:
-        main_page_soup = BeautifulSoup(get_main_page(session), "html.parser")
+        main_page_soup = BeautifulSoup(get_main_page(session), "lxml")
     except HTTPError as ex:
         raise DRFNotFound([str(ex)]) from ex
 
@@ -137,7 +137,7 @@ def refresh_semester_data(request: HttpRequest, school_id: int, term_id: int) ->
     for school in schools:
         session = init_http_retrier()
         subjects_page_soup = BeautifulSoup(
-            get_subject_selection_page(session, school, term), "html.parser"
+            get_subject_selection_page(session, school, term), "lxml"
         )
 
         _, subjects = create_careers_and_subjects(subjects_page_soup, school, term)
@@ -176,7 +176,7 @@ def refresh_class_data(
         for career in course_careers:
             for subject in subjects:
                 class_result_soup = BeautifulSoup(
-                    get_classlist_result_page(session, career, subject), "html.parser"
+                    get_classlist_result_page(session, career, subject), "lxml"
                 )
 
                 gs_courses = parse_gs_courses(class_result_soup)
