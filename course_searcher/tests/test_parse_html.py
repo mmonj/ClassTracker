@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from ..models import CourseCareer, CourseSection, School, Subject, Term
+from ..models import Course, CourseCareer, CourseSection, School, Subject, Term
 from . import test_parse_html_helpers as html_pars_helpers
 
 
@@ -47,6 +47,17 @@ class HtmlParser(TestCase):
 
             self.assertEqual(len(csci_section.instruction_entries.all()), 1)
 
+        num_csci_courses_expected = 31
+        self.assertEqual(
+            len(Course.objects.filter(subject__name="Computer Science")), num_csci_courses_expected
+        )
+
+        minimum_num_sections_expected = 100
+        self.assertGreater(
+            len(CourseSection.objects.filter(course__subject__name="Computer Science")),
+            minimum_num_sections_expected,
+        )
+
     def test_parse_csci_spring_2025(self) -> None:
         flow_name = "flow2-2025-feb-23"
 
@@ -76,7 +87,7 @@ class HtmlParser(TestCase):
 
             # course section that is expected to have updated instruction entries
             csci_section = CourseSection.objects.prefetch_related("instruction_entries").get(
-                number=56226
+                number=52685
             )
 
             self.assertEqual(len(csci_section.instruction_entries.all()), 1)

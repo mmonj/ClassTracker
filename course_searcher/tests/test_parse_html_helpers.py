@@ -14,7 +14,7 @@ from ..global_search.parser import (
     parse_gs_courses,
     parse_schools,
 )
-from ..models import CourseCareer, CourseSection, School, Subject, Term
+from ..models import CourseCareer, School, Subject, Term
 from ..util import create_db_courses
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 def _get_soup(_self: HtmlParser, html_flow: str, doc_name: str) -> BeautifulSoup:
     file_path = Path(__file__).parent / f"html/{html_flow}/{doc_name}.html"
-    return BeautifulSoup(file_path.read_text(), "html.parser")
+    return BeautifulSoup(file_path.read_text(), "lxml")
 
 
 def _parse_main_page(self: HtmlParser, main_page_soup: BeautifulSoup) -> None:
@@ -109,9 +109,6 @@ def _refresh_class_data(
 
     term = Term.objects.get(id=term_id)
 
-    num_csci_courses_expected = 31
-    minimum_num_sections_expected = 100
-
     for school in schools:
         print(f"Processing school: {school!r}")
 
@@ -148,8 +145,4 @@ def _refresh_class_data(
                 gs_courses = parse_gs_courses(class_result_soup)
                 courses = create_db_courses(gs_courses, subject, career, school, term)
 
-                self.assertEqual(len(courses), num_csci_courses_expected)
-
                 time.sleep(0.5)
-
-    self.assertGreater(len(CourseSection.objects.all()), minimum_num_sections_expected)
