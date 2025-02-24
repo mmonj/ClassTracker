@@ -150,3 +150,7 @@ class InstructionEntryAdmin(admin.ModelAdmin[InstructionEntry]):
 
     def get_room(self, obj: InstructionEntry) -> str:
         return f"{obj.building} {obj.room}"
+
+    get_days_and_times.short_description = "Days & Times"  # type: ignore [attr-defined]
+    get_start_and_end_dates.short_description = "Start & End Dates"  # type: ignore [attr-defined]
+    get_room.short_description = "Location"  # type: ignore [attr-defined]
