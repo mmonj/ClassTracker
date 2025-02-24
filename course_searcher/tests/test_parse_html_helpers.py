@@ -28,7 +28,7 @@ def _get_soup(_self: HtmlParser, html_flow: str, doc_name: str) -> BeautifulSoup
     return BeautifulSoup(file_path.read_text(), "html.parser")
 
 
-def _parse_main_page(self: HtmlParser, main_page_soup: BeautifulSoup) -> tuple[School, Term]:
+def _parse_main_page(self: HtmlParser, main_page_soup: BeautifulSoup) -> None:
     terms_parsed = get_terms_available(main_page_soup)
     if len(terms_parsed) == 0:
         raise ValueError("Parsed 0 terms")
@@ -66,15 +66,8 @@ def _parse_main_page(self: HtmlParser, main_page_soup: BeautifulSoup) -> tuple[S
     #         print(repr(term))
     #     print()
 
-    qc_school = next(f for f in schools_db if f.name == "Queens College")
-    fall24 = next(
-        (f for f in terms_db if f.name == "Fall Term" and f.year == 2024),  # noqa: PLR2004
-    )
-
     # TODO: remove
     print(f"{new_terms_count} new terms created")
-
-    return qc_school, fall24
 
 
 def _refresh_semester_data(
