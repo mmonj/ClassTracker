@@ -15,7 +15,7 @@ import { Layout } from "@client/layouts/Layout";
 
 const ALL_SCHOOLS_ID = 0;
 
-export function Template(props: templates.Admin) {
+export function Template(props: templates.TrackerAdmin) {
   const [availableSchools, setAvailableSchools] = React.useState([
     { id: ALL_SCHOOLS_ID, name: "All" },
     ...props.schools,

@@ -9,22 +9,22 @@ SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
 
 
 @template
-class Login(NamedTuple):
+class TrackerLogin(NamedTuple):
     is_invalid_credentials: bool = False
 
 
 @template
-class Index(NamedTuple):
+class TrackerIndex(NamedTuple):
     title: str
 
 
 @template
-class Admin(NamedTuple):
+class TrackerAdmin(NamedTuple):
     schools: List[SchoolPick]
     terms_available: List[TermPick]
 
 
 @template
-class AddClasses(NamedTuple):
+class TrackerAddClasses(NamedTuple):
     title: str
     terms_available: List[TermPick]

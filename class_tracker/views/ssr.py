@@ -47,14 +47,14 @@ def login_view(request: HttpRequest) -> HttpResponse:
         return redirect("lms_app:home")
 
     if request.method == "GET":
-        return templates.Login().render(request)
+        return templates.TrackerLogin().render(request)
 
     username = request.POST["username"]
     password = request.POST["password"]
     user = authenticate(request, username=username, password=password)
 
     if user is None:
-        return templates.Login(is_invalid_credentials=True).render(request)
+        return templates.TrackerLogin(is_invalid_credentials=True).render(request)
 
     login(request, user)
 
@@ -81,14 +81,14 @@ def admin(request: HttpRequest) -> HttpResponse:
 
     schools = list(School.objects.all())
 
-    return templates.Admin(terms_available=terms_available, schools=schools).render(request)
+    return templates.TrackerAdmin(terms_available=terms_available, schools=schools).render(request)
 
 
 def add_classes(request: HttpRequest) -> HttpResponse:
     terms_available = list(Term.objects.filter(is_available=True))
     terms_available.sort(key=lambda term: term.year)
 
-    return templates.AddClasses(title="Hello there", terms_available=terms_available).render(
+    return templates.TrackerAddClasses(title="Hello there", terms_available=terms_available).render(
         request
     )
 

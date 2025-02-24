@@ -6,7 +6,7 @@ import { Card } from "react-bootstrap";
 import { Navbar } from "@client/components/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
-export function Template(props: templates.Login) {
+export function Template(props: templates.TrackerLogin) {
   const djangoContext = React.useContext(Context);
 
   const queryString = djangoContext.request.path.split("?")[1];

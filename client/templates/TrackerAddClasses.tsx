@@ -7,7 +7,7 @@ import { Navbar } from "@client/components/Navbar";
 import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 
-export function Template(props: templates.AddClasses) {
+export function Template(props: templates.TrackerAddClasses) {
   const refreshClassesFetchState = useFetch();
   const djangoContext = React.useContext(Context);
 
