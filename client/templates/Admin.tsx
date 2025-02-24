@@ -91,26 +91,21 @@ export function Template(props: templates.Admin) {
     setAvailableSubjects(result.data.available_subjects);
   }
 
-  async function handleRefreshClassesData(subjectId: number) {
-    if (selectedSchool === undefined || selectedTerm === undefined) {
-      console.error("No school or term exists");
-      return;
-    }
-
+  async function handleRefreshClassesData(schoolId: number, termId: number, subjectId: number) {
     const callback = () =>
       fetchByReactivated(
         reverse("course_searcher:refresh_class_data", {
-          school_id: selectedSchool.id,
-          term_id: selectedTerm.id,
+          school_id: schoolId,
+          term_id: termId,
           subject_id: subjectId,
         }),
         djangoContext.csrf_token,
-        "POST",
-        JSON.stringify({})
+        "POST"
       );
 
     const result = await refreshClassesFetchState.fetchData(callback);
-    if (result.ok) console.log(result.data);
+    if (!result.ok) return;
+    alert("Success!");
   }
 
   async function getSubjects() {
@@ -140,6 +135,13 @@ export function Template(props: templates.Admin) {
   function handleTermChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const term = availableTerms.find((term) => term.id.toString() === event.target.value);
     setSelectedTerm(term);
+  }
+
+  function handleSubjectChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const subject = availableSubjects.find(
+      (subject) => subject.id.toString() === event.target.value
+    );
+    setSelectedSubject(subject);
   }
 
   // =======================================================================================================================
@@ -207,9 +209,11 @@ export function Template(props: templates.Admin) {
             <div className="mb-3">
               <label className="form-label">Subject</label>
               <div className="d-flex">
-                <select className="form-select">
+                <select className="form-select" onChange={handleSubjectChange}>
                   {availableSubjects.map((subject) => (
-                    <option key={subject.id}>{subject.name}</option>
+                    <option key={subject.id} value={subject.id}>
+                      {subject.name}
+                    </option>
                   ))}
                 </select>
                 <ButtonWithSpinner
@@ -245,13 +249,15 @@ export function Template(props: templates.Admin) {
                 </b>
               </ButtonWithSpinner>
 
-              {selectedSchool.id !== ALL_SCHOOLS_ID && (
+              {selectedSchool.id !== ALL_SCHOOLS_ID && selectedSubject !== undefined && (
                 <ButtonWithSpinner
                   type="button"
                   size="sm"
                   variant="light"
                   className="btn btn-primary d-block mb-3"
-                  onClick={handleRefreshClassesData}
+                  onClick={() =>
+                    handleRefreshClassesData(selectedSchool.id, selectedTerm.id, selectedSubject.id)
+                  }
                   isLoadingState={isAnyFetcherLoading}
                 >
                   Parse for new Course sections for{" "}
