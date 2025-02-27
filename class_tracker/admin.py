@@ -178,11 +178,11 @@ class ContactAdmin(admin.ModelAdmin[Recipient]):
     def watched_sections_display(self, obj: Recipient) -> str:
         sections_info: list[str] = []
         for section in obj.watched_sections.all():
-            course_name = f"{section.course.code} {section.course.level}: {section.course.title}"
+            section_name = f"{section.course.get_name()} - {section.topic}"
             instructors = ", ".join(
                 [entry.instructor.name for entry in section.instruction_entries.all()]
             )
-            sections_info.append(f"{course_name} (Instructors: {instructors})")
+            sections_info.append(f"{section_name} (Instructors: {instructors})")
         return "; ".join(sections_info)
 
     watched_sections_display.short_description = "Watched Sections"  # type: ignore [attr-defined]
