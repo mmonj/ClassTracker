@@ -4,11 +4,14 @@ from django.db.models import QuerySet
 from django.http import HttpRequest
 
 from .models import (
+    ClassAlert,
+    ContactInfo,
     Course,
     CourseCareer,
     CourseSection,
     InstructionEntry,
     Instructor,
+    Recipient,
     School,
     Subject,
     Term,
@@ -154,3 +157,54 @@ class InstructionEntryAdmin(admin.ModelAdmin[InstructionEntry]):
     get_days_and_times.short_description = "Days & Times"  # type: ignore [attr-defined]
     get_start_and_end_dates.short_description = "Start & End Dates"  # type: ignore [attr-defined]
     get_room.short_description = "Location"  # type: ignore [attr-defined]
+
+
+@admin.register(Recipient)
+class ContactAdmin(admin.ModelAdmin[Recipient]):
+    list_display = ("name", "description", "is_contact_by_phone")
+    list_filter = ("is_contact_by_phone",)
+    search_fields = ("name",)
+    filter_horizontal = ("watched_sections",)
+
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Recipient]:
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related(
+                "watched_sections__course", "watched_sections__instruction_entries__instructor"
+            )
+        )
+
+    def watched_sections_display(self, obj: Recipient) -> str:
+        sections_info: list[str] = []
+        for section in obj.watched_sections.all():
+            course_name = f"{section.course.code} {section.course.level}: {section.course.title}"
+            instructors = ", ".join(
+                [entry.instructor.name for entry in section.instruction_entries.all()]
+            )
+            sections_info.append(f"{course_name} (Instructors: {instructors})")
+        return "; ".join(sections_info)
+
+    watched_sections_display.short_description = "Watched Sections"  # type: ignore [attr-defined]
+
+
+@admin.register(ContactInfo)
+class PhoneNumberAdmin(admin.ModelAdmin[ContactInfo]):
+    list_display = ("number", "owner", "is_enabled")
+    list_filter = ("is_enabled",)
+    search_fields = ("number", "owner__name")
+    raw_id_fields = ("owner",)
+
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet[ContactInfo]:
+        return super().get_queryset(request).select_related("owner")
+
+
+@admin.register(ClassAlert)
+class ClassAlertAdmin(admin.ModelAdmin[ClassAlert]):
+    list_display = ("recipient", "course_section", "datetime_created")
+    list_filter = ("recipient", "course_section")
+    search_fields = ("recipient__name", "course_section__title")
+    raw_id_fields = ("recipient", "course_section")
+
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet[ClassAlert]:
+        return super().get_queryset(request).select_related("recipient", "course_section")

@@ -404,3 +404,45 @@ class InstructionEntry(CommonModel):
             instruction_entries.append(instruction_entry)
 
         return instruction_entries
+
+
+class Recipient(CommonModel):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    is_contact_by_phone = models.BooleanField(default=True)
+    watched_sections = models.ManyToManyField(CourseSection, related_name="watched_by")
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return f"<Recipient(id={self.id}, name={self.name!r})>"
+
+
+class ContactInfo(CommonModel):
+    number = models.CharField(max_length=20, unique=True, db_index=True)
+    owner = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name="phone_numbers")
+    is_enabled = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f"{self.number} ({'Preferred' if self.is_enabled else 'Secondary'})"
+
+    def __repr__(self) -> str:
+        return f"<ContactInfo(id={self.id}, number={self.number!r}, owner_id={self.owner_id})>"
+
+
+class ClassAlert(CommonModel):
+    recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name="alerts")
+    course_section = models.ForeignKey(
+        CourseSection, on_delete=models.CASCADE, related_name="alerts"
+    )
+
+    class Meta:
+        unique_together = ("recipient", "course_section", "datetime_created")
+        indexes = [models.Index(fields=["recipient", "course_section"])]
+
+    def __str__(self) -> str:
+        return f"Alert for {self.recipient.name} on {self.course_section}"
+
+    def __repr__(self) -> str:
+        return f"<ClassAlert(id={self.id}, recipient_id={self.recipient_id}, course_section_id={self.course_section_id})>"
