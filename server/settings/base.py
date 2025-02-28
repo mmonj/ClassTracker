@@ -236,3 +236,9 @@ SCHEDULER_QUEUES = {
         },
     },
 }
+
+JOINAPP_DEVICE_ID = os.environ["JOINAPP_DEVICE_ID"]
+JOINAPP_API_KEY = os.environ["JOINAPP_API_KEY"]
+
+JOINAPP_SEND_URL = os.environ["JOINAPP_SEND_URL"]
+JOINAPP_LIST_URL = os.environ["JOINAPP_LIST_URL"]
