@@ -1,5 +1,6 @@
 import datetime
 import re
+from typing import Self
 
 import pytz
 from django.db import models
@@ -128,7 +129,7 @@ class Course(CommonModel):
     @classmethod
     def from_gs_course(
         cls, gs_course: GSCourse, subject: Subject, career: CourseCareer, school: School
-    ) -> "Course":
+    ) -> Self:
         course = cls(
             code=gs_course.code,
             level=gs_course.level,
@@ -178,7 +179,7 @@ class CourseSection(CommonModel):
     @classmethod
     def from_gs_course_section(
         cls, gs_course_section: GSCourseSection, course: Course, term: Term
-    ) -> "CourseSection":
+    ) -> Self:
         instance = cls(
             gs_unique_id=gs_course_section.unique_id,
             number=gs_course_section.number,
