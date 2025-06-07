@@ -14,7 +14,7 @@ from ..global_search.parser import (
     parse_gs_courses,
     parse_schools,
 )
-from ..models import CourseCareer, School, Subject, Term
+from ..models import Course, CourseCareer, School, Subject, Term
 from ..util import create_db_courses
 
 if TYPE_CHECKING:
@@ -128,8 +128,9 @@ def _refresh_class_data(
         print()
 
         # session = Session()
-        # get_subject_selection_page(session, school, term)
+        # _ = get_subject_selection_page(session, school, term)
 
+        courses: list[Course] = []
         for career in course_careers:
             #### TODO: REMOVE
             if career.globalsearch_key != "UGRD":
@@ -143,6 +144,6 @@ def _refresh_class_data(
                 class_result_soup = class_results_soup
 
                 gs_courses = parse_gs_courses(class_result_soup)
-                courses = create_db_courses(gs_courses, subject, career, school, term)
+                courses.extend(create_db_courses(gs_courses, subject, career, school, term))
 
                 time.sleep(0.5)

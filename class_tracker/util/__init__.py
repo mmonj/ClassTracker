@@ -1,6 +1,8 @@
+import logging
+
 from server.util import atomic_get_or_create, bulk_create_and_get
 
-from ..global_search.types import GSCourse
+from ..global_search.typedefs import GSCourse
 from ..models import (
     Course,
     CourseCareer,
@@ -11,6 +13,8 @@ from ..models import (
     Subject,
     Term,
 )
+
+logger = logging.getLogger("main")
 
 TNameToInstructorMap = dict[str, Instructor]
 
@@ -34,6 +38,7 @@ def create_db_courses(
             )
         )
     }
+
     courses = list(course_name_to_course_map.values())
 
     for gs_course in gs_courses:
@@ -59,7 +64,9 @@ def _create_instructors_from_gs_courses(
     instructor_names: set[str] = set()
     for gs_course in gs_courses:
         for course_section in gs_course.sections:
-            instructor_names.update(course_section.instructor.split("\n"))
+            for instruction_entry in course_section.instruction_entries:
+                if instruction_entry.instructor:
+                    instructor_names.add(instruction_entry.instructor)
 
     instructors = [Instructor(name=name, school=school) for name in instructor_names]
     instructors = list(bulk_create_and_get(Instructor, instructors, fields=["name", "school__id"]))

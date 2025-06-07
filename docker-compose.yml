@@ -43,6 +43,7 @@ services:
       - 8031:5432
     volumes:
       - ./.postgresql/data:/var/lib/postgresql/data
+      - ./.postgresql/backups:/app/backups
   adminer:
     image: adminer
     container_name: mm-adminer-class-searcher

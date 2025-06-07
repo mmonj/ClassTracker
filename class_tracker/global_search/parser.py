@@ -6,7 +6,8 @@ from bs4 import BeautifulSoup, Comment, Doctype, PageElement, ProcessingInstruct
 from server.util import bulk_create_and_get
 
 from .. import models
-from .types import GSCourse, GSCourseSection
+from .typedefs import GSCourse
+from .util import get_course_section
 
 logger = logging.getLogger("main")
 
@@ -115,6 +116,8 @@ def parse_gs_courses(course_results_soup: BeautifulSoup) -> list[GSCourse]:
         course_full_title = course_label_container.text.replace("\xa0", " ").strip()
         course_sections_container = _find_next_tag_sibling(course_label_container)
 
+        logger.info("   - Parsing course: %s", course_full_title)
+
         if course_sections_container is None:
             value_error = ValueError("No next sibling found")
             logger.exception(value_error)
@@ -126,7 +129,7 @@ def parse_gs_courses(course_results_soup: BeautifulSoup) -> list[GSCourse]:
             continue
 
         course_sections = [
-            GSCourseSection(_filter_for_tag_elements(course_section_attrs_container.children))
+            get_course_section(_filter_for_tag_elements(course_section_attrs_container.children))
             for course_section_attrs_container in course_sections_container.select(
                 "table.classinfo > tbody > tr"
             )

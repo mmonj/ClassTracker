@@ -14,38 +14,49 @@ import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 
 const ALL_SCHOOLS_ID = 0;
+const ALL_SUBJECTS_ID = 0;
+
+const ALL_SCHOOLS_OPTION = { id: ALL_SCHOOLS_ID, name: "All Schools" };
+const ALL_SUBJECTS_OPTION = { id: ALL_SUBJECTS_ID, name: "All Subjects" };
 
 export function Template(props: templates.TrackerAdmin) {
   const [availableSchools, setAvailableSchools] = React.useState([
-    { id: ALL_SCHOOLS_ID, name: "All" },
+    ALL_SCHOOLS_OPTION,
     ...props.schools,
   ]);
   const [availableTerms, setAvailableTerms] = React.useState(props.terms_available);
-  const [availableSubjects, setAvailableSubjects] = React.useState<
+  const [availableSubjects, _setAvailableSubjects] = React.useState<
     interfaces.RespSubjectsUpdate["available_subjects"]
-  >([]);
+  >([ALL_SUBJECTS_OPTION]);
+  const [availableCourses, setAvailableCourses] = React.useState<
+    interfaces.RespRefreshCourseSections["courses"] | undefined
+  >(undefined);
 
   const [selectedSchool, setSelectedSchool] = React.useState(availableSchools.at(0));
   const [selectedTerm, setSelectedTerm] = React.useState(availableTerms.at(0));
   const [selectedSubject, setSelectedSubject] = React.useState(availableSubjects.at(0));
 
-  const refreshTermsFetchState = useFetch<interfaces.RespSchoolsTermsUpdate>();
-  const refreshSubjectsFetchState = useFetch<interfaces.RespSubjectsUpdate>();
-  const getSubjectsFetchState = useFetch<interfaces.RespGetSubjects>();
-  const refreshClassesFetchState = useFetch<interfaces.BasicResponse>();
+  const refreshTermsFetcher = useFetch<interfaces.RespSchoolsTermsUpdate>();
+  const refreshSubjectsFetcher = useFetch<interfaces.RespSubjectsUpdate>();
+  const getSubjectsFetcher = useFetch<interfaces.RespGetSubjects>();
+  const refreshClassesFetcher = useFetch<interfaces.RespRefreshCourseSections>();
 
   const djangoContext = React.useContext(Context);
 
-  const isAnyFetcherLoading =
-    refreshTermsFetchState.isLoading ||
-    refreshSubjectsFetchState.isLoading ||
-    refreshClassesFetchState.isLoading;
+  // Create useCallback to make usre that when setting available subjects, we also add the ALL_SUBJECTS_OPTION as first element
+  const setAvailableSubjects = React.useCallback(
+    (subjects: interfaces.RespSubjectsUpdate["available_subjects"]) => {
+      _setAvailableSubjects([ALL_SUBJECTS_OPTION, ...subjects]);
+      setSelectedSubject(ALL_SUBJECTS_OPTION);
+    },
+    []
+  );
 
   // =======================================================================================================================
   // =================================================== Begin functions ===================================================
   // =======================================================================================================================
 
-  async function handleRefreshTerms() {
+  async function handleRefreshSchoolsAndTerms() {
     const fetchCallback = () =>
       fetchByReactivated(
         reverse("class_tracker:refresh_available_terms"),
@@ -53,7 +64,7 @@ export function Template(props: templates.TrackerAdmin) {
         "POST"
       );
 
-    const fetchResult = await refreshTermsFetchState.fetchData(fetchCallback);
+    const fetchResult = await refreshTermsFetcher.fetchData(fetchCallback);
     if (!fetchResult.ok) {
       console.log(fetchResult.errors);
       return;
@@ -61,10 +72,13 @@ export function Template(props: templates.TrackerAdmin) {
 
     setAvailableSchools(fetchResult.data.available_schools);
     setAvailableTerms(fetchResult.data.available_terms);
+    setSelectedSchool(fetchResult.data.available_schools.at(0));
+    setSelectedTerm(fetchResult.data.available_terms.at(0));
+
     alert(`${fetchResult.data.new_terms_count} new terms added`);
   }
 
-  async function handleRefreshSemesterData() {
+  async function handleRefreshSchoolTermData() {
     if (selectedSchool === undefined || selectedTerm === undefined) {
       console.error("No school or term exists");
       return;
@@ -74,6 +88,10 @@ export function Template(props: templates.TrackerAdmin) {
       const userResp = confirm("Are you sure you want to get semester data for All schools?");
       if (!userResp) return;
     }
+
+    console.log(
+      `Refreshing subjects for school: ${selectedSchool.name}, term: ${selectedTerm.full_term_name}`
+    );
 
     const callback = () =>
       fetchByReactivated(
@@ -85,13 +103,17 @@ export function Template(props: templates.TrackerAdmin) {
         "POST"
       );
 
-    const result = await refreshSubjectsFetchState.fetchData(callback);
+    const result = await refreshSubjectsFetcher.fetchData(callback);
     if (!result.ok) return;
 
     setAvailableSubjects(result.data.available_subjects);
   }
 
   async function handleRefreshClassesData(schoolId: number, termId: number, subjectId: number) {
+    console.log(
+      `Refreshing classes for school: ${selectedSchool?.name}, term: ${selectedTerm?.name}, subject: ${selectedSubject?.name}`
+    );
+
     const callback = () =>
       fetchByReactivated(
         reverse("class_tracker:refresh_class_data", {
@@ -103,14 +125,28 @@ export function Template(props: templates.TrackerAdmin) {
         "POST"
       );
 
-    const result = await refreshClassesFetchState.fetchData(callback);
+    const result = await refreshClassesFetcher.fetchData(callback);
     if (!result.ok) return;
-    alert("Success!");
+    setAvailableCourses(result.data.courses);
   }
 
-  async function getSubjects() {
-    if (selectedSchool === undefined || selectedTerm === undefined) return;
-    if (selectedSchool.id == ALL_SCHOOLS_ID) return;
+  async function getSubjects(schoolId: number | undefined, termId: number | undefined) {
+    if (schoolId === undefined || termId === undefined) return;
+    if (schoolId == ALL_SCHOOLS_ID) return;
+
+    const selectedSchool = availableSchools.find((school) => school.id === schoolId);
+    if (selectedSchool === undefined) {
+      console.error("Selected school not found in available schools");
+      return;
+    }
+
+    const selectedTerm = availableTerms.find((term) => term.id === termId);
+    if (selectedTerm === undefined) {
+      console.error("Selected term not found in available terms");
+      return;
+    }
+
+    console.log("Fetching subjects for", selectedSchool.name, selectedTerm.full_term_name);
 
     const callback = () =>
       fetchByReactivated(
@@ -121,20 +157,34 @@ export function Template(props: templates.TrackerAdmin) {
         djangoContext.csrf_token,
         "GET"
       );
-    const result = await getSubjectsFetchState.fetchData(callback);
+    const result = await getSubjectsFetcher.fetchData(callback);
     if (result.ok) {
       setAvailableSubjects(result.data.subjects);
     }
   }
 
   function handleSchoolChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const school = availableSchools.find((school) => school.id.toString() === event.target.value);
+    const school = availableSchools.find(
+      (school) => school.id === Number.parseInt(event.target.value)
+    );
     setSelectedSchool(school);
+
+    void getSubjects(school?.id, selectedTerm?.id);
   }
 
   function handleTermChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const term = availableTerms.find((term) => term.id.toString() === event.target.value);
+    const term = availableTerms.find((term) => term.id === Number.parseInt(event.target.value));
     setSelectedTerm(term);
+
+    if (
+      term === undefined ||
+      selectedSchool === undefined ||
+      selectedSchool.id === ALL_SCHOOLS_ID
+    ) {
+      return;
+    }
+
+    void getSubjects(selectedSchool.id, term.id);
   }
 
   function handleSubjectChange(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -170,10 +220,10 @@ export function Template(props: templates.TrackerAdmin) {
             variant="light"
             hideChildren={false}
             className="btn btn-primary d-block mb-3"
-            onClick={handleRefreshTerms}
-            isLoadingState={isAnyFetcherLoading}
+            onClick={handleRefreshSchoolsAndTerms}
+            isLoadingState={refreshTermsFetcher.isLoading}
           >
-            Parse for new Terms and Schools
+            Refresh available Terms and Schools
           </ButtonWithSpinner>
         </Card.Body>
       </Card>
@@ -182,8 +232,13 @@ export function Template(props: templates.TrackerAdmin) {
         <Card.Title>Refresh Classes</Card.Title>
         <Card.Body>
           <div className="mb-3">
-            <label className="form-label">School</label>
-            <select className="form-select" onChange={handleSchoolChange}>
+            <label className="form-label">School:</label>
+            <select
+              className="form-select"
+              value={selectedSchool?.id}
+              onChange={handleSchoolChange}
+              disabled={getSubjectsFetcher.isLoading}
+            >
               {availableSchools.map((school) => (
                 <option key={school.id} value={school.id}>
                   {school.name}
@@ -194,7 +249,12 @@ export function Template(props: templates.TrackerAdmin) {
 
           <div className="mb-3">
             <label className="form-label">Term:</label>
-            <select className="form-select" onChange={handleTermChange}>
+            <select
+              className="form-select"
+              value={selectedTerm?.id}
+              onChange={handleTermChange}
+              disabled={getSubjectsFetcher.isLoading}
+            >
               {availableTerms.map((term) => {
                 return (
                   <option key={term.id} value={term.id}>
@@ -207,9 +267,14 @@ export function Template(props: templates.TrackerAdmin) {
 
           {selectedSchool !== undefined && selectedSchool.id != ALL_SCHOOLS_ID && (
             <div className="mb-3">
-              <label className="form-label">Subject</label>
+              <label className="form-label">Subject:</label>
               <div className="d-flex">
-                <select className="form-select" onChange={handleSubjectChange}>
+                <select
+                  className="form-select"
+                  value={selectedSubject?.id}
+                  onChange={handleSubjectChange}
+                  disabled={getSubjectsFetcher.isLoading}
+                >
                   {availableSubjects.map((subject) => (
                     <option key={subject.id} value={subject.id}>
                       {subject.name}
@@ -222,8 +287,9 @@ export function Template(props: templates.TrackerAdmin) {
                   hideChildren={true}
                   className="btn btn-primary ms-2"
                   disabled={selectedSchool.id === ALL_SCHOOLS_ID}
-                  isLoadingState={getSubjectsFetchState.isLoading}
-                  onClick={getSubjects}
+                  onClick={handleRefreshSchoolTermData}
+                  isLoadingState={refreshSubjectsFetcher.isLoading}
+                  title={"Refresh available Subjects"}
                 >
                   <FontAwesomeIcon icon={faSync} size="1x" />
                 </ButtonWithSpinner>
@@ -233,22 +299,6 @@ export function Template(props: templates.TrackerAdmin) {
 
           {selectedSchool !== undefined && selectedTerm !== undefined && (
             <>
-              <ButtonWithSpinner
-                type="button"
-                size="sm"
-                variant="light"
-                className="btn btn-primary d-block mb-3"
-                onClick={handleRefreshSemesterData}
-                isLoadingState={isAnyFetcherLoading}
-              >
-                Parse for new Subjects for{" "}
-                <b>
-                  {selectedSchool.name}
-                  {selectedSchool.id === ALL_SCHOOLS_ID ? " schools" : ""},{" "}
-                  {selectedTerm.full_term_name}
-                </b>
-              </ButtonWithSpinner>
-
               {selectedSchool.id !== ALL_SCHOOLS_ID && selectedSubject !== undefined && (
                 <ButtonWithSpinner
                   type="button"
@@ -258,9 +308,9 @@ export function Template(props: templates.TrackerAdmin) {
                   onClick={() =>
                     handleRefreshClassesData(selectedSchool.id, selectedTerm.id, selectedSubject.id)
                   }
-                  isLoadingState={isAnyFetcherLoading}
+                  isLoadingState={refreshClassesFetcher.isLoading}
                 >
-                  Parse for new Course sections for{" "}
+                  Refresh available Course sections for{" "}
                   <b>
                     {selectedSchool.name}, {selectedTerm.full_term_name}
                   </b>
@@ -270,6 +320,30 @@ export function Template(props: templates.TrackerAdmin) {
           )}
         </Card.Body>
       </Card>
+
+      {availableCourses !== undefined && !refreshClassesFetcher.isLoading && (
+        <Card className="p-3">
+          <Card.Title>Available Courses</Card.Title>
+          <Card.Body>
+            <ListGroup as="ol" variant="flush" numbered className="mh-75-vh overflow-auto">
+              {availableCourses.length > 0 &&
+                availableCourses.map((course) => (
+                  <ListGroup.Item key={course.id} as="li">
+                    {course.code} - {course.level} - Sections:{" "}
+                    {course.sections.map((section) => section.number).join(", ")}
+                  </ListGroup.Item>
+                ))}
+            </ListGroup>
+
+            {availableCourses.length === 0 && (
+              <p className="text-muted">
+                No courses available for the {selectedSchool?.name} and{" "}
+                {selectedTerm?.full_term_name}
+              </p>
+            )}
+          </Card.Body>
+        </Card>
+      )}
     </Layout>
   );
 }

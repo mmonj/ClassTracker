@@ -2,41 +2,42 @@ import React from "react";
 
 import { Spinner } from "react-bootstrap";
 
-interface Props {
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
   /** If set to true, the children are replaced with loading spinner; otherwise spinner appears besides them */
   hideChildren?: boolean;
   isLoadingState: boolean;
+  disabled?: boolean;
   /** If mapping a list of items such that many 'ButtonWithSpinner' elements are also mapped, this field makes sure
    * only one of those buttons changes state when loading. Done by comparing the fetchState.identifier against the target item id */
   isIdentifierMatching?: boolean;
   variant?: "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark";
-  onClick?: () => void;
   size: "sm" | "md";
-  type: "button" | "submit" | "reset" | undefined;
-  disabled?: boolean;
-  className?: string;
   children: React.ReactNode;
 }
 
 export function ButtonWithSpinner({
   className = "",
-  variant = "dark",
   hideChildren = false,
+  isLoadingState,
+  disabled = false,
   isIdentifierMatching = true,
+  variant = "dark",
+  size = "md",
   ...props
 }: Props) {
-  const trueSize = props.size === "md" ? undefined : "sm";
-  const masterIsHideChildren = hideChildren && props.isLoadingState && isIdentifierMatching;
+  const masterIsHideChildren = hideChildren && isLoadingState && isIdentifierMatching;
+  const trueSize = size === "sm" ? "sm" : undefined; // undefined means default size 'md'
 
   return (
     <button
       className={className}
       type={props.type}
-      onClick={props.onClick}
-      disabled={props.disabled === true || props.isLoadingState}
+      disabled={disabled || isLoadingState}
+      {...props} // Forward all other attributes to the button element
     >
       {!masterIsHideChildren && <> {props.children} </>}
-      {props.isLoadingState && isIdentifierMatching && (
+      {isLoadingState && isIdentifierMatching && (
         <span>
           <Spinner variant={variant} animation="border" role="status" size={trueSize}>
             <span className="visually-hidden">Loading...</span>

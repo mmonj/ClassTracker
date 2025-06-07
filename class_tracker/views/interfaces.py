@@ -2,7 +2,7 @@ from typing import List, Literal, NamedTuple
 
 from reactivated import Pick, interface
 
-from ..models import School, Subject, Term
+from ..models import Course, School, Subject, Term
 
 TermPick = Pick[Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
 SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
@@ -30,3 +30,8 @@ class RespSubjectsUpdate(NamedTuple):
 @interface
 class RespGetSubjects(NamedTuple):
     subjects: List[SubjectPick]
+
+
+@interface
+class RespRefreshCourseSections(NamedTuple):
+    courses: List[Pick[Course, Literal["id", "code", "level", "sections.number"]]]

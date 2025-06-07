@@ -5,7 +5,7 @@ from typing import Self
 import pytz
 from django.db import models
 
-from .global_search.types import GSCourse, GSCourseSection
+from .global_search.typedefs import GSCourse, GSCourseSection
 
 TTermName = str
 TTermYear = int
@@ -270,7 +270,7 @@ class InstructionEntry(CommonModel):
         return f"<InstructionEntry(id={self.id}, days='{days_display}', start_time={self._get_time_str(self.start_time)}, end_time={self._get_time_str(self.end_time)}, building='{self.building}', room_number='{self.room}')>"
 
     def get_days_and_times(self) -> str:
-        """Get strin like 'Tu, Thu 10:45AM - 12:00PM'"""
+        """Get string like 'Tu, Thu 10:45AM - 12:00PM'"""
         days: models.QuerySet[Day] = self.days.all()
         days_display = ", ".join(day.name for day in days)
 
@@ -331,6 +331,11 @@ class InstructionEntry(CommonModel):
     @staticmethod
     def parse_location(location: str) -> tuple[TBuildingName, TRoom, TFloorNumber]:
         """Decompose strings like 'Kiely Hall 258' into ('Kiely Hall', '258', '2')."""
+        if not location:
+            return "", "", ""
+
+        # split by the last space to separate building and room
+        # assumes the last part is the room number
         parts = location.rsplit(" ", 1)
         if len(parts) == 1:
             return "", location, ""
@@ -348,7 +353,7 @@ class InstructionEntry(CommonModel):
     def parse_days_and_times(
         days_and_times: str,
     ) -> tuple[list[Day], datetime.time | None, datetime.time | None]:
-        """Convert 'TuTh 5:00PM - 5:30PM' into a tuple of ([listDay], start_time, end_time) using NYC as the timezone"""
+        """Convert 'TuTh 5:00PM - 5:30PM' into a tuple of (list[Day], start_time, end_time) using NYC as the timezone"""
         parts = days_and_times.split()
         if len(parts) == 1:
             return ([], None, None)
@@ -377,16 +382,16 @@ class InstructionEntry(CommonModel):
         name_to_instructors_map: dict[str, Instructor],
     ) -> list["InstructionEntry"]:
         instruction_entries: list[InstructionEntry] = []
-        for days_and_times, location, instructor_name, meeting_dates in zip(
-            gs_course_section.days_and_times.split("\n"),
-            gs_course_section.room.split("\n"),
-            gs_course_section.instructor.split("\n"),
-            gs_course_section.meeting_dates.split("\n"),
-            strict=True,
-        ):
-            days, start_time, end_time = InstructionEntry.parse_days_and_times(days_and_times)
-            start_date, end_date = InstructionEntry.parse_meeting_dates(meeting_dates)
-            building, room, floor_number = InstructionEntry.parse_location(location)
+        for gs_instruction_entry in gs_course_section.instruction_entries:
+            days, start_time, end_time = InstructionEntry.parse_days_and_times(
+                gs_instruction_entry.days_and_times
+            )
+            start_date, end_date = InstructionEntry.parse_meeting_dates(
+                gs_instruction_entry.meeting_dates
+            )
+            building, room, floor_number = InstructionEntry.parse_location(
+                gs_instruction_entry.room
+            )
 
             instruction_entry, _ = InstructionEntry.objects.get_or_create(
                 start_time=start_time,
@@ -396,7 +401,7 @@ class InstructionEntry(CommonModel):
                 building=building,
                 room=room,
                 floor_number=floor_number,
-                instructor=name_to_instructors_map[instructor_name],
+                instructor=name_to_instructors_map[gs_instruction_entry.instructor],
                 course_section=course_section,
                 term=term,
             )

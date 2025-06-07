@@ -160,7 +160,7 @@ class InstructionEntryAdmin(admin.ModelAdmin[InstructionEntry]):
 
 
 @admin.register(Recipient)
-class ContactAdmin(admin.ModelAdmin[Recipient]):
+class RecipientAdmin(admin.ModelAdmin[Recipient]):
     list_display = ("name", "description", "is_contact_by_phone")
     list_filter = ("is_contact_by_phone",)
     search_fields = ("name",)
@@ -189,7 +189,7 @@ class ContactAdmin(admin.ModelAdmin[Recipient]):
 
 
 @admin.register(ContactInfo)
-class PhoneNumberAdmin(admin.ModelAdmin[ContactInfo]):
+class ContactInfoAdmin(admin.ModelAdmin[ContactInfo]):
     list_display = ("number", "owner", "is_enabled")
     list_filter = ("is_enabled",)
     search_fields = ("number", "owner__name")
