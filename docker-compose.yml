@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   django_app:
-    image: mm-class-searcher-image
-    container_name: mm-class-searcher
+    image: mm-class-tracker-image
+    container_name: mm-class-tracker
     build:
       context: .
       args:
@@ -22,6 +20,7 @@ services:
       - 8030:8000
     volumes:
       - /app/node_modules
+      - /app/.venv
       - ./:/app
     env_file:
       - .dev.env
@@ -32,7 +31,8 @@ services:
 
   psql:
     image: postgres:15.7
-    container_name: mm-psql-class-searcher
+    container_name: mm-psql-class-tracker
+    user: "1000:1000"
     restart: always
     # set shared memory limit when using docker-compose
     shm_size: 128mb
@@ -46,7 +46,7 @@ services:
       - ./.postgresql/backups:/app/backups
   adminer:
     image: adminer
-    container_name: mm-adminer-class-searcher
+    container_name: mm-adminer-class-tracker
     environment:
       ADMINER_DEFAULT_SERVER: psql
     restart: always
@@ -63,16 +63,16 @@ services:
 
   redis:
     image: redis
-    container_name: redis-class-searcher
+    container_name: redis-class-tracker
     command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
     env_file:
       - .dev.env
     restart: unless-stopped
 
   rq_worker_default:
-    image: mm-class-searcher-image
-    container_name: class-searcher-rq-worker-default
-    command: poetry run python manage.py rqworker default
+    image: mm-class-tracker-image
+    container_name: class-tracker-rq-worker-default
+    command: uv run python manage.py rqworker default
     user: "1000"
     volumes:
       - ./:/app
