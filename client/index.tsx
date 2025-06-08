@@ -1,18 +1,17 @@
 import React from "react";
 
 import { Provider, getServerData, getTemplate } from "@reactivated";
-import { HelmetProvider } from "react-helmet-async";
 
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom/client";
 
-const { props, context } = getServerData();
+const {props, context} = getServerData();
 const Template = await getTemplate(context);
 
-const root = createRoot(document.getElementById("root")!);
-root.render(
-  <HelmetProvider>
-    <Provider value={context}>
-      <Template {...props} />
-    </Provider>
-  </HelmetProvider>
+ReactDOM.hydrateRoot(
+    document,
+    <React.StrictMode>
+        <Provider value={context}>
+            <Template {...props} />
+        </Provider>
+    </React.StrictMode>,
 );

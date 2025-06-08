@@ -9,16 +9,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.6.0",
-    "@fortawesome/free-brands-svg-icons": "^6.6.0",
-    "@fortawesome/free-regular-svg-icons": "^6.6.0",
-    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-brands-svg-icons": "^6.7.2",
+    "@fortawesome/free-regular-svg-icons": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "bootstrap": "^5.3.3",
-    "bootswatch": "^5.3.3",
-    "date-fns": "^3.6.0",
-    "react-bootstrap": "^2.10.4",
-    "react-markdown": "^9.0.1",
-    "reactivated": "^0.44.4"
+    "bootstrap": "^5.3.6",
+    "date-fns": "^4.1.0",
+    "react-bootstrap": "^2.10.10",
+    "reactivated": "^0.47.0"
   }
 }

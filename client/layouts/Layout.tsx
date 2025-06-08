@@ -2,10 +2,9 @@ import "/static/styles/bs-dark.css";
 import "/static/styles/reset.css";
 import "/static/styles/shared.css";
 
-import React from "react";
+import React, { type JSX } from "react";
 
 import { Context } from "@reactivated";
-import { Helmet } from "react-helmet-async";
 
 import { ContribMessages } from "@client/components/ContribMessages";
 
@@ -35,9 +34,10 @@ export const Layout = ({
 }: Props) => {
   const djangoContext = React.useContext(Context);
 
+  
   return (
-    <>
-      <Helmet>
+    <html>
+      <head>
         <meta charSet="utf-8" />
         <title>{props.title}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -70,16 +70,18 @@ export const Layout = ({
             crossOrigin=""
           />
         ))}
-      </Helmet>
-      <header>
-        <Navbar />
-      </header>
-      <main>
-        <ContribMessages />
-        <section id="content" className={baseClassName + " " + className}>
-          {props.children}
-        </section>
-      </main>
-    </>
+      </head>
+      <body>
+        <header>
+          <Navbar />
+        </header>
+        <main>
+          <ContribMessages />
+          <section id="content" className={baseClassName + " " + className}>
+            {props.children}
+          </section>
+        </main>
+      </body>
+    </html>
   );
 };
