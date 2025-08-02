@@ -17,7 +17,7 @@ services:
     tty: true
     user: "1000"
     ports:
-      - 8030:8000
+      - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
       - /app/node_modules
       - /app/.venv

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "python manage.py runserver 0.0.0.0:8000"
+    "dev": "python manage.py runserver 0.0.0.0:${DJANGO_PORT:?}"
   },
   "author": "",
   "license": "ISC",
