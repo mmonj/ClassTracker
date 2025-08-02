@@ -19,6 +19,8 @@ static/dist/index.js.map
 collected/
 static/dist/*
 *.env
+*.env.*
+!*.env.example
 log_files/*
 /staticfiles/**
 /media/**
