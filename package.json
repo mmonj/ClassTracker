@@ -17,6 +17,9 @@
     "bootstrap": "^5.3.6",
     "date-fns": "^4.1.0",
     "react-bootstrap": "^2.10.10",
-    "reactivated": "^0.47.0"
+    "reactivated": "^0.47.2"
+  },
+  "devDependencies": {
+    "sass": "^1.89.1"
   }
 }
