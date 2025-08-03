@@ -1,5 +1,5 @@
-import "/static/styles/bs-dark.css";
 import "/static/styles/reset.css";
+import "/static/styles/scss/bs-dark.scss";
 import "/static/styles/shared.css";
 
 import React, { type JSX } from "react";
