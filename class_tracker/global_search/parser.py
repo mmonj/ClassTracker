@@ -153,11 +153,11 @@ def _find_next_tag_sibling(tag: Tag) -> Tag | None:
 
     while next_sibling is not None:
         if _is_proper_tag_element(next_sibling):
-            return cast(Tag, next_sibling)
+            return cast("Tag", next_sibling)
         next_sibling = next_sibling.next_sibling
 
     return None
 
 
 def _filter_for_tag_elements(elements: Iterable[Tag | PageElement]) -> list[Tag]:
-    return [cast(Tag, elm) for elm in elements if _is_proper_tag_element(elm)]
+    return [cast("Tag", elm) for elm in elements if _is_proper_tag_element(elm)]

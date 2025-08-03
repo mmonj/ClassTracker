@@ -52,12 +52,12 @@ class Term(CommonModel):
     def __str__(self) -> str:
         return f"{self.year} {self.name}"
 
+    def __repr__(self) -> str:
+        return f"<Term(id={self.id}, name='{self.name}', year={self.year}, is_available={self.is_available})>"
+
     @property
     def full_term_name(self) -> str:
         return f"{self.year} {self.name}"
-
-    def __repr__(self) -> str:
-        return f"<Term(id={self.id}, name='{self.name}', year={self.year}, is_available={self.is_available})>"
 
     @staticmethod
     def get_term_name_and_year(
@@ -289,7 +289,7 @@ class InstructionEntry(CommonModel):
         return f"{self.start_date.strftime('%m/%d/%Y')} - {self.end_date.strftime('%m/%d/%Y')}"
 
     def _get_time_str(self, time: datetime.time | None) -> str | None:
-        return time and time.strftime("%I:%M %p") or None
+        return (time and time.strftime("%I:%M %p")) or None
 
     @property
     def location(self) -> str:
@@ -298,7 +298,7 @@ class InstructionEntry(CommonModel):
     @staticmethod
     def parse_days(days_str: str) -> list[Day]:
         """Convert a string like 'TuTh' into a list of Day objects."""
-        day_mapping = {d.value: d for d in Day.DayChoices}
+        day_mapping = {d.value: d for d in Day.DayChoices}  # type: ignore[misc]
         return [
             Day.objects.get_or_create(name=day_mapping[abbr])[0]
             for abbr in [days_str[i : i + 2] for i in range(0, len(days_str), 2)]

@@ -95,7 +95,7 @@ def _refresh_semester_data(
 
 
 def _refresh_class_data(
-    self: HtmlParser,
+    _self: HtmlParser,
     school_id: int,
     term_id: int,
     subject_id: int,

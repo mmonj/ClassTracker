@@ -168,7 +168,7 @@ def assign_section_attributes(  # noqa: PLR0912
 
 def truncate_if_non_word(input_str: str) -> str:
     """
-    truncate string to empty string if there is no word character at all in the string
+    Truncate string to empty string if there is no word character at all in the string
     """
     if not any(char.isalnum() for char in input_str):
         return ""
