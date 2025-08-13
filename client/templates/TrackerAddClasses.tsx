@@ -1,7 +1,10 @@
 import React, { useContext, useState } from "react";
 
 import { Context, interfaces, templates } from "@reactivated";
-import { Card } from "react-bootstrap";
+import { Button, Card } from "react-bootstrap";
+
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Navbar } from "@client/components/Navbar";
 import {
@@ -59,6 +62,11 @@ export function Template(props: templates.TrackerAddClasses) {
     setShowEditRecipientModal(true);
   }
 
+  function handleShowAddRecipientModal() {
+    setEditingRecipientId(0); // Sentinel value for new recipient
+    setShowEditRecipientModal(true);
+  }
+
   function handleCloseEditRecipientModal() {
     setShowEditRecipientModal(false);
     setEditingRecipientId(null);
@@ -81,7 +89,13 @@ export function Template(props: templates.TrackerAddClasses) {
     <Layout title="Watched Sections" Navbar={Navbar}>
       <Card>
         <Card.Title className="p-3">
-          <h3>Recipients</h3>
+          <div className="d-flex justify-content-between align-items-center">
+            <h3>Recipients</h3>
+            <Button variant="primary" size="sm" onClick={handleShowAddRecipientModal}>
+              <FontAwesomeIcon icon={faPlus} className="me-2" />
+              Add New Recipient
+            </Button>
+          </div>
         </Card.Title>
         <Card.Body>
           {recipients.map((recipient) => (

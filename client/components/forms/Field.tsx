@@ -16,7 +16,7 @@ export function Field({ field }: Props) {
   const isHidden = field.tag === "django.forms.widgets.HiddenInput";
 
   return (
-    <div className={classNames("mb-3", { "visually-hidden": isHidden })}>
+    <fieldset className={classNames("mb-3", { "visually-hidden": isHidden })}>
       {!isCheckboxInput && (
         <label htmlFor={field.widget.attrs.id} className="form-label">
           {field.label}
@@ -38,6 +38,6 @@ export function Field({ field }: Props) {
           <div className="invalid-feedback ms-1">{field.error}</div>
         </>
       )}
-    </div>
+    </fieldset>
   );
 }

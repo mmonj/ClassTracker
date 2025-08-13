@@ -45,6 +45,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger("main")
 
 
+RECIPIENT_PREFIX = "recipient"
+CONTACT_PREFIX = "contact"
+NEW_CONTACT_PREFIX = "contact-new"
+
+
 @staff_member_required
 def get_subjects(request: HttpRequest, school_id: int, term_id: int) -> HttpResponse:
     subjects = Subject.objects.filter(schools__id=school_id, terms__id=term_id)
@@ -162,63 +167,89 @@ def refresh_class_data(
 @staff_member_required
 @require_http_methods(["GET"])
 def get_recipient_form(request: HttpRequest, recipient_id: int) -> HttpResponse:
-    recipient_prefix = "recipient"
+    recipient: Recipient
+    recipient_form: RecipientForm
+    contact_info_forms: list[ContactInfoForm] = []
 
-    recipient = Recipient.objects.prefetch_related("phone_numbers").get(id=recipient_id)
-    contact_infos = recipient.phone_numbers.all()
-
-    recipient_form = RecipientForm(instance=recipient, prefix=recipient_prefix)
-    contact_info_forms = [
-        ContactInfoForm(instance=c, prefix=f"contact-{c.id}") for c in contact_infos
-    ]
+    if recipient_id == 0:
+        recipient_form = RecipientForm(prefix=RECIPIENT_PREFIX)
+        contact_info_forms = []
+    else:
+        recipient = Recipient.objects.prefetch_related("phone_numbers").get(id=recipient_id)
+        recipient_form = RecipientForm(instance=recipient, prefix=RECIPIENT_PREFIX)
+        contact_info_forms = [
+            ContactInfoForm(instance=c, prefix=f"{CONTACT_PREFIX}-{c.id}")
+            for c in recipient.phone_numbers.all()
+        ]
 
     return interfaces_response.RespGetRecipientForm(
-        recipient_form=recipient_form, contact_info_forms=contact_info_forms
+        recipient_form=recipient_form,
+        contact_info_forms=contact_info_forms,
+        new_contact_info_form=ContactInfoForm(prefix=NEW_CONTACT_PREFIX),
     ).render(request)
 
 
 @staff_member_required
 @require_http_methods(["POST"])
 def update_recipient(request: HttpRequest, recipient_id: int) -> HttpResponse:
-    recipient_prefix = "recipient"
+    if recipient_id == 0:
+        # creating new recipient
+        recipient = None
+        contact_infos: list[ContactInfo] = []
+        recipient_form = RecipientForm(request.POST, prefix=RECIPIENT_PREFIX)
+        contact_info_forms = []
+    else:
+        # updating existing recipient
+        recipient = Recipient.objects.prefetch_related("phone_numbers").get(id=recipient_id)
+        contact_infos = list(recipient.phone_numbers.all())
+        recipient_form = RecipientForm(request.POST, instance=recipient, prefix=RECIPIENT_PREFIX)
+        contact_info_forms = [
+            ContactInfoForm(request.POST, instance=c, prefix=f"{CONTACT_PREFIX}-{c.id}")
+            for c in contact_infos
+        ]
 
-    recipient = Recipient.objects.prefetch_related("phone_numbers").get(id=recipient_id)
-    contact_infos = recipient.phone_numbers.all()
+    new_contact_form = ContactInfoForm(request.POST, prefix=NEW_CONTACT_PREFIX)
 
-    # Initialize forms with prefixes
-    recipient_form = RecipientForm(request.POST, instance=recipient, prefix=recipient_prefix)
-    contact_info_forms = [
-        ContactInfoForm(request.POST, instance=c, prefix=f"contact-{c.id}") for c in contact_infos
-    ]
-
-    # Validate all forms
+    # validate all forms
     forms_valid = recipient_form.is_valid()
+
     for contact_form in contact_info_forms:
         if not contact_form.is_valid():
             forms_valid = False
 
+    # only validate new contact form if it has data
+    new_contact_has_data = new_contact_form.has_changed()
+    if new_contact_has_data and not new_contact_form.is_valid():
+        forms_valid = False
+
     if not forms_valid:
         return interfaces_response.RespEditRecipient(
             recipient=None,
-            contact_infos=None,
             contact_info_forms=contact_info_forms,
             recipient_form=recipient_form,
+            new_contact_info_form=new_contact_form,
         ).render(request)
 
-    # Save recipient
+    # save modelforms
     updated_recipient = recipient_form.save()
 
-    # Save contact infos
     updated_contact_infos: list[ContactInfo] = []
     for contact_form in contact_info_forms:
         updated_contact_info = contact_form.save()
         updated_contact_infos.append(updated_contact_info)
 
+    # save new contact info if provided
+    if new_contact_has_data:
+        new_contact = new_contact_form.save(commit=False)
+        new_contact.owner = updated_recipient
+        new_contact.save()
+        updated_contact_infos.append(new_contact)
+
     return interfaces_response.RespEditRecipient(
-        recipient=updated_recipient,
-        contact_infos=updated_contact_infos,
+        recipient=Recipient.objects.prefetch_related("phone_numbers").get(id=updated_recipient.id),
         contact_info_forms=None,
         recipient_form=None,
+        new_contact_info_form=None,
     ).render(request)
 
 

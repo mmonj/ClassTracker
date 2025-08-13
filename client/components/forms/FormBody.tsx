@@ -11,7 +11,7 @@ interface Props<T extends FieldMap> {
   form: FormLike<T>;
 }
 
-export function FormBody<T extends FieldMap>(props: Props<T>) {
+export function FormFieldset<T extends FieldMap>(props: Props<T>) {
   const form = useForm({ form: props.form });
 
   return (

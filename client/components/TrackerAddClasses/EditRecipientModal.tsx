@@ -1,13 +1,17 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { CSRFToken, Context, interfaces, reverse, templates } from "@reactivated";
 import { Button, Modal, Placeholder } from "react-bootstrap";
+
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { fetchByReactivated } from "@client/utils";
 
 import { useFetch } from "@client/hooks/useFetch";
 
-import { FormBody } from "../forms/FormBody";
+import { FormFieldset } from "../forms/FormBody";
 
 interface Props {
   show: boolean;
@@ -23,11 +27,17 @@ export function EditRecipientModal({ show, editingRecipientId, onHide, setRecipi
   const [contactInfoForms, setContactInfoForms] = useState<
     interfaces.RespGetRecipientForm["contact_info_forms"]
   >([]);
+  const [newContactInfoForm, setNewContactInfoForm] = useState<
+    interfaces.RespGetRecipientForm["contact_info_forms"][number] | null
+  >(null);
+
+  const [isNewContactFormShown, setIsNewContactFormShown] = useState(false);
+
   const getRecipientFormFetcher = useFetch<interfaces.RespGetRecipientForm>();
   const updateRecipientFetcher = useFetch<interfaces.RespEditRecipient>();
 
   const context = useContext(Context);
-  const formSubmitRef = React.useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function handleFetchRecipientForm(recipientId: number | null) {
     if (recipientId === null) return;
@@ -47,12 +57,14 @@ export function EditRecipientModal({ show, editingRecipientId, onHide, setRecipi
       return;
     }
 
-    // Only update state if we're still editing the same recipient
-    // This prevents race conditions when switching between recipients quickly
-    if (recipientId === editingRecipientId) {
-      setRecipientForm(result.data.recipient_form);
-      setContactInfoForms(result.data.contact_info_forms);
+    if (recipientId !== editingRecipientId) {
+      console.warn("Fetched form for a different recipient ID than expected:", recipientId);
+      return;
     }
+
+    setRecipientForm(result.data.recipient_form);
+    setContactInfoForms(result.data.contact_info_forms);
+    setNewContactInfoForm(result.data.new_contact_info_form);
   }
 
   async function handleFormSubmit(e: React.FormEvent) {
@@ -83,14 +95,21 @@ export function EditRecipientModal({ show, editingRecipientId, onHide, setRecipi
       return;
     }
 
-    if (result.data.recipient && result.data.contact_infos !== null) {
-      setRecipients((prevRecipients) =>
-        prevRecipients.map((recipient) =>
-          recipient.id === editingRecipientId
-            ? { ...recipient, ...result.data.recipient }
-            : recipient,
-        ),
-      );
+    if (result.data.recipient !== null) {
+      if (editingRecipientId === 0) {
+        // add new recipient - add empty watched_sections array for template compatibility
+        const newRecipient = { ...result.data.recipient, watched_sections: [] };
+        setRecipients((prevRecipients) => [...prevRecipients, newRecipient]);
+      } else {
+        // update existing recipient
+        setRecipients((prevRecipients) =>
+          prevRecipients.map((recipient) =>
+            recipient.id === editingRecipientId
+              ? { ...recipient, ...result.data.recipient }
+              : recipient,
+          ),
+        );
+      }
 
       setRecipientForm(null);
       setContactInfoForms([]);
@@ -100,28 +119,44 @@ export function EditRecipientModal({ show, editingRecipientId, onHide, setRecipi
 
   useEffect(() => {
     if (editingRecipientId === null) {
-      // Clear state when modal is closed
+      // clear state when modal is closed
       setRecipientForm(null);
       setContactInfoForms([]);
+      setNewContactInfoForm(null);
+      setIsNewContactFormShown(false);
       return;
     }
 
     console.log("Editing recipient ID:", editingRecipientId);
 
-    // Clear existing state before fetching new data
+    // clear existing state before fetching new data
     setRecipientForm(null);
     setContactInfoForms([]);
+    setNewContactInfoForm(null);
+    setIsNewContactFormShown(false);
 
     void handleFetchRecipientForm(editingRecipientId);
   }, [editingRecipientId]);
 
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} backdrop="static" onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Edit Recipient</Modal.Title>
+        <Modal.Title>
+          {editingRecipientId === 0 ? "Add New Recipient" : "Edit Recipient"}
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <>
+          {getRecipientFormFetcher.errorMessages.length > 0 && (
+            <div className="alert alert-danger mb-3" role="alert">
+              <strong>Error:</strong>
+              <ul className="mb-0 mt-2">
+                {getRecipientFormFetcher.errorMessages.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {getRecipientFormFetcher.isLoading && (
             <>
               <Placeholder animation="glow">
@@ -133,14 +168,45 @@ export function EditRecipientModal({ show, editingRecipientId, onHide, setRecipi
               </Placeholder>
             </>
           )}
-          {recipientForm !== null && (
-            <form onSubmit={handleFormSubmit}>
+          {recipientForm !== null && newContactInfoForm !== null && (
+            <form onSubmit={handleFormSubmit} ref={formRef}>
               <CSRFToken />
-              <FormBody form={recipientForm} />
+              <FormFieldset form={recipientForm} />
               {contactInfoForms.map((form, index) => (
-                <FormBody key={index} form={form} />
+                <FormFieldset key={index} form={form} />
               ))}
-              <input type="submit" className="d-none" ref={formSubmitRef} />
+
+              <AnimatePresence mode="wait">
+                {!isNewContactFormShown ? (
+                  <motion.div
+                    key="add-button"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.15, ease: "easeInOut" }}
+                    className="mb-3"
+                  >
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      onClick={() => setIsNewContactFormShown(true)}
+                    >
+                      <FontAwesomeIcon icon={faPlus} className="me-2" />
+                      Add new contact info
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="contact-form"
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                  >
+                    <FormFieldset form={newContactInfoForm} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </form>
           )}
         </>
@@ -149,8 +215,8 @@ export function EditRecipientModal({ show, editingRecipientId, onHide, setRecipi
         <Button variant="secondary" onClick={onHide}>
           Cancel
         </Button>
-        <Button type="button" variant="primary" onClick={() => formSubmitRef.current?.click()}>
-          Save Changes
+        <Button type="button" variant="primary" onClick={() => formRef.current?.requestSubmit()}>
+          {editingRecipientId === 0 ? "Add Recipient" : "Save Changes"}
         </Button>
       </Modal.Footer>
     </Modal>

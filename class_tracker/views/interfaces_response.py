@@ -5,10 +5,10 @@ from reactivated import Pick, interface
 from ..models import ContactInfo, Course, CourseSection, Recipient, School, Subject, Term
 from .forms import ContactInfoForm, RecipientForm
 
-TermPick = Pick[Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
-SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
-SubjectPick = Pick[Subject, Literal["id", "name"]]
-SectionPick = Pick[
+_TermPick = Pick[Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
+_SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
+_SubjectPick = Pick[Subject, Literal["id", "name"]]
+_SectionPick = Pick[
     CourseSection,
     Literal[
         "id",
@@ -19,6 +19,17 @@ SectionPick = Pick[
         "course.level",
     ],
 ]
+
+_RecipientPick = Pick[
+    Recipient,
+    Literal[
+        "id",
+        "name",
+        "phone_numbers.id",
+        "phone_numbers.number",
+    ],
+]
+
 ContactPick = Pick[ContactInfo, Literal["id", "number", "is_enabled"]]
 
 
@@ -30,19 +41,19 @@ class BasicResponse(NamedTuple):
 
 @interface
 class RespSchoolsTermsUpdate(NamedTuple):
-    available_schools: List[SchoolPick]
-    available_terms: List[TermPick]
+    available_schools: List[_SchoolPick]
+    available_terms: List[_TermPick]
     new_terms_count: int
 
 
 @interface
 class RespSubjectsUpdate(NamedTuple):
-    available_subjects: List[SubjectPick]
+    available_subjects: List[_SubjectPick]
 
 
 @interface
 class RespGetSubjects(NamedTuple):
-    subjects: List[SubjectPick]
+    subjects: List[_SubjectPick]
 
 
 @interface
@@ -54,16 +65,17 @@ class RespRefreshCourseSections(NamedTuple):
 class RespGetRecipientForm(NamedTuple):
     recipient_form: RecipientForm
     contact_info_forms: list[ContactInfoForm]
+    new_contact_info_form: ContactInfoForm
 
 
 @interface
 class RespEditRecipient(NamedTuple):
-    recipient: Pick[Recipient, Literal["id", "name", "description"]] | None
-    contact_infos: list[ContactPick] | None
+    recipient: _RecipientPick | None
     recipient_form: RecipientForm | None
     contact_info_forms: list[ContactInfoForm] | None
+    new_contact_info_form: ContactInfoForm | None
 
 
 @interface
 class RespAddWatchedSection(NamedTuple):
-    added_section: SectionPick
+    added_section: _SectionPick

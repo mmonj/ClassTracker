@@ -4,9 +4,9 @@ from reactivated import Pick, template
 
 from .. import models
 
-TermPick = Pick[models.Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
-SchoolPick = Pick[models.School, Literal["id", "name", "globalsearch_key"]]
-RecipientPick = Pick[
+_TermPick = Pick[models.Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
+_SchoolPick = Pick[models.School, Literal["id", "name", "globalsearch_key"]]
+_RecipientPick = Pick[
     models.Recipient,
     Literal[
         "id",
@@ -35,11 +35,11 @@ class TrackerIndex(NamedTuple):
 
 @template
 class TrackerAdmin(NamedTuple):
-    schools: List[SchoolPick]
-    terms_available: List[TermPick]
+    schools: List[_SchoolPick]
+    terms_available: List[_TermPick]
 
 
 @template
 class TrackerAddClasses(NamedTuple):
-    terms_available: List[TermPick]
-    recipients: List[RecipientPick]
+    terms_available: List[_TermPick]
+    recipients: List[_RecipientPick]
