@@ -8,7 +8,7 @@ type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "HEAD";
 
 export function classList(classes: ClassListInput): string {
   return Object.entries(classes)
-    .filter(([_, value]) => value)
+    .filter(([_, value]) => value == true)
     .map(([key, _]) => key)
     .join(" ");
 }
@@ -17,7 +17,7 @@ export function fetchByReactivated<T>(
   url: string,
   csrfToken: string,
   method: HttpMethod,
-  payloadBody: BodyInit | undefined = undefined
+  payloadBody: BodyInit | undefined = undefined,
 ): ApiPromise<T> {
   const headers = {
     Accept: "application/json",
@@ -32,7 +32,7 @@ export function fetchByReactivated<T>(
 }
 
 export async function getErrorList(
-  error: ApiResponse<TNotFoundErrorList | IHttpError> | Error
+  error: ApiResponse<TNotFoundErrorList | IHttpError> | Error,
 ): Promise<string[]> {
   if (error instanceof Error) {
     return [error.message];

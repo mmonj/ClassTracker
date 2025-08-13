@@ -5,18 +5,31 @@ import { Navbar as BSNavbar, Container, Nav } from "react-bootstrap";
 
 import { NavLink } from "./Navlink";
 
+type TStaffRoute = {
+  name: string;
+  href: string;
+};
+
 export function Navbar() {
   const djangoContext = React.useContext(Context);
+
+  const staffRoutes = [
+    { name: "Admin", href: reverse("class_tracker:admin") },
+    { name: "Add Classes", href: reverse("class_tracker:add_classes") },
+  ] satisfies TStaffRoute[];
 
   return (
     <BSNavbar expand="lg" className="navbar navbar-expand navbar-light navbar-bg">
       <Container fluid>
-        <BSNavbar.Brand href={"/fix-me"}>Home</BSNavbar.Brand>
+        <BSNavbar.Brand href={reverse("class_tracker:index")}>Home</BSNavbar.Brand>
         <BSNavbar.Toggle aria-controls="navbar-nav" />
         <BSNavbar.Collapse>
           <Nav className="me-auto mb-2 mb-lg-0">
-            <NavLink href={reverse("class_tracker:add_classes")}>Add Classes</NavLink>
-            <NavLink href={reverse("class_tracker:admin")}>Admin</NavLink>
+            {staffRoutes.map((route) => (
+              <NavLink key={route.name} href={route.href}>
+                {route.name}
+              </NavLink>
+            ))}
           </Nav>
 
           <Nav className="mb-2 mb-lg-0">

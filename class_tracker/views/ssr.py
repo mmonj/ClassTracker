@@ -10,7 +10,7 @@ from django.utils.encoding import iri_to_uri
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_http_methods
 
-from ..models import School, Term
+from ..models import Recipient, School, Term
 from . import templates
 
 logger = logging.getLogger("main")
@@ -23,7 +23,7 @@ def login_view(request: HttpRequest) -> HttpResponse:
             "User %s is already logged in. Redirecting to homepage index",
             request.user.get_username(),
         )
-        return redirect("lms_app:home")
+        return redirect("class_tracker:index")
 
     if request.method == "GET":
         return templates.TrackerLogin().render(request)
@@ -51,10 +51,10 @@ def logout_view(request: HttpRequest) -> HttpResponse:
 
 
 def index(request: HttpRequest) -> HttpResponse:
-    pass
+    return templates.TrackerIndex(title="Class Tracker").render(request)
 
 
-@login_required(login_url=reverse_lazy("stock_tracker:login_view"))
+@login_required(login_url=reverse_lazy("class_tracker:login_view"))
 @staff_member_required
 @require_http_methods(["GET", "POST"])
 def admin(request: HttpRequest) -> HttpResponse:
@@ -66,13 +66,17 @@ def admin(request: HttpRequest) -> HttpResponse:
     return templates.TrackerAdmin(terms_available=terms_available, schools=schools).render(request)
 
 
-@login_required(login_url=reverse_lazy("stock_tracker:login_view"))
+@login_required(login_url=reverse_lazy("class_tracker:login_view"))
 @staff_member_required
 @require_http_methods(["GET", "POST"])
 def add_classes(request: HttpRequest) -> HttpResponse:
     terms_available = list(Term.objects.filter(is_available=True))
     terms_available.sort(key=lambda term: term.year)
 
-    return templates.TrackerAddClasses(title="Hello there", terms_available=terms_available).render(
-        request
+    recipients = Recipient.objects.all().prefetch_related(
+        "phone_numbers", "watched_sections", "watched_sections__course"
     )
+
+    return templates.TrackerAddClasses(
+        terms_available=terms_available, recipients=list(recipients)
+    ).render(request)

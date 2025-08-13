@@ -5,12 +5,13 @@ from typing import TYPE_CHECKING
 from bs4 import BeautifulSoup
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpRequest, HttpResponse
+from django.views.decorators.http import require_http_methods
 from natsort import natsorted
 from requests import HTTPError
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound as DRFNotFound
 
-from class_tracker.views import interfaces
+from class_tracker.views import interfaces_response
 from server.util import bulk_create_and_get
 
 from ..global_search import init_http_retrier
@@ -25,8 +26,18 @@ from ..global_search.parser import (
     parse_gs_courses,
     parse_schools,
 )
-from ..models import Course, CourseCareer, School, Subject, Term
+from ..models import (
+    ContactInfo,
+    Course,
+    CourseCareer,
+    CourseSection,
+    Recipient,
+    School,
+    Subject,
+    Term,
+)
 from ..util import create_db_courses
+from .forms import ContactInfoForm, RecipientForm
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -37,7 +48,7 @@ logger = logging.getLogger("main")
 @staff_member_required
 def get_subjects(request: HttpRequest, school_id: int, term_id: int) -> HttpResponse:
     subjects = Subject.objects.filter(schools__id=school_id, terms__id=term_id)
-    return interfaces.RespGetSubjects(subjects=list(subjects)).render(request)
+    return interfaces_response.RespGetSubjects(subjects=list(subjects)).render(request)
 
 
 @staff_member_required
@@ -66,7 +77,7 @@ def refresh_available_terms(request: HttpRequest) -> HttpResponse:
         term.save(update_fields=["is_available"])
         term.schools.add(*schools)
 
-    return interfaces.RespSchoolsTermsUpdate(
+    return interfaces_response.RespSchoolsTermsUpdate(
         available_schools=schools, available_terms=list(terms), new_terms_count=new_terms_count
     ).render(request)
 
@@ -94,7 +105,7 @@ def refresh_semester_data(request: HttpRequest, school_id: int, term_id: int) ->
     if school_id == 0:
         subjects = []
 
-    return interfaces.RespSubjectsUpdate(available_subjects=subjects).render(request)
+    return interfaces_response.RespSubjectsUpdate(available_subjects=subjects).render(request)
 
 
 @staff_member_required
@@ -143,6 +154,79 @@ def refresh_class_data(
 
                 time.sleep(0.5)
 
-    return interfaces.RespRefreshCourseSections(
+    return interfaces_response.RespRefreshCourseSections(
         courses=natsorted(courses, key=lambda c: (c.code, c.level))
     ).render(request)
+
+
+@staff_member_required
+@require_http_methods(["GET"])
+def get_recipient_form(request: HttpRequest, recipient_id: int) -> HttpResponse:
+    recipient_prefix = "recipient"
+
+    recipient = Recipient.objects.prefetch_related("phone_numbers").get(id=recipient_id)
+    contact_infos = recipient.phone_numbers.all()
+
+    recipient_form = RecipientForm(instance=recipient, prefix=recipient_prefix)
+    contact_info_forms = [
+        ContactInfoForm(instance=c, prefix=f"contact-{c.id}") for c in contact_infos
+    ]
+
+    return interfaces_response.RespGetRecipientForm(
+        recipient_form=recipient_form, contact_info_forms=contact_info_forms
+    ).render(request)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def update_recipient(request: HttpRequest, recipient_id: int) -> HttpResponse:
+    recipient_prefix = "recipient"
+
+    recipient = Recipient.objects.prefetch_related("phone_numbers").get(id=recipient_id)
+    contact_infos = recipient.phone_numbers.all()
+
+    # Initialize forms with prefixes
+    recipient_form = RecipientForm(request.POST, instance=recipient, prefix=recipient_prefix)
+    contact_info_forms = [
+        ContactInfoForm(request.POST, instance=c, prefix=f"contact-{c.id}") for c in contact_infos
+    ]
+
+    # Validate all forms
+    forms_valid = recipient_form.is_valid()
+    for contact_form in contact_info_forms:
+        if not contact_form.is_valid():
+            forms_valid = False
+
+    if not forms_valid:
+        return interfaces_response.RespEditRecipient(
+            recipient=None,
+            contact_infos=None,
+            contact_info_forms=contact_info_forms,
+            recipient_form=recipient_form,
+        ).render(request)
+
+    # Save recipient
+    updated_recipient = recipient_form.save()
+
+    # Save contact infos
+    updated_contact_infos: list[ContactInfo] = []
+    for contact_form in contact_info_forms:
+        updated_contact_info = contact_form.save()
+        updated_contact_infos.append(updated_contact_info)
+
+    return interfaces_response.RespEditRecipient(
+        recipient=updated_recipient,
+        contact_infos=updated_contact_infos,
+        contact_info_forms=None,
+        recipient_form=None,
+    ).render(request)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def add_watched_section(request: HttpRequest, recipient_id: int, section_id: int) -> HttpResponse:
+    recipient = Recipient.objects.get(id=recipient_id)
+    section = CourseSection.objects.get(id=section_id)
+
+    recipient.watched_sections.add(section)
+    return interfaces_response.RespAddWatchedSection(added_section=section).render(request)

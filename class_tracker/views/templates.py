@@ -2,10 +2,25 @@ from typing import List, Literal, NamedTuple
 
 from reactivated import Pick, template
 
-from ..models import School, Term
+from .. import models
 
-TermPick = Pick[Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
-SchoolPick = Pick[School, Literal["id", "name", "globalsearch_key"]]
+TermPick = Pick[models.Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
+SchoolPick = Pick[models.School, Literal["id", "name", "globalsearch_key"]]
+RecipientPick = Pick[
+    models.Recipient,
+    Literal[
+        "id",
+        "name",
+        "phone_numbers.id",
+        "phone_numbers.number",
+        "watched_sections.id",
+        "watched_sections.number",
+        "watched_sections.topic",
+        "watched_sections.course.id",
+        "watched_sections.course.code",
+        "watched_sections.course.level",
+    ],
+]
 
 
 @template
@@ -26,5 +41,5 @@ class TrackerAdmin(NamedTuple):
 
 @template
 class TrackerAddClasses(NamedTuple):
-    title: str
     terms_available: List[TermPick]
+    recipients: List[RecipientPick]

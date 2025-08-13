@@ -27,6 +27,10 @@ ajax_urlpatterns = [
         ajax.refresh_class_data,
         name="refresh_class_data",
     ),
+    path(
+        "get_recipient_form/<int:recipient_id>", ajax.get_recipient_form, name="get_recipient_form"
+    ),
+    path("add_recipient/<int:recipient_id>", ajax.update_recipient, name="update_recipient"),
 ]
 
 
