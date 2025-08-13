@@ -105,6 +105,13 @@ class InstructionEntryInline(admin.TabularInline[InstructionEntry, CourseSection
     readonly_fields = ("datetime_created", "datetime_modified")
 
 
+class ContactInfoInline(admin.TabularInline[ContactInfo, Recipient]):
+    model = ContactInfo
+    extra = 1
+    fields = ("number", "is_enabled")
+    readonly_fields = ("datetime_created", "datetime_modified")
+
+
 @admin.register(CourseSection)
 class CourseSectionAdmin(admin.ModelAdmin[CourseSection]):
     list_display = ("course", "section", "status", "instruction_mode", "term")
@@ -165,6 +172,7 @@ class RecipientAdmin(admin.ModelAdmin[Recipient]):
     list_filter = ("is_contact_by_phone",)
     search_fields = ("name",)
     filter_horizontal = ("watched_sections",)
+    inlines = [ContactInfoInline]
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Recipient]:
         return (
