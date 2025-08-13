@@ -237,7 +237,7 @@ requires-dist = [
     { name = "lxml", specifier = ">=5.3.0,<6.0.0" },
     { name = "natsort", specifier = ">=8.4.0,<9.0.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.9,<3.0.0" },
-    { name = "reactivated", specifier = "==0.47.2" },
+    { name = "reactivated", specifier = "==0.47.3" },
     { name = "requests", specifier = ">=2.32.3,<3.0.0" },
 ]
 
@@ -373,7 +373,7 @@ wheels = [
 
 [[package]]
 name = "reactivated"
-version = "0.47.2"
+version = "0.47.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django-stubs" },
@@ -382,9 +382,9 @@ dependencies = [
     { name = "requests-unixsocket2" },
     { name = "simplejson" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/88/62/920ead4bfec007aea42ee02b6698fe3c69524481d368e54edd1542c1c0ed/reactivated-0.47.2.tar.gz", hash = "sha256:707aef05266417ad29d1c3465ab1927ced0e0dba3a9c99fd1e898da05ee5a566", size = 65502, upload-time = "2025-08-01T03:07:06.854Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/37/b1/e575a39588956cc48c5f8ba060f2cce708b7ed2dcc5b204391b1f0a65ffb/reactivated-0.47.3.tar.gz", hash = "sha256:60893cac6510ec53e272973b3f0cdf1933b2ef994d818e4eec50d4d726a38f77", size = 66076, upload-time = "2025-08-08T13:53:58.605Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/06/2c9910fc36b9bce85eecfc46df195f276b1a7e1f6be373a306e32285df81/reactivated-0.47.2-py3-none-any.whl", hash = "sha256:fa334e7cd5ca5bb8b0a34d628c417ec4d36093fdb7ce7d9fb0f7139df821f5b2", size = 83973, upload-time = "2025-08-01T03:07:04.999Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/ea/905029cb65bef23e5bb5d9397a26bbe6f3e647e9e42bb1666aa5334b9baf/reactivated-0.47.3-py3-none-any.whl", hash = "sha256:9b3953cd48b88c65cacf60d6734210dfc2bcb3f2ba1b07a6be1c0f930fc417ff", size = 84495, upload-time = "2025-08-08T13:53:55.739Z" },
 ]
 
 [[package]]
