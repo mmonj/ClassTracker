@@ -1,7 +1,3 @@
-import "/static/styles/reset.css";
-import "/static/styles/scss/bs-dark.scss";
-import "/static/styles/shared.css";
-
 import React, { type JSX } from "react";
 
 import { Context } from "@reactivated";
@@ -33,8 +29,8 @@ export const Layout = ({
   ...props
 }: Props) => {
   const djangoContext = React.useContext(Context);
+  const stylePaths = ["styles/bs-dark/main.css", "styles/reset.css", "styles/shared.css"];
 
-  
   return (
     <html>
       <head>
@@ -51,6 +47,15 @@ export const Layout = ({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
           rel="stylesheet"
         />
+
+        {stylePaths.map((stylePath, idx) => (
+          <link
+            key={idx}
+            rel="stylesheet"
+            type="text/css"
+            href={djangoContext.STATIC_URL + stylePath}
+          />
+        ))}
 
         {djangoStaticStylePaths.map((staticBasePath, idx) => (
           <link

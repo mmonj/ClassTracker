@@ -1,0 +1,111 @@
+// Bootstrap variables override
+// This file generates the custom dark theme CSS
+
+// color variables
+$blue: #3b7ee2 !default;
+$indigo: #0e0e0e !default;
+$purple: #7044c2 !default;
+$pink: #e83e8c !default;
+$red: #db3445 !default;
+$orange: #fc7b12 !default;
+$yellow: #fdba29 !default;
+$green: #1cbb8b !default;
+$teal: #21c996 !default;
+$cyan: #18a4b9 !default;
+
+// inverted for dark theme
+$white: #253241 !default;
+$gray-100: #3a4653 !default;
+$gray-200: #505b66 !default;
+$gray-300: #666e79 !default;
+$gray-400: #7a828a !default;
+$gray-500: #949aa1 !default;
+$gray-600: #a9adb3 !default;
+$gray-700: #bcbfc4 !default;
+$gray-800: #cccfd3 !default;
+$gray-900: #e7e8eb !default;
+$black: #fff !default;
+
+// theme colors
+$primary: $blue !default;
+$secondary: $gray-400 !default;
+$success: $green !default;
+$info: $cyan !default;
+$warning: $yellow !default;
+$danger: $red !default;
+$light: #2d3846 !default;
+$dark: $gray-900 !default;
+
+$body-bg: #19222c !default;
+$body-color: $gray-700 !default;
+
+$font-family-sans-serif:
+  "Inter",
+  "Helvetica Neue",
+  Arial,
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  Roboto,
+  "Noto Sans",
+  sans-serif,
+  "Apple Color Emoji",
+  "Segoe UI Emoji",
+  "Segoe UI Symbol",
+  "Noto Color Emoji" !default;
+$font-size-base: 0.875rem !default;
+
+$headings-color: $black !default;
+
+// links
+$link-color: $primary !default;
+$link-hover-color: #2f64b1 !default;
+$link-decoration: none !default;
+
+$border-color: $gray-200 !default;
+
+$code-color: $pink !default;
+
+// component specific colors
+$emphasis-color: $white !default;
+$secondary-color: rgba($gray-700, 0.75) !default;
+$tertiary-color: rgba($gray-700, 0.5) !default;
+$secondary-bg: $gray-200 !default;
+$tertiary-bg: $gray-100 !default;
+
+// form validation colors
+$form-valid-color: $success !default;
+$form-invalid-color: $danger !default;
+
+// box shadows for dark theme
+$box-shadow: 0 0.1rem 0.2rem rgba($white, 0.05) !default;
+$box-shadow-sm: 0 0.05rem 0.2rem rgba($white, 0.05) !default;
+$box-shadow-lg: 0 0.2rem 0.2rem rgba($white, 0.05) !default;
+$box-shadow-inset: inset 0 1px 2px rgba($white, 0.075) !default;
+
+// Border radius customizations
+$border-radius: 0.2rem !default;
+$border-radius-sm: 0.1rem !default;
+$border-radius-lg: 0.3rem !default;
+
+// Focus ring
+$focus-ring-color: rgba($primary, 0.25) !default;
+
+$card-bg: $white !default;
+$card-cap-bg: $white !default;
+$card-border-color: transparent !default;
+$card-border-width: 0 !default;
+$input-bg: $white !default;
+$input-color: $body-color !default;
+
+$list-group-bg: $white !default;
+$list-group-disabled-bg: $white !default;
+$list-group-color: $body-color !default;
+$list-group-border-color: $border-color !default;
+$list-group-item-padding-y: 0.75rem !default;
+$list-group-item-padding-x: 1rem !default;
+
+$list-group-action-color: $body-color !default;
+$list-group-action-active-color: $white !default;
+$list-group-action-active-bg: $primary !default;
+$list-group-hover-bg: $gray-100 !default;

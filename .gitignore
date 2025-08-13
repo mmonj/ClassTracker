@@ -37,4 +37,6 @@ log_files/*
 *.njsproj
 *.sln
 *.sw?
+
 class_tracker/tests/html
+static/styles/bs-dark/**/*.css

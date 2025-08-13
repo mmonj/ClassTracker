@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "python manage.py runserver 0.0.0.0:${DJANGO_PORT:?}"
+    "dev": "python manage.py runserver 0.0.0.0:${DJANGO_PORT:?}",
+    "sass:build": "sass --no-source-map static/styles/bs-dark --load-path=node_modules",
+    "sass:watch": "sass --watch --no-source-map static/styles/bs-dark --load-path=node_modules"
   },
   "author": "",
   "license": "ISC",
