@@ -5,6 +5,7 @@ import { Button, Card } from "react-bootstrap";
 
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { Navbar } from "@client/components/Navbar";
 import {
@@ -14,6 +15,36 @@ import {
 } from "@client/components/TrackerAddClasses";
 import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
+
+const recipientCardAnimations = {
+  initial: { opacity: 0, y: 30, scale: 0.95 },
+  exit: {
+    opacity: 0,
+    y: -20,
+    scale: 0.95,
+    transition: {
+      duration: 0.3,
+      ease: "easeIn" as const,
+    },
+  },
+};
+
+const noRecipientsAnimation = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+};
+
+// generate animate prop with stagger delay based on recipient ID
+const getRecipientCardAnimate = (recipientId: number) => ({
+  opacity: 1,
+  y: 0,
+  scale: 1,
+  transition: {
+    duration: 0.3,
+    ease: "easeOut" as const,
+    delay: (recipientId % 10) * 0.1,
+  },
+});
 
 export function Template(props: templates.TrackerAddClasses) {
   const [recipients, setRecipients] = useState(props.recipients);
@@ -25,7 +56,6 @@ export function Template(props: templates.TrackerAddClasses) {
 
   // const updateRecipientFetcher = useFetch<interfaces.RespEditRecipient>();
   const addWatchedSectionFetcher = useFetch<interfaces.RespAddWatchedSection>();
-  const removeWatchedSectionFetcher = useFetch<interfaces.BasicResponse>();
 
   const context = useContext(Context);
 
@@ -50,11 +80,6 @@ export function Template(props: templates.TrackerAddClasses) {
   function handleAddSection(sectionId: number) {
     // TODO: Implement add watched section functionality
     console.log("Add watched section:", sectionId);
-  }
-
-  function handleRemoveWatchedSection(recipientId: number, sectionId: number) {
-    // TODO: Implement AJAX request to remove watched section
-    console.log("Remove watched section:", sectionId, "from recipient:", recipientId);
   }
 
   function handleShowEditRecipientModal(recipientId: number) {
@@ -98,17 +123,35 @@ export function Template(props: templates.TrackerAddClasses) {
           </div>
         </Card.Title>
         <Card.Body>
-          {recipients.map((recipient) => (
-            <RecipientCard
-              key={recipient.id}
-              recipient={recipient}
-              onEdit={handleShowEditRecipientModal}
-              onAddWatchedSection={handleAddWatchedSection}
-              onRemoveWatchedSection={handleRemoveWatchedSection}
-            />
-          ))}
+          <AnimatePresence mode="popLayout">
+            {recipients.map((recipient) => (
+              <motion.div
+                key={recipient.id}
+                initial={recipientCardAnimations.initial}
+                animate={getRecipientCardAnimate(recipient.id)}
+                exit={recipientCardAnimations.exit}
+                layout
+                style={{ originY: 0 }}
+              >
+                <RecipientCard
+                  recipient={recipient}
+                  setRecipients={setRecipients}
+                  onEdit={handleShowEditRecipientModal}
+                  onAddWatchedSection={handleAddWatchedSection}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
-          {recipients.length === 0 && <p className="text-muted">No recipients found</p>}
+          {recipients.length === 0 && (
+            <motion.p
+              initial={noRecipientsAnimation.initial}
+              animate={noRecipientsAnimation.animate}
+              className="text-muted"
+            >
+              No recipients found
+            </motion.p>
+          )}
         </Card.Body>
       </Card>
 

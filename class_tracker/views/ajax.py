@@ -261,3 +261,17 @@ def add_watched_section(request: HttpRequest, recipient_id: int, section_id: int
 
     recipient.watched_sections.add(section)
     return interfaces_response.RespAddWatchedSection(added_section=section).render(request)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def remove_watched_section(
+    request: HttpRequest, recipient_id: int, section_id: int
+) -> HttpResponse:
+    recipient = Recipient.objects.get(id=recipient_id)
+    section = CourseSection.objects.get(id=section_id)
+
+    recipient.watched_sections.remove(section)
+    return interfaces_response.BasicResponse(
+        is_success=True, message="Section removed successfully"
+    ).render(request)

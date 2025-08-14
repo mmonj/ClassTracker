@@ -19,6 +19,8 @@ _RecipientPick = Pick[
         "watched_sections.course.id",
         "watched_sections.course.code",
         "watched_sections.course.level",
+        "watched_sections.instruction_entries.instructor.id",
+        "watched_sections.instruction_entries.instructor.name",
     ],
 ]
 

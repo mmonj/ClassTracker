@@ -5,36 +5,50 @@ import { Button } from "react-bootstrap";
 
 import { faEdit, faPlus, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { WatchedSection } from "./WatchedSection";
 
-type CourseSection = templates.TrackerAddClasses["recipients"][number]["watched_sections"][number];
+const watchedSectionAnimations = {
+  initial: { opacity: 0, height: 0, x: -20 },
+  exit: {
+    opacity: 0,
+    height: 0,
+    x: 20,
+    transition: {
+      duration: 0.3,
+      ease: "easeIn" as const,
+    },
+  },
+};
 
-interface ContactInfo {
-  id: number;
-  // Add other contact info fields as needed
-}
+const noSectionsAnimation = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+};
 
-interface Recipient {
-  id: number;
-  name: string;
-  phone_numbers: ContactInfo[];
-  watched_sections: CourseSection[];
-}
+// generate animate prop with stagger delay based on section ID
+const getWatchedSectionAnimate = (sectionId: number) => ({
+  opacity: 1,
+  height: "auto" as const,
+  x: 0,
+  transition: {
+    duration: 0.4,
+    ease: "easeOut" as const,
+    delay: (sectionId % 10) * 0.1,
+  },
+});
+
+type TRecipient = templates.TrackerAddClasses["recipients"][number];
 
 interface Props {
-  recipient: Recipient;
+  recipient: TRecipient;
+  setRecipients: React.Dispatch<React.SetStateAction<TRecipient[]>>;
   onEdit: (recipientId: number) => void;
   onAddWatchedSection: (recipientId: number) => void;
-  onRemoveWatchedSection: (recipientId: number, sectionId: number) => void;
 }
 
-export function RecipientCard({
-  recipient,
-  onEdit,
-  onAddWatchedSection,
-  onRemoveWatchedSection,
-}: Props) {
+export function RecipientCard({ recipient, setRecipients, onEdit, onAddWatchedSection }: Props) {
   return (
     <div className="border rounded p-3 mb-3">
       <div className="d-flex justify-content-between mb-2">
@@ -76,17 +90,34 @@ export function RecipientCard({
         <div>
           <h6>Watched Sections:</h6>
           <ul className="list-unstyled">
-            {recipient.watched_sections.map((section) => (
-              <WatchedSection
-                key={section.id}
-                section={section}
-                onRemove={(sectionId) => onRemoveWatchedSection(recipient.id, sectionId)}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {recipient.watched_sections.map((section) => (
+                <motion.li
+                  key={section.id}
+                  initial={watchedSectionAnimations.initial}
+                  animate={getWatchedSectionAnimate(section.id)}
+                  exit={watchedSectionAnimations.exit}
+                  layout
+                  style={{ overflow: "hidden" }}
+                >
+                  <WatchedSection
+                    section={section}
+                    recipientId={recipient.id}
+                    setRecipients={setRecipients}
+                  />
+                </motion.li>
+              ))}
+            </AnimatePresence>
           </ul>
         </div>
       ) : (
-        <p className="text-muted">No watched sections</p>
+        <motion.p
+          initial={noSectionsAnimation.initial}
+          animate={noSectionsAnimation.animate}
+          className="text-muted"
+        >
+          No watched sections
+        </motion.p>
       )}
     </div>
   );

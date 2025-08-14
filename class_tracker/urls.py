@@ -31,6 +31,16 @@ ajax_urlpatterns = [
         "get_recipient_form/<int:recipient_id>", ajax.get_recipient_form, name="get_recipient_form"
     ),
     path("add_recipient/<int:recipient_id>", ajax.update_recipient, name="update_recipient"),
+    path(
+        "add_watched_section/<int:recipient_id>/<int:section_id>/",
+        ajax.add_watched_section,
+        name="add_watched_section",
+    ),
+    path(
+        "remove_watched_section/<int:recipient_id>/<int:section_id>/",
+        ajax.remove_watched_section,
+        name="remove_watched_section",
+    ),
 ]
 
 

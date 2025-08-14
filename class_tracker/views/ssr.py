@@ -73,8 +73,16 @@ def add_classes(request: HttpRequest) -> HttpResponse:
     terms_available = list(Term.objects.filter(is_available=True))
     terms_available.sort(key=lambda term: term.year)
 
-    recipients = Recipient.objects.all().prefetch_related(
-        "phone_numbers", "watched_sections", "watched_sections__course"
+    recipients = (
+        Recipient.objects.all()
+        .prefetch_related(
+            "phone_numbers",
+            "watched_sections",
+            "watched_sections__course",
+            "watched_sections__instruction_entries",
+            "watched_sections__instruction_entries__instructor",
+        )
+        .order_by("datetime_created")
     )
 
     return templates.TrackerAddClasses(
