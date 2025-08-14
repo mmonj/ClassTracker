@@ -12,7 +12,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound as DRFNotFound
 
 from class_tracker.views import interfaces_response
-from server.util import bulk_create_and_get
+from server.util import bulk_create_and_get, error_json_response
 
 from ..global_search import init_http_retrier
 from ..global_search.navigator import (
@@ -51,9 +51,26 @@ NEW_CONTACT_PREFIX = "contact-new"
 
 
 @staff_member_required
+def get_schools(request: HttpRequest) -> HttpResponse:
+    schools = School.objects.all()
+    return interfaces_response.RespGetSchools(schools=list(schools)).render(request)
+
+
+@staff_member_required
 def get_subjects(request: HttpRequest, school_id: int, term_id: int) -> HttpResponse:
     subjects = Subject.objects.filter(schools__id=school_id, terms__id=term_id)
     return interfaces_response.RespGetSubjects(subjects=list(subjects)).render(request)
+
+
+@staff_member_required
+def get_course_sections(request: HttpRequest, term_id: int, subject_id: int) -> HttpResponse:
+    sections = (
+        CourseSection.objects.filter(term_id=term_id, course__subject_id=subject_id)
+        .prefetch_related("course", "instruction_entries__instructor")
+        .select_related("course")
+    )
+
+    return interfaces_response.RespGetCourseSections(sections=list(sections)).render(request)
 
 
 @staff_member_required
@@ -257,9 +274,23 @@ def update_recipient(request: HttpRequest, recipient_id: int) -> HttpResponse:
 @require_http_methods(["POST"])
 def add_watched_section(request: HttpRequest, recipient_id: int, section_id: int) -> HttpResponse:
     recipient = Recipient.objects.get(id=recipient_id)
-    section = CourseSection.objects.get(id=section_id)
+    section = (
+        CourseSection.objects.select_related("course")
+        .prefetch_related("instruction_entries__instructor")
+        .get(id=section_id)
+    )
+
+    # check if section is already being watched
+    if recipient.watched_sections.filter(id=section_id).exists():
+        return error_json_response(
+            [
+                f"Section {section.course.code} {section.course.level} - {section.topic} is already being watched"
+            ],
+            status=400,
+        )
 
     recipient.watched_sections.add(section)
+
     return interfaces_response.RespAddWatchedSection(added_section=section).render(request)
 
 

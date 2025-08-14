@@ -99,7 +99,7 @@ export function EditRecipientModal({ show, editingRecipientId, onHide, setRecipi
       if (editingRecipientId === 0) {
         // add new recipient - add empty watched_sections array for template compatibility
         const newRecipient = { ...result.data.recipient, watched_sections: [] };
-        setRecipients((prevRecipients) => [...prevRecipients, newRecipient]);
+        setRecipients((prevRecipients) => [newRecipient, ...prevRecipients]);
       } else {
         // update existing recipient
         setRecipients((prevRecipients) =>

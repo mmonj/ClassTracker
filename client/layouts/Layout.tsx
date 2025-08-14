@@ -29,7 +29,12 @@ export const Layout = ({
   ...props
 }: Props) => {
   const djangoContext = React.useContext(Context);
-  const stylePaths = ["styles/bs-dark/main.css", "styles/reset.css", "styles/shared.css"];
+  const stylePaths = [
+    "styles/bs-dark/main.css",
+    "styles/reset.css",
+    "styles/shared.css",
+    "styles/react-select/react-select.css",
+  ];
 
   return (
     <html>

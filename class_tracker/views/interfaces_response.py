@@ -20,6 +20,20 @@ _SectionPick = Pick[
     ],
 ]
 
+_SectionWithInstructorsPick = Pick[
+    CourseSection,
+    Literal[
+        "id",
+        "number",
+        "topic",
+        "course.id",
+        "course.code",
+        "course.level",
+        "instruction_entries.instructor.id",
+        "instruction_entries.instructor.name",
+    ],
+]
+
 _RecipientPick = Pick[
     Recipient,
     Literal[
@@ -52,6 +66,11 @@ class RespSubjectsUpdate(NamedTuple):
 
 
 @interface
+class RespGetSchools(NamedTuple):
+    schools: List[_SchoolPick]
+
+
+@interface
 class RespGetSubjects(NamedTuple):
     subjects: List[_SubjectPick]
 
@@ -77,5 +96,10 @@ class RespEditRecipient(NamedTuple):
 
 
 @interface
+class RespGetCourseSections(NamedTuple):
+    sections: List[_SectionWithInstructorsPick]
+
+
+@interface
 class RespAddWatchedSection(NamedTuple):
-    added_section: _SectionPick
+    added_section: _SectionWithInstructorsPick

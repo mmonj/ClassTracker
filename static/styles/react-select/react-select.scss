@@ -1,0 +1,44 @@
+/* react-select overrides to match Bootstrap dark theme */
+
+@import "../bs-dark/variables";
+
+.react-select {
+  &__single-value {
+    color: $body-color !important;
+  }
+  &__input-container {
+    color: $body-color !important;
+  }
+  &__control {
+    color: $body-color !important;
+    background-color: $white !important;
+    border-color: $border-color !important;
+  }
+  &__menu {
+    border: $border-color solid 1px;
+  }
+
+  &__menu-notice {
+    color: $body-color !important;
+    background-color: $white !important;
+  }
+  &__menu-list {
+    background-color: $white !important;
+  }
+  &__option {
+    color: $body-color !important;
+    background-color: $white !important;
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+  &__option--is-focused {
+    background-color: $list-group-hover-bg !important;
+  }
+  &__option--is-selected {
+    background-color: $primary !important;
+    color: $black !important;
+  }
+  &__group {
+    padding: 0 !important;
+  }
+}

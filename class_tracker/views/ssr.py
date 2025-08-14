@@ -82,7 +82,7 @@ def add_classes(request: HttpRequest) -> HttpResponse:
             "watched_sections__instruction_entries",
             "watched_sections__instruction_entries__instructor",
         )
-        .order_by("datetime_created")
+        .order_by("-datetime_created")
     )
 
     return templates.TrackerAddClasses(

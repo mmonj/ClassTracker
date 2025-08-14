@@ -1,6 +1,6 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 
-import { Context, interfaces, templates } from "@reactivated";
+import { templates } from "@reactivated";
 import { Button, Card } from "react-bootstrap";
 
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -13,8 +13,9 @@ import {
   EditRecipientModal,
   RecipientCard,
 } from "@client/components/TrackerAddClasses";
-import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
+
+const NEW_RECIPIENT_SENTINEL_ID = 0;
 
 const recipientCardAnimations = {
   initial: { opacity: 0, y: 30, scale: 0.95 },
@@ -54,11 +55,6 @@ export function Template(props: templates.TrackerAddClasses) {
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [addingSectionRecipientId, setAddingSectionRecipientId] = useState<number | null>(null);
 
-  // const updateRecipientFetcher = useFetch<interfaces.RespEditRecipient>();
-  const addWatchedSectionFetcher = useFetch<interfaces.RespAddWatchedSection>();
-
-  const context = useContext(Context);
-
   function handleAddWatchedSection(recipientId: number) {
     setAddingSectionRecipientId(recipientId);
     setShowAddSectionModal(true);
@@ -69,45 +65,19 @@ export function Template(props: templates.TrackerAddClasses) {
     setAddingSectionRecipientId(null);
   }
 
-  function handleAddSectionSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (addingSectionRecipientId !== null) {
-      handleAddSection(addingSectionRecipientId);
-    }
-    handleCloseAddSectionModal();
-  }
-
-  function handleAddSection(sectionId: number) {
-    // TODO: Implement add watched section functionality
-    console.log("Add watched section:", sectionId);
-  }
-
   function handleShowEditRecipientModal(recipientId: number) {
     setEditingRecipientId(recipientId);
     setShowEditRecipientModal(true);
   }
 
   function handleShowAddRecipientModal() {
-    setEditingRecipientId(0); // Sentinel value for new recipient
+    setEditingRecipientId(NEW_RECIPIENT_SENTINEL_ID);
     setShowEditRecipientModal(true);
   }
 
   function handleCloseEditRecipientModal() {
     setShowEditRecipientModal(false);
     setEditingRecipientId(null);
-  }
-
-  function handleEditRecipientSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (editingRecipientId !== null) {
-      handleEditRecipient(editingRecipientId);
-    }
-    handleCloseEditRecipientModal();
-  }
-
-  function handleEditRecipient(recipientId: number) {
-    // TODO: Implement edit recipient functionality
-    console.log("Edit recipient:", recipientId);
   }
 
   return (
@@ -165,8 +135,9 @@ export function Template(props: templates.TrackerAddClasses) {
       <AddWatchedSectionModal
         show={showAddSectionModal}
         addingSectionRecipientId={addingSectionRecipientId}
+        termsAvailable={props.terms_available}
+        setRecipients={setRecipients}
         onHide={handleCloseAddSectionModal}
-        onSubmit={handleAddSectionSubmit}
       />
     </Layout>
   );

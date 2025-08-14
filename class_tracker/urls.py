@@ -15,7 +15,13 @@ ssr_urlpatterns = [
 ]
 
 ajax_urlpatterns = [
+    path("get_schools/", ajax.get_schools, name="get_schools"),
     path("get_subjects/<int:school_id>/<int:term_id>/", ajax.get_subjects, name="get_subjects"),
+    path(
+        "get_course_sections/<int:term_id>/<int:subject_id>/",
+        ajax.get_course_sections,
+        name="get_course_sections",
+    ),
     path("refresh_available_terms/", ajax.refresh_available_terms, name="refresh_available_terms"),
     path(
         "refresh_semester_data/<int:school_id>/<int:term_id>/",

@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "python manage.py runserver 0.0.0.0:${DJANGO_PORT:?}",
+    "dev": "uv run python manage.py runserver 0.0.0.0:${DJANGO_PORT:?}",
     "sass:build": "sass --no-source-map static/styles/bs-dark --load-path=node_modules",
-    "sass:watch": "sass --watch --no-source-map static/styles/bs-dark --load-path=node_modules"
+    "sass:watch": "sass --watch --no-source-map static/styles --load-path=node_modules"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +20,7 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
     "react-bootstrap": "^2.10.10",
+    "react-select": "^5.10.2",
     "reactivated": "^0.47.3"
   },
   "devDependencies": {
