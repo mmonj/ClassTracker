@@ -170,8 +170,10 @@ class CourseSection(CommonModel):
     def __str__(self) -> str:
         instruction_entries = self.instruction_entries.all()
         if len(instruction_entries) == 0:
-            return f"{self.course.level} {self.section} - {instruction_entries[0]}"
-        return f"{self.course.level} {self.section} - {len(instruction_entries)} instructors"
+            return (
+                f"{self.number}: {self.course.code} {self.course.level} - {instruction_entries[0]}"
+            )
+        return f"{self.number}: {self.course.code} {self.course.level} - {len(instruction_entries)} instructors"
 
     def __repr__(self) -> str:
         return f"<CourseSection(id={self.id}, section='{self.section}', status='{self.status}', instruction mode='{self.instruction_mode}')>"

@@ -14,7 +14,7 @@ from rest_framework.exceptions import NotFound as DRFNotFound
 from class_tracker.views import interfaces_response
 from server.util import bulk_create_and_get, error_json_response
 
-from ..global_search import init_http_retrier
+from ..global_search import get_globalsearch_headers, init_http_retrier
 from ..global_search.navigator import (
     get_classlist_result_page,
     get_main_page,
@@ -75,7 +75,7 @@ def get_course_sections(request: HttpRequest, term_id: int, subject_id: int) -> 
 
 @staff_member_required
 def refresh_available_terms(request: HttpRequest) -> HttpResponse:
-    session = init_http_retrier()
+    session = init_http_retrier(headers=get_globalsearch_headers())
 
     try:
         main_page_soup = BeautifulSoup(get_main_page(session), "lxml")
@@ -117,7 +117,7 @@ def refresh_semester_data(request: HttpRequest, school_id: int, term_id: int) ->
     )
 
     for school in schools:
-        session = init_http_retrier()
+        session = init_http_retrier(headers=get_globalsearch_headers())
         subjects_page_soup = BeautifulSoup(
             get_subject_selection_page(session, school, term), "lxml"
         )
@@ -153,7 +153,7 @@ def refresh_class_data(
         else:
             subjects = Subject.objects.filter(id=subject_id)
 
-        session = init_http_retrier()
+        session = init_http_retrier(headers=get_globalsearch_headers())
         _ = get_subject_selection_page(session, school, term)
 
         courses: list[Course] = []

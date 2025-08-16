@@ -13,7 +13,7 @@ def get_course_section(section_attr_elements: list[Tag]) -> GSCourseSection:
         topic="",
         url="",
         instruction_mode="",
-        status="",
+        status="Closed",
         instruction_entries=[],
     )
 
@@ -158,7 +158,7 @@ def assign_section_attributes(  # noqa: PLR0912
                     f"Status indicator is None for class: {gs_course_section.section_name} - {gs_course_section.number}"
                 )
             status = status_indicator.get("title")
-            gs_course_section.status = str(status)
+            gs_course_section.status = str(status)  # type: ignore[assignment]
 
         case "Course Topic":
             gs_course_section.topic = section_attr_element.get_text(separator="\n").strip()

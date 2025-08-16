@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup, Comment, Doctype, PageElement, ProcessingInstruct
 from server.util import bulk_create_and_get
 
 from .. import models
+from . import get_globalsearch_headers, init_http_retrier
+from .navigator import get_classlist_result_page, get_subject_selection_page
 from .typedefs import GSCourse
 from .util import get_course_section
 
@@ -161,3 +163,32 @@ def _find_next_tag_sibling(tag: Tag) -> Tag | None:
 
 def _filter_for_tag_elements(elements: Iterable[Tag | PageElement]) -> list[Tag]:
     return [cast("Tag", elm) for elm in elements if _is_proper_tag_element(elm)]
+
+
+def find_open_sections(
+    watched_section_numbers: set[int],
+    school: models.School,
+    term: models.Term,
+    subject: models.Subject,
+    course_career: models.CourseCareer,
+) -> set[int]:
+    session = init_http_retrier(headers=get_globalsearch_headers(), num_retries=3)
+
+    logger.info("Handling school & term selection page")
+    get_subject_selection_page(session, school, term)
+
+    logger.info("Handling departmental attributes page. Dept attribute: %s", subject.name)
+    course_results_page_src = BeautifulSoup(
+        get_classlist_result_page(session, course_career, subject), "lxml"
+    )
+
+    logger.info("Parsing courses from html source")
+    courses = parse_gs_courses(course_results_page_src)
+
+    open_watched_section_numbers: set[int] = set()
+    for course in courses:
+        for section in course.sections:
+            if section.status == "Open" and section.number in watched_section_numbers:
+                open_watched_section_numbers.add(section.number)
+
+    return open_watched_section_numbers

@@ -51,7 +51,7 @@ class GSCourseSection:
     section_name: str  # eg 60-INT Regular
     url: str
     instruction_mode: str
-    status: str
+    status: Literal["Open", "Closed", "wait"]
     topic: str
     instruction_entries: list[GSInstructionEntry]
 

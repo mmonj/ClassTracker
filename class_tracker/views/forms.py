@@ -9,7 +9,7 @@ class RecipientForm(forms.ModelForm[Recipient]):
         model = Recipient
         fields = ["name", "description", "is_contact_by_phone"]
         labels = {
-            "is_contact_by_phone": "Enable phone notifications",
+            "is_contact_by_phone": "Allow Contact by Phone",
         }
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": "Full Name"}),

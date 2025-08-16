@@ -215,4 +215,8 @@ class ClassAlertAdmin(admin.ModelAdmin[ClassAlert]):
     raw_id_fields = ("recipient", "course_section")
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[ClassAlert]:
-        return super().get_queryset(request).select_related("recipient", "course_section")
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("recipient", "course_section", "course_section__course")
+        )
