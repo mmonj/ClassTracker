@@ -62,7 +62,7 @@ class TrackerIndex(NamedTuple):
 
 
 @template
-class TrackerAdmin(NamedTuple):
+class TrackerManageCourselist(NamedTuple):
     schools: List[_SchoolPick]
     terms_available: List[_TermPick]
 

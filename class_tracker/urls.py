@@ -10,7 +10,7 @@ ssr_urlpatterns = [
     path("", ssr.index, name="index"),
     path("login_view/", ssr.login_view, name="login_view"),
     path("logout_view/", ssr.logout_view, name="logout_view"),
-    path("admin/", ssr.admin, name="admin"),
+    path("manage_course_list/", ssr.manage_course_list, name="manage_course_list"),
     path("add_classes/", ssr.add_classes, name="add_classes"),
     path("class_alerts/", ssr.view_class_alerts, name="view_class_alerts"),
 ]

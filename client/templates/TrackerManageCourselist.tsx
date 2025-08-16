@@ -19,7 +19,7 @@ const ALL_SUBJECTS_ID = 0;
 const ALL_SCHOOLS_OPTION = { id: ALL_SCHOOLS_ID, name: "All Schools" };
 const ALL_SUBJECTS_OPTION = { id: ALL_SUBJECTS_ID, name: "All Subjects" };
 
-export function Template(props: templates.TrackerAdmin) {
+export function Template(props: templates.TrackerManageCourselist) {
   const [availableSchools, setAvailableSchools] = React.useState([
     ALL_SCHOOLS_OPTION,
     ...props.schools,
@@ -49,7 +49,7 @@ export function Template(props: templates.TrackerAdmin) {
       _setAvailableSubjects([ALL_SUBJECTS_OPTION, ...subjects]);
       setSelectedSubject(ALL_SUBJECTS_OPTION);
     },
-    []
+    [],
   );
 
   // =======================================================================================================================
@@ -61,7 +61,7 @@ export function Template(props: templates.TrackerAdmin) {
       fetchByReactivated(
         reverse("class_tracker:refresh_available_terms"),
         djangoContext.csrf_token,
-        "POST"
+        "POST",
       );
 
     const fetchResult = await refreshTermsFetcher.fetchData(fetchCallback);
@@ -90,7 +90,7 @@ export function Template(props: templates.TrackerAdmin) {
     }
 
     console.log(
-      `Refreshing subjects for school: ${selectedSchool.name}, term: ${selectedTerm.full_term_name}`
+      `Refreshing subjects for school: ${selectedSchool.name}, term: ${selectedTerm.full_term_name}`,
     );
 
     const callback = () =>
@@ -100,7 +100,7 @@ export function Template(props: templates.TrackerAdmin) {
           term_id: selectedTerm.id,
         }),
         djangoContext.csrf_token,
-        "POST"
+        "POST",
       );
 
     const result = await refreshSubjectsFetcher.fetchData(callback);
@@ -111,7 +111,7 @@ export function Template(props: templates.TrackerAdmin) {
 
   async function handleRefreshClassesData(schoolId: number, termId: number, subjectId: number) {
     console.log(
-      `Refreshing classes for school: ${selectedSchool?.name}, term: ${selectedTerm?.name}, subject: ${selectedSubject?.name}`
+      `Refreshing classes for school: ${selectedSchool?.name}, term: ${selectedTerm?.name}, subject: ${selectedSubject?.name}`,
     );
 
     const callback = () =>
@@ -122,7 +122,7 @@ export function Template(props: templates.TrackerAdmin) {
           subject_id: subjectId,
         }),
         djangoContext.csrf_token,
-        "POST"
+        "POST",
       );
 
     const result = await refreshClassesFetcher.fetchData(callback);
@@ -155,7 +155,7 @@ export function Template(props: templates.TrackerAdmin) {
           term_id: selectedTerm.id,
         }),
         djangoContext.csrf_token,
-        "GET"
+        "GET",
       );
     const result = await getSubjectsFetcher.fetchData(callback);
     if (result.ok) {
@@ -165,7 +165,7 @@ export function Template(props: templates.TrackerAdmin) {
 
   function handleSchoolChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const school = availableSchools.find(
-      (school) => school.id === Number.parseInt(event.target.value)
+      (school) => school.id === Number.parseInt(event.target.value),
     );
     setSelectedSchool(school);
 
@@ -189,7 +189,7 @@ export function Template(props: templates.TrackerAdmin) {
 
   function handleSubjectChange(event: React.ChangeEvent<HTMLSelectElement>) {
     const subject = availableSubjects.find(
-      (subject) => subject.id.toString() === event.target.value
+      (subject) => subject.id.toString() === event.target.value,
     );
     setSelectedSubject(subject);
   }

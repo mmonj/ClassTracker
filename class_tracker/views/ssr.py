@@ -59,13 +59,15 @@ def index(request: HttpRequest) -> HttpResponse:
 @login_required(login_url=reverse_lazy("class_tracker:login_view"))
 @staff_member_required
 @require_http_methods(["GET", "POST"])
-def admin(request: HttpRequest) -> HttpResponse:
+def manage_course_list(request: HttpRequest) -> HttpResponse:
     terms_available = list(Term.objects.filter(is_available=True))
     terms_available.sort(key=lambda term: term.year)
 
     schools = list(School.objects.all())
 
-    return templates.TrackerAdmin(terms_available=terms_available, schools=schools).render(request)
+    return templates.TrackerManageCourselist(
+        terms_available=terms_available, schools=schools
+    ).render(request)
 
 
 @login_required(login_url=reverse_lazy("class_tracker:login_view"))
