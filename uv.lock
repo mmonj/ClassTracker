@@ -156,18 +156,16 @@ wheels = [
 
 [[package]]
 name = "django-tasks-scheduler"
-version = "2.1.1"
+version = "4.0.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "croniter" },
     { name = "django" },
-    { name = "rq" },
-    { name = "valkey" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/19/253f5ef4039b3858c0c1326e8fd2960108fbdba463b982f599755f046542/django_tasks_scheduler-2.1.1.tar.gz", hash = "sha256:6f456dd6965bc6bbea65022b96ace0419b4fe5698c9938106c11f212af348ebf", size = 47141, upload-time = "2024-12-22T15:44:47.02Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/48/2f/ed1529ec25139516a3be62422e087900d424b43a937e4abb2106659e74c3/django_tasks_scheduler-4.0.6.tar.gz", hash = "sha256:e452ea2be43d2f3854122f35b2b4a85b07305947118a60c74e7a3d24f0b753ba", size = 83604, upload-time = "2025-07-19T13:51:38.311Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/81/db09cd586d21b3090738cae644757c63cebd64383c40f52bf4213b5881a7/django_tasks_scheduler-2.1.1-py3-none-any.whl", hash = "sha256:9b4bd83d140b5a144da03c7fb447ccc3e38d9c77a9a60f66820e5d63de39bcfc", size = 74558, upload-time = "2024-12-22T15:44:44.504Z" },
+    { url = "https://files.pythonhosted.org/packages/07/fa/016ad138a6bd678668571a44e8914b6b9bf22d3adaff21059ac5a828d007/django_tasks_scheduler-4.0.6-py3-none-any.whl", hash = "sha256:2482b502b6ec3382ed8f5349b9119ea32a6d6be375321f284e4a031f9d356ed3", size = 139383, upload-time = "2025-07-19T13:51:36.628Z" },
 ]
 
 [[package]]
@@ -232,7 +230,7 @@ requires-dist = [
     { name = "django", specifier = "==5.0.2" },
     { name = "django-stubs", specifier = ">=5.0.2,<6.0.0" },
     { name = "django-stubs-ext", specifier = ">=5.0.2,<6.0.0" },
-    { name = "django-tasks-scheduler", specifier = ">=2.1.0,<3.0.0" },
+    { name = "django-tasks-scheduler", specifier = "==4.0.6" },
     { name = "djangorestframework", specifier = ">=3.15.2,<4.0.0" },
     { name = "lxml", specifier = ">=5.3.0,<6.0.0" },
     { name = "natsort", specifier = ">=8.4.0,<9.0.0" },
@@ -388,15 +386,6 @@ wheels = [
 ]
 
 [[package]]
-name = "redis"
-version = "6.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ea/9a/0551e01ba52b944f97480721656578c8a7c46b51b99d66814f85fe3a4f3e/redis-6.2.0.tar.gz", hash = "sha256:e821f129b75dde6cb99dd35e5c76e8c49512a5a0d8dfdc560b2fbd44b85ca977", size = 4639129, upload-time = "2025-05-28T05:01:18.91Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/13/67/e60968d3b0e077495a8fee89cf3f2373db98e528288a48f1ee44967f6e8c/redis-6.2.0-py3-none-any.whl", hash = "sha256:c8ddf316ee0aab65f04a11229e94a64b2618451dab7a67cb2f77eb799d872d5e", size = 278659, upload-time = "2025-05-28T05:01:16.955Z" },
-]
-
-[[package]]
 name = "requests"
 version = "2.32.3"
 source = { registry = "https://pypi.org/simple" }
@@ -422,19 +411,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e3/7b/8f398d91382a2bbae06530389f74d6296a4da04827144a3015f34b7d82c4/requests_unixsocket2-1.0.0.tar.gz", hash = "sha256:8c6cad0326369658db931b4c36f03cd1cccb7668e081e7fb3972b500a93bb563", size = 6161, upload-time = "2025-04-03T14:55:53.643Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9d/3d/17006603e3ef2ace6e23dbf2f51784621807a52807139be79dde26cc27d8/requests_unixsocket2-1.0.0-py3-none-any.whl", hash = "sha256:11c70219366a8d1e2cf0ec7694317f11b44977fb9647378651f7ae95a451c024", size = 7730, upload-time = "2025-04-03T14:55:52.227Z" },
-]
-
-[[package]]
-name = "rq"
-version = "1.16.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "click" },
-    { name = "redis" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c5/1d/a020e8f3559293635dd6283d037bfc15f866136498da3db1e5416c65773d/rq-1.16.2.tar.gz", hash = "sha256:5c5b9ad5fbaf792b8fada25cc7627f4d206a9a4455aced371d4f501cc3f13b34", size = 629881, upload-time = "2024-05-01T07:13:14.136Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/46/35/db396caf7cfe71a9e661cea520b276f1472df25015e7cb9143c65a1dca6d/rq-1.16.2-py3-none-any.whl", hash = "sha256:52e619f6cb469b00e04da74305045d244b75fecb2ecaa4f26422add57d3c5f09", size = 90911, upload-time = "2024-05-01T07:13:11.158Z" },
 ]
 
 [[package]]
@@ -587,13 +563,4 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/8a/78/16493d9c386d8e60e442a35feac5e00f0913c0f4b7c217c11e8ec2ff53e0/urllib3-2.4.0.tar.gz", hash = "sha256:414bc6535b787febd7567804cc015fee39daab8ad86268f1310a9250697de466", size = 390672, upload-time = "2025-04-10T15:23:39.232Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6b/11/cc635220681e93a0183390e26485430ca2c7b5f9d33b15c74c2861cb8091/urllib3-2.4.0-py3-none-any.whl", hash = "sha256:4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813", size = 128680, upload-time = "2025-04-10T15:23:37.377Z" },
-]
-
-[[package]]
-name = "valkey"
-version = "6.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a9/dd/99cad51b303352af198be58ce65ae69d956c20bd51a6f6a287c4c56f2239/valkey-6.0.1.tar.gz", hash = "sha256:58f4628dc038ab5aa04eea6e75557309c9412a8c45e81ad42d53e42b9a36e7dc", size = 4602138, upload-time = "2024-09-10T10:08:13.629Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/70/3c/708a031a70a5283ae237ed6d5c76e43e697adbefb05991e94e10a19ada5d/valkey-6.0.1-py3-none-any.whl", hash = "sha256:6702bf323e88e50ef0be37aad697bcc6334edd40cc66f01259265dd410fa22dc", size = 260115, upload-time = "2024-09-10T10:08:11.945Z" },
 ]

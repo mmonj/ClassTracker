@@ -12,7 +12,7 @@ dependencies = [
     "psycopg2-binary>=2.9.9,<3.0.0",
     "django-stubs>=5.0.2,<6.0.0",
     "django-stubs-ext>=5.0.2,<6.0.0",
-    "django-tasks-scheduler>=2.1.0,<3.0.0",
+    "django-tasks-scheduler==4.0.6",
     "requests>=2.32.3,<3.0.0",
     "djangorestframework>=3.15.2,<4.0.0",
     "beautifulsoup4>=4.12.3,<5.0.0",

@@ -32,7 +32,6 @@ services:
   psql:
     image: postgres:15.7
     container_name: mm-psql-class-tracker
-    user: "${UID}"
     restart: always
     # set shared memory limit when using docker-compose
     shm_size: 128mb
@@ -42,8 +41,9 @@ services:
     ports:
       - 8031:5432
     volumes:
-      - ./.postgresql/data:/var/lib/postgresql/data
-      - ./.postgresql/backups:/app/backups
+      - ../.postgresql-class-tracker/data:/var/lib/postgresql/data
+      - ../.postgresql-class-tracker/backups:/app/backups
+
   adminer:
     image: adminer
     container_name: mm-adminer-class-tracker
@@ -64,18 +64,17 @@ services:
   redis:
     image: redis
     container_name: redis-class-tracker
-    command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
+    command: sh -c "redis-server --port ${REDIS_PORT} --requirepass ${REDIS_PASSWORD}"
     env_file:
       - .env.dev
     restart: unless-stopped
 
-  rq_worker_default:
+  scheduler_worker_default:
     image: mm-class-tracker-image
-    container_name: class-tracker-rq-worker-default
-    command: uv run python manage.py rqworker default
+    container_name: class-tracker-scheduler-worker-default
+    command: uv run python manage.py scheduler_worker
     user: "${UID}"
     volumes:
-      - node_modules:/app/node_modules
       - python_venv:/app/.venv
       - ./:/app
     env_file:
@@ -83,6 +82,7 @@ services:
     restart: unless-stopped
     depends_on:
       - django_app
+      - redis
 
 volumes:
   node_modules:

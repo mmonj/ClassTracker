@@ -215,28 +215,6 @@ LOGGING = {
     },
 }
 
-REDIS_HOST_PORT = {
-    "HOST": os.environ["REDIS_HOST"],
-    "PORT": os.environ["REDIS_PORT"],
-}
-
-REDIS_USER_PASSWORD = {
-    "USERNAME": "",
-    "PASSWORD": os.environ["REDIS_PASSWORD"],
-}
-
-SCHEDULER_QUEUES = {
-    "default": {
-        **REDIS_HOST_PORT,
-        **REDIS_USER_PASSWORD,
-        "DB": 0,
-        "DEFAULT_TIMEOUT": 360,
-        "REDIS_CLIENT_KWARGS": {  # Eventual additional Redis connection arguments
-            # "ssl_cert_reqs": None,
-        },
-    },
-}
-
 JOINAPP_DEVICE_ID = os.environ["JOINAPP_DEVICE_ID"]
 JOINAPP_API_KEY = os.environ["JOINAPP_API_KEY"]
 
