@@ -6,7 +6,7 @@ services:
       context: .
       args:
         ENV_TYPE: dev
-        UID: 1000
+        UID: "${UID}"
     command: >
       bash -c "
       trap 'echo SIGTERM received, shutting down...; exit' SIGTERM;
@@ -15,12 +15,12 @@ services:
       done
       "
     tty: true
-    user: "1000"
+    user: "${UID}"
     ports:
       - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
-      - /app/node_modules
-      - /app/.venv
+      - node_modules:/app/node_modules
+      - python_venv:/app/.venv
       - ./:/app
     env_file:
       - .env.dev
@@ -32,7 +32,7 @@ services:
   psql:
     image: postgres:15.7
     container_name: mm-psql-class-tracker
-    user: "1000:1000"
+    user: "${UID}"
     restart: always
     # set shared memory limit when using docker-compose
     shm_size: 128mb
@@ -73,11 +73,17 @@ services:
     image: mm-class-tracker-image
     container_name: class-tracker-rq-worker-default
     command: uv run python manage.py rqworker default
-    user: "1000"
+    user: "${UID}"
     volumes:
+      - node_modules:/app/node_modules
+      - python_venv:/app/.venv
       - ./:/app
     env_file:
       - .env.dev
     restart: unless-stopped
     depends_on:
       - django_app
+
+volumes:
+  node_modules:
+  python_venv:
