@@ -12,6 +12,7 @@ ssr_urlpatterns = [
     path("logout_view/", ssr.logout_view, name="logout_view"),
     path("admin/", ssr.admin, name="admin"),
     path("add_classes/", ssr.add_classes, name="add_classes"),
+    path("class_alerts/", ssr.view_class_alerts, name="view_class_alerts"),
 ]
 
 ajax_urlpatterns = [

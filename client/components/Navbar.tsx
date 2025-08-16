@@ -16,6 +16,7 @@ export function Navbar() {
   const staffRoutes = [
     { name: "Admin", href: reverse("class_tracker:admin") },
     { name: "Add Classes", href: reverse("class_tracker:add_classes") },
+    { name: "Class Alerts", href: reverse("class_tracker:view_class_alerts") },
   ] satisfies TStaffRoute[];
 
   return (

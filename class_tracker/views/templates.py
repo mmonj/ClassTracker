@@ -3,6 +3,7 @@ from typing import List, Literal, NamedTuple
 from reactivated import Pick, template
 
 from .. import models
+from .typedefs import TPaginationData
 
 _TermPick = Pick[models.Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
 _SchoolPick = Pick[models.School, Literal["id", "name", "globalsearch_key"]]
@@ -23,6 +24,31 @@ _RecipientPick = Pick[
         "watched_sections.instruction_entries.instructor.name",
     ],
 ]
+
+_ClassAlertPick = Pick[
+    models.ClassAlert,
+    Literal[
+        "id",
+        "datetime_created",
+        "recipient.id",
+        "recipient.name",
+        "course_section.id",
+        "course_section.number",
+        "course_section.topic",
+        "course_section.course.id",
+        "course_section.course.code",
+        "course_section.course.level",
+        "course_section.course.subject.name",
+        "course_section.term.id",
+        "course_section.term.full_term_name",
+        "course_section.instruction_entries.id",
+        "course_section.instruction_entries.get_days_and_times",
+        "course_section.instruction_entries.instructor.id",
+        "course_section.instruction_entries.instructor.name",
+    ],
+]
+
+_RecipientBasicPick = Pick[models.Recipient, Literal["id", "name"]]
 
 
 @template
@@ -45,3 +71,12 @@ class TrackerAdmin(NamedTuple):
 class TrackerAddClasses(NamedTuple):
     terms_available: List[_TermPick]
     recipients: List[_RecipientPick]
+
+
+@template
+class TrackerClassAlerts(NamedTuple):
+    title: str
+    class_alerts: List[_ClassAlertPick]
+    recipients: List[_RecipientBasicPick]
+    selected_recipient_id: int
+    pagination: TPaginationData
