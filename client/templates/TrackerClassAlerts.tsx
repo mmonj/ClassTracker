@@ -5,11 +5,7 @@ import { Alert, Card } from "react-bootstrap";
 import { SingleValue } from "react-select";
 
 import { Navbar } from "@client/components/Navbar";
-import {
-  AlertsFilters,
-  AlertsPagination,
-  AlertsTable,
-} from "@client/components/TrackerClassAlerts";
+import { AlertsFilters, AlertsList, AlertsPagination } from "@client/components/TrackerClassAlerts";
 import { Layout } from "@client/layouts/Layout";
 
 interface RecipientOption {
@@ -22,9 +18,10 @@ export function Template(props: templates.TrackerClassAlerts) {
   const [debouncedFilterText, setDebouncedFilterText] = useState("");
 
   useEffect(() => {
+    const delay = filterText.trim() === "" ? 0 : 300;
     const timer = setTimeout(() => {
       setDebouncedFilterText(filterText);
-    }, 300);
+    }, delay);
 
     return () => clearTimeout(timer);
   }, [filterText]);
@@ -39,7 +36,7 @@ export function Template(props: templates.TrackerClassAlerts) {
       : null,
   );
 
-  const recipientOptions: RecipientOption[] = useMemo(
+  const recipientOptions = useMemo(
     () => [
       { value: 0, label: "All Recipients" },
       ...props.recipients.map((recipient) => ({
@@ -48,7 +45,7 @@ export function Template(props: templates.TrackerClassAlerts) {
       })),
     ],
     [props.recipients],
-  );
+  ) satisfies RecipientOption[];
 
   // filter alerts based on search text
   const filteredAlerts = useMemo(
@@ -161,7 +158,7 @@ export function Template(props: templates.TrackerClassAlerts) {
                 </div>
               )}
 
-              <AlertsTable
+              <AlertsList
                 alerts={filteredAlerts}
                 formatDateTime={formatDateTime}
                 getDaysAndTimesString={getDaysAndTimesString}
