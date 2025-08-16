@@ -25,7 +25,7 @@ export function AlertListItem({
 }: Props) {
   return (
     <ListGroup.Item>
-      <div className="d-flex justify-content-between align-items-start mb-2">
+      <div className="d-flex justify-content-between align-items-start mb-2 gap-5">
         <div className="d-flex align-items-center gap-2">
           <FontAwesomeIcon icon={faBell} className="text-primary" />
           <h6 className="mb-0">
