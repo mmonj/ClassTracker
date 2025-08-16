@@ -36,6 +36,40 @@ export function Template(props: templates.TrackerIndex) {
     );
   }
 
+  if (!djangoContext.user.is_superuser) {
+    return (
+      <Layout title={props.title} Navbar={Navbar}>
+        <Container className="mt-5">
+          <Row className="justify-content-center">
+            <Col md={8} lg={6}>
+              <Card className="shadow">
+                <Card.Body className="text-center p-5">
+                  <h1 className="display-4 mb-4">🎓 Class Tracker</h1>
+                  <Alert variant="warning" className="mb-4">
+                    <Alert.Heading>Access Restricted</Alert.Heading>
+                    <p className="mb-0">
+                      You are logged in as <strong>{djangoContext.user.name}</strong>, but you need
+                      administrator privileges to access the Class Tracker dashboard.
+                    </p>
+                  </Alert>
+                  <div className="d-flex gap-2 justify-content-center">
+                    <Button
+                      variant="outline-secondary"
+                      href={reverse("class_tracker:logout_view")}
+                      size="sm"
+                    >
+                      Log Out
+                    </Button>
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        </Container>
+      </Layout>
+    );
+  }
+
   const staffRoutes = [
     {
       name: "Manage Course List",
