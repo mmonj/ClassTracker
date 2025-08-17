@@ -4,8 +4,12 @@ import { templates } from "@reactivated";
 import { Alert, Card } from "react-bootstrap";
 import { SingleValue } from "react-select";
 
-import { Navbar } from "@client/components/Navbar";
-import { AlertsFilters, AlertsList, AlertsPagination } from "@client/components/TrackerClassAlerts";
+import { Navbar } from "@client/components/class_tracker/Navbar";
+import {
+  AlertsFilters,
+  AlertsList,
+  AlertsPagination,
+} from "@client/components/class_tracker/TrackerClassAlerts";
 import { Layout } from "@client/layouts/Layout";
 
 interface RecipientOption {

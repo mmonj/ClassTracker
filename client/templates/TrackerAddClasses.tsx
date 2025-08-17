@@ -7,12 +7,12 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { Navbar } from "@client/components/Navbar";
+import { Navbar } from "@client/components/class_tracker/Navbar";
 import {
   AddWatchedSectionModal,
   EditRecipientModal,
   RecipientCard,
-} from "@client/components/TrackerAddClasses";
+} from "@client/components/class_tracker/TrackerAddClasses";
 import { Layout } from "@client/layouts/Layout";
 
 const NEW_RECIPIENT_SENTINEL_ID = 0;

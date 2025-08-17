@@ -11,7 +11,7 @@ import { fetchByReactivated } from "@client/utils";
 
 import { useFetch } from "@client/hooks/useFetch";
 
-import { FormFieldset } from "../forms/FormBody";
+import { FormFieldset } from "../../forms/FormBody";
 
 interface Props {
   show: boolean;

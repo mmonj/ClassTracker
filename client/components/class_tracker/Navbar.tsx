@@ -3,7 +3,7 @@ import React from "react";
 import { Context, reverse } from "@reactivated";
 import { Navbar as BSNavbar, Container, Nav } from "react-bootstrap";
 
-import { NavLink } from "./Navlink";
+import { NavLink } from "../Navlink";
 
 type TStaffRoute = {
   name: string;

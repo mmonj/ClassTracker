@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fetchByReactivated } from "@client/utils";
 
 import { ButtonWithSpinner } from "@client/components/ButtonWithSpinner";
-import { Navbar } from "@client/components/Navbar";
+import { Navbar } from "@client/components/class_tracker/Navbar";
 import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 
