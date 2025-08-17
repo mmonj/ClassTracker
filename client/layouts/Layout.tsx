@@ -2,6 +2,8 @@ import React, { type JSX } from "react";
 
 import { Context } from "@reactivated";
 
+import classNames from "classnames";
+
 import { ContribMessages } from "@client/components/ContribMessages";
 
 type TDjangoBasePathStr = string;
@@ -18,7 +20,7 @@ interface Props {
   className?: string;
   djangoStaticStylePaths?: TDjangoBasePathStr[];
   extraExternalStyles?: IExternalStyles[];
-  Navbar: () => JSX.Element;
+  Navbar?: () => JSX.Element;
 }
 
 export const Layout = ({
@@ -82,12 +84,14 @@ export const Layout = ({
         ))}
       </head>
       <body>
-        <header>
-          <Navbar />
-        </header>
+        {Navbar && (
+          <header>
+            <Navbar />
+          </header>
+        )}
         <main>
           <ContribMessages />
-          <section id="content" className={baseClassName + " " + className}>
+          <section id="content" className={classNames(baseClassName, className)}>
             {props.children}
           </section>
         </main>
