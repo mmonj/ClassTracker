@@ -5,7 +5,7 @@ import { Navbar as BSNavbar, Container, Nav } from "react-bootstrap";
 
 import { NavLink } from "../Navlink";
 
-type TStaffRoute = {
+type TRoute = {
   name: string;
   href: string;
 };
@@ -18,7 +18,7 @@ export function Navbar() {
     { name: "Manage Courselist", href: reverse("class_tracker:manage_course_list") },
     { name: "Add Classes", href: reverse("class_tracker:add_classes") },
     { name: "Class Alerts", href: reverse("class_tracker:view_class_alerts") },
-  ] satisfies TStaffRoute[];
+  ] satisfies TRoute[];
 
   return (
     <BSNavbar expand="lg">
