@@ -1,39 +1,11 @@
 import re
 from dataclasses import dataclass
-from typing import Generic, Literal, TypeAlias, TypedDict, TypeVar
-
-from django.contrib.auth.models import User
-from django.http import HttpRequest
-
-T = TypeVar("T")
-E = TypeVar("E")
+from typing import Literal, TypedDict
 
 
 class TSessionData(TypedDict):
     cookies: dict[str, str]
     headers: dict[str, str]
-
-
-class AuthenticatedRequest(HttpRequest):
-    user: User
-
-
-@dataclass
-class Success(Generic[T]):
-    value: T
-    ok: Literal[True] = True
-
-
-@dataclass
-class Failure(Generic[E]):
-    err: E
-    ok: Literal[False] = False
-
-
-Result: TypeAlias = Success[E] | Failure[T]  # noqa: UP040
-
-
-__all__ = ["Result"]
 
 
 @dataclass

@@ -5,7 +5,7 @@ import requests
 from requests import RequestException, Response, Session
 from requests.adapters import HTTPAdapter, Retry
 
-from .typedefs import Failure, Result, Success
+from server.util.typedefs import Failure, Result, Success
 
 logger = logging.getLogger("main")
 
