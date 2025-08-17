@@ -9,7 +9,7 @@ from .. import models
 from . import get_globalsearch_headers, init_http_retrier
 from .navigator import get_classlist_result_page, get_subject_selection_page
 from .typedefs import GSCourse
-from .util import get_course_section
+from .utils import get_course_section
 
 logger = logging.getLogger("main")
 
