@@ -36,6 +36,8 @@ ALLOWED_HOSTS: list[str] = []
 
 # Application definition
 
+_DEV_APPS = ["django_extensions"] if DEBUG else []
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -51,8 +53,10 @@ INSTALLED_APPS = [
     "class_tracker",
     "discord_tracker",
     "scheduler",
+    *_DEV_APPS,
     "reactivated",  # goes last
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

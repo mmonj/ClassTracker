@@ -136,6 +136,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ba/7a/29d515bc66f13bdbe0d52ee93a384f47d863010cd1a750fed6c928e5d85c/django_allauth-65.11.0.tar.gz", hash = "sha256:d08ee0b60a1a54f84720bb749518628c517c9af40b6cfb3bc980206e182745ab", size = 1914618, upload-time = "2025-08-15T10:10:38.318Z" }
 
 [[package]]
+name = "django-extensions"
+version = "4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6d/b3/ed0f54ed706ec0b54fd251cc0364a249c6cd6c6ec97f04dc34be5e929eac/django_extensions-4.1.tar.gz", hash = "sha256:7b70a4d28e9b840f44694e3f7feb54f55d495f8b3fa6c5c0e5e12bcb2aa3cdeb", size = 283078, upload-time = "2025-04-11T01:15:39.617Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/64/96/d967ca440d6a8e3861120f51985d8e5aec79b9a8bdda16041206adfe7adc/django_extensions-4.1-py3-none-any.whl", hash = "sha256:0699a7af28f2523bf8db309a80278519362cd4b6e1fd0a8cd4bf063e1e023336", size = 232980, upload-time = "2025-04-11T01:15:37.701Z" },
+]
+
+[[package]]
 name = "django-stubs"
 version = "5.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -215,6 +227,7 @@ dependencies = [
     { name = "cattrs" },
     { name = "django" },
     { name = "django-allauth" },
+    { name = "django-extensions" },
     { name = "django-stubs" },
     { name = "django-stubs-ext" },
     { name = "django-tasks-scheduler" },
@@ -240,6 +253,7 @@ requires-dist = [
     { name = "cattrs", specifier = ">=25.1.0,<26.0.0" },
     { name = "django", specifier = "==5.0.2" },
     { name = "django-allauth", specifier = ">=65.11.0" },
+    { name = "django-extensions", specifier = ">=4.1" },
     { name = "django-stubs", specifier = ">=5.0.2,<6.0.0" },
     { name = "django-stubs-ext", specifier = ">=5.0.2,<6.0.0" },
     { name = "django-tasks-scheduler", specifier = "==4.0.6" },
