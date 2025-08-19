@@ -6,7 +6,7 @@ import { Alert, Button, Card, Col, Container, Row } from "react-bootstrap";
 import { Navbar } from "@client/components/class_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
-export function Template(props: templates.TrackerIndex) {
+export function Template(props: templates.ClassTrackerIndex) {
   const djangoContext = React.useContext(Context);
 
   if (djangoContext.user.is_authenticated === false) {

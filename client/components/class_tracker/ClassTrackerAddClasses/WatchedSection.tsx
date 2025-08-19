@@ -11,9 +11,11 @@ import { fetchByReactivated } from "@client/utils";
 import { useFetch } from "@client/hooks/useFetch";
 
 interface Props {
-  section: templates.TrackerAddClasses["recipients"][number]["watched_sections"][number];
+  section: templates.ClassTrackerAddClasses["recipients"][number]["watched_sections"][number];
   recipientId: number;
-  setRecipients: React.Dispatch<React.SetStateAction<templates.TrackerAddClasses["recipients"]>>;
+  setRecipients: React.Dispatch<
+    React.SetStateAction<templates.ClassTrackerAddClasses["recipients"]>
+  >;
 }
 
 export function WatchedSection({ section, recipientId, setRecipients }: Props) {

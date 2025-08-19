@@ -33,8 +33,10 @@ const REACT_SELECT_PREFIX = "react-select";
 interface Props {
   show: boolean;
   addingSectionRecipientId: number | null;
-  termsAvailable: templates.TrackerAddClasses["terms_available"];
-  setRecipients: React.Dispatch<React.SetStateAction<templates.TrackerAddClasses["recipients"]>>;
+  termsAvailable: templates.ClassTrackerAddClasses["terms_available"];
+  setRecipients: React.Dispatch<
+    React.SetStateAction<templates.ClassTrackerAddClasses["recipients"]>
+  >;
   onHide: () => void;
 }
 

@@ -17,7 +17,9 @@ interface Props {
   show: boolean;
   editingRecipientId: number | null;
   onHide: () => void;
-  setRecipients: React.Dispatch<React.SetStateAction<templates.TrackerAddClasses["recipients"]>>;
+  setRecipients: React.Dispatch<
+    React.SetStateAction<templates.ClassTrackerAddClasses["recipients"]>
+  >;
 }
 
 export function EditRecipientModal({ show, editingRecipientId, onHide, setRecipients }: Props) {

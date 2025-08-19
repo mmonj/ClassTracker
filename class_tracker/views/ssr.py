@@ -28,14 +28,14 @@ def login_view(request: HttpRequest) -> HttpResponse:
         return redirect("class_tracker:index")
 
     if request.method == "GET":
-        return templates.TrackerLogin().render(request)
+        return templates.ClassTrackerLogin().render(request)
 
     username = request.POST["username"]
     password = request.POST["password"]
     user = authenticate(request, username=username, password=password)
 
     if user is None:
-        return templates.TrackerLogin(is_invalid_credentials=True).render(request)
+        return templates.ClassTrackerLogin(is_invalid_credentials=True).render(request)
 
     login(request, user)
 
@@ -53,7 +53,7 @@ def logout_view(request: HttpRequest) -> HttpResponse:
 
 
 def index(request: HttpRequest) -> HttpResponse:
-    return templates.TrackerIndex(title="Class Tracker").render(request)
+    return templates.ClassTrackerIndex(title="Class Tracker").render(request)
 
 
 @login_required(login_url=reverse_lazy("class_tracker:login_view"))
@@ -65,7 +65,7 @@ def manage_course_list(request: HttpRequest) -> HttpResponse:
 
     schools = list(School.objects.all())
 
-    return templates.TrackerManageCourselist(
+    return templates.ClassTrackerManageCourselist(
         terms_available=terms_available, schools=schools
     ).render(request)
 
@@ -89,7 +89,7 @@ def add_classes(request: HttpRequest) -> HttpResponse:
         .order_by("-datetime_created")
     )
 
-    return templates.TrackerAddClasses(
+    return templates.ClassTrackerAddClasses(
         terms_available=terms_available, recipients=list(recipients)
     ).render(request)
 
@@ -143,7 +143,7 @@ def view_class_alerts(request: HttpRequest) -> HttpResponse:
         next_page_number=page_obj.next_page_number() if page_obj.has_next() else 0,
     )
 
-    return templates.TrackerClassAlerts(
+    return templates.ClassTrackerClassAlerts(
         title="Class Alerts",
         class_alerts=list(page_obj.object_list),
         recipients=recipients,

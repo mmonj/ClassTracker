@@ -6,13 +6,13 @@ import { ListGroup } from "react-bootstrap";
 import { AlertListItem } from "./AlertListItem";
 
 interface Props {
-  alerts: templates.TrackerClassAlerts["class_alerts"];
+  alerts: templates.ClassTrackerClassAlerts["class_alerts"];
   formatDateTime: (dateTime: string) => string;
   getDaysAndTimesString: (
-    instructionEntries: templates.TrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
+    instructionEntries: templates.ClassTrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
   ) => string;
   getInstructorsString: (
-    instructionEntries: templates.TrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
+    instructionEntries: templates.ClassTrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
   ) => string;
 }
 

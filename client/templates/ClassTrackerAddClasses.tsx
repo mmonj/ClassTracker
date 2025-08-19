@@ -7,12 +7,12 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { Navbar } from "@client/components/class_tracker/Navbar";
 import {
   AddWatchedSectionModal,
   EditRecipientModal,
   RecipientCard,
-} from "@client/components/class_tracker/TrackerAddClasses";
+} from "@client/components/class_tracker/ClassTrackerAddClasses";
+import { Navbar } from "@client/components/class_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
 const NEW_RECIPIENT_SENTINEL_ID = 0;
@@ -47,7 +47,7 @@ const getRecipientCardAnimate = (recipientId: number) => ({
   },
 });
 
-export function Template(props: templates.TrackerAddClasses) {
+export function Template(props: templates.ClassTrackerAddClasses) {
   const [recipients, setRecipients] = useState(props.recipients);
   const [showEditRecipientModal, setShowEditRecipientModal] = useState(false);
   const [editingRecipientId, setEditingRecipientId] = useState<number | null>(null);

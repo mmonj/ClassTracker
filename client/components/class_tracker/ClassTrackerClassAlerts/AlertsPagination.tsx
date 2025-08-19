@@ -4,7 +4,7 @@ import { templates } from "@reactivated";
 import { Button, Col, Row } from "react-bootstrap";
 
 interface Props {
-  pagination: templates.TrackerClassAlerts["pagination"];
+  pagination: templates.ClassTrackerClassAlerts["pagination"];
   generatePaginationUrl: (page: number) => string;
 }
 

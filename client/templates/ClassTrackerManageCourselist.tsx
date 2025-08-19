@@ -19,7 +19,7 @@ const ALL_SUBJECTS_ID = 0;
 const ALL_SCHOOLS_OPTION = { id: ALL_SCHOOLS_ID, name: "All Schools" };
 const ALL_SUBJECTS_OPTION = { id: ALL_SUBJECTS_ID, name: "All Subjects" };
 
-export function Template(props: templates.TrackerManageCourselist) {
+export function Template(props: templates.ClassTrackerManageCourselist) {
   const [availableSchools, setAvailableSchools] = React.useState([
     ALL_SCHOOLS_OPTION,
     ...props.schools,

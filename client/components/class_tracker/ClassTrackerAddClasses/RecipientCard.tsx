@@ -39,7 +39,7 @@ const getWatchedSectionAnimate = (sectionId: number) => ({
   },
 });
 
-type TRecipient = templates.TrackerAddClasses["recipients"][number];
+type TRecipient = templates.ClassTrackerAddClasses["recipients"][number];
 
 interface Props {
   recipient: TRecipient;

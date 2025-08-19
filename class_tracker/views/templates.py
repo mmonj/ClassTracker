@@ -52,29 +52,29 @@ _RecipientBasicPick = Pick[models.Recipient, Literal["id", "name"]]
 
 
 @template
-class TrackerLogin(NamedTuple):
+class ClassTrackerLogin(NamedTuple):
     is_invalid_credentials: bool = False
 
 
 @template
-class TrackerIndex(NamedTuple):
+class ClassTrackerIndex(NamedTuple):
     title: str
 
 
 @template
-class TrackerManageCourselist(NamedTuple):
+class ClassTrackerManageCourselist(NamedTuple):
     schools: List[_SchoolPick]
     terms_available: List[_TermPick]
 
 
 @template
-class TrackerAddClasses(NamedTuple):
+class ClassTrackerAddClasses(NamedTuple):
     terms_available: List[_TermPick]
     recipients: List[_RecipientPick]
 
 
 @template
-class TrackerClassAlerts(NamedTuple):
+class ClassTrackerClassAlerts(NamedTuple):
     title: str
     class_alerts: List[_ClassAlertPick]
     recipients: List[_RecipientBasicPick]

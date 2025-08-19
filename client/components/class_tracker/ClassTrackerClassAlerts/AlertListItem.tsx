@@ -7,13 +7,13 @@ import { faBell, faClock, faGraduationCap, faUser } from "@fortawesome/free-soli
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface Props {
-  alert: templates.TrackerClassAlerts["class_alerts"][0];
+  alert: templates.ClassTrackerClassAlerts["class_alerts"][0];
   formatDateTime: (dateTime: string) => string;
   getDaysAndTimesString: (
-    instructionEntries: templates.TrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
+    instructionEntries: templates.ClassTrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
   ) => string;
   getInstructorsString: (
-    instructionEntries: templates.TrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
+    instructionEntries: templates.ClassTrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
   ) => string;
 }
 

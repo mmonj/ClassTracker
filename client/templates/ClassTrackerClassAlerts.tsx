@@ -4,12 +4,12 @@ import { templates } from "@reactivated";
 import { Alert, Card } from "react-bootstrap";
 import { SingleValue } from "react-select";
 
-import { Navbar } from "@client/components/class_tracker/Navbar";
 import {
   AlertsFilters,
   AlertsList,
   AlertsPagination,
-} from "@client/components/class_tracker/TrackerClassAlerts";
+} from "@client/components/class_tracker/ClassTrackerClassAlerts";
+import { Navbar } from "@client/components/class_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
 interface RecipientOption {
@@ -17,7 +17,7 @@ interface RecipientOption {
   label: string;
 }
 
-export function Template(props: templates.TrackerClassAlerts) {
+export function Template(props: templates.ClassTrackerClassAlerts) {
   const [filterText, setFilterText] = useState("");
   const [debouncedFilterText, setDebouncedFilterText] = useState("");
 
@@ -103,7 +103,7 @@ export function Template(props: templates.TrackerClassAlerts) {
   }
 
   function getInstructorsString(
-    instructionEntries: templates.TrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
+    instructionEntries: templates.ClassTrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
   ): string {
     const instructors = instructionEntries
       .map((entry) => entry.instructor.name)
@@ -112,7 +112,7 @@ export function Template(props: templates.TrackerClassAlerts) {
   }
 
   function getDaysAndTimesString(
-    instructionEntries: templates.TrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
+    instructionEntries: templates.ClassTrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
   ): string {
     const daysAndTimes = instructionEntries
       .map((entry) => entry.get_days_and_times)
