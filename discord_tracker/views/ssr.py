@@ -12,16 +12,7 @@ from server.util.typedefs import AuthenticatedRequest
 
 
 def index(request: HttpRequest) -> HttpResponse:
-    discord_user = None
-    if request.user.is_authenticated:
-        try:
-            discord_user = request.user.discord_user  # type: ignore[attr-defined]
-        except DiscordUser.DoesNotExist:
-            discord_user = None
-
-    return templates.DiscordTrackerIndex(title="Discord Tracker", discord_user=discord_user).render(
-        request
-    )
+    return templates.DiscordTrackerIndex().render(request)
 
 
 @require_http_methods(["GET"])

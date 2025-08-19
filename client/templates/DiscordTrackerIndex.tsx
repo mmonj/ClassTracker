@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useContext } from "react";
 
-import { CSRFToken, reverse, templates } from "@reactivated";
+import { CSRFToken, Context, reverse, templates } from "@reactivated";
 import { Button, Card, Col, Container, Row } from "react-bootstrap";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
@@ -10,8 +10,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
-export function Template(props: templates.DiscordTrackerIndex) {
-  const { discord_user } = props;
+export function Template(_props: templates.DiscordTrackerIndex) {
+  const context = useContext(Context);
+
+  const discordUser = context.user.discord_user;
 
   return (
     <Layout title="Discord Tracker" Navbar={Navbar}>
@@ -20,12 +22,12 @@ export function Template(props: templates.DiscordTrackerIndex) {
           <Col xs={12} md={8} lg={6} className="mx-auto">
             <Card className="shadow-sm">
               <Card.Body className="text-center p-4">
-                {discord_user ? (
+                {discordUser ? (
                   <>
                     <div className="mb-4">
                       <img
-                        src={discord_user.avatar_url}
-                        alt={`${discord_user.display_name}'s avatar`}
+                        src={discordUser.avatar_url}
+                        alt={`${discordUser.display_name}'s avatar`}
                         className="rounded-circle mb-3"
                         width="80"
                         height="80"
@@ -33,17 +35,15 @@ export function Template(props: templates.DiscordTrackerIndex) {
                       />
                     </div>
 
-                    <h2 className="h3 mb-2">{discord_user.display_name}</h2>
+                    <h2 className="h3 mb-2">{discordUser.display_name}</h2>
 
                     <div className="d-flex justify-content-center align-items-center mb-3">
                       <FontAwesomeIcon
-                        icon={discord_user.verified ? faCheckCircle : faTimesCircle}
-                        className={
-                          discord_user.verified ? "text-success me-2" : "text-warning me-2"
-                        }
+                        icon={discordUser.verified ? faCheckCircle : faTimesCircle}
+                        className={discordUser.verified ? "text-success me-2" : "text-warning me-2"}
                       />
-                      <span className={discord_user.verified ? "text-success" : "text-warning"}>
-                        {discord_user.verified ? "Verified Account" : "Unverified Account"}
+                      <span className={discordUser.verified ? "text-success" : "text-warning"}>
+                        {discordUser.verified ? "Verified Account" : "Unverified Account"}
                       </span>
                     </div>
 
@@ -51,12 +51,12 @@ export function Template(props: templates.DiscordTrackerIndex) {
                       <Card.Body className="py-2">
                         <Row className="text-center">
                           <Col xs={6}>
-                            <div className="fw-bold">{discord_user.login_count}</div>
+                            <div className="fw-bold">{discordUser.login_count}</div>
                             <small className="text-muted">Total Logins</small>
                           </Col>
                           <Col xs={6}>
                             <div className="fw-bold">
-                              {new Date(discord_user.first_login).toLocaleDateString()}
+                              {new Date(discordUser.first_login).toLocaleDateString()}
                             </div>
                             <small className="text-muted">Member Since</small>
                           </Col>
@@ -65,7 +65,7 @@ export function Template(props: templates.DiscordTrackerIndex) {
                     </Card>
 
                     <p className="text-muted small mb-3">
-                      Last login: {new Date(discord_user.last_login).toLocaleString()}
+                      Last login: {new Date(discordUser.last_login).toLocaleString()}
                     </p>
 
                     <form action={reverse("account_logout")} method="POST">
