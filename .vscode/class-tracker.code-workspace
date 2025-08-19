@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.organizeImports": "explicit"
+		},
+		"mypy.runUsingActiveInterpreter": true
+	}
+}
