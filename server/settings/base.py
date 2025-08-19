@@ -19,8 +19,6 @@ django_stubs_ext.monkeypatch()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-LOGS_DIR = BASE_DIR / "logs"
-LOGS_DIR.mkdir(exist_ok=True)
 
 
 # Quick-start development settings - unsuitable for production
@@ -45,7 +43,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.discord",
     "class_tracker",
+    "discord_tracker",
     "scheduler",
     "reactivated",  # goes last
 ]
@@ -56,6 +60,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -160,6 +165,13 @@ MEDIA_ROOT.mkdir(exist_ok=True)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# logging config
+
+_LOGS_DIR = BASE_DIR / "logs"
+_LOGS_DIR.mkdir(exist_ok=True)
+_MAIN_LOGGING_PATH = _LOGS_DIR / "class_tracker.log"
+_SCHEDULER_LOGGING_PATH = _LOGS_DIR / "scheduler.log"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -189,7 +201,17 @@ LOGGING = {
         },
         "main_handler": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": LOGS_DIR / "class_tracker.log",
+            "filename": _MAIN_LOGGING_PATH,
+            "mode": "a",
+            "encoding": "utf-8",
+            "formatter": "simple",
+            "backupCount": 5,
+            "maxBytes": 5 * 1024**2,  # 5 MiB
+        },
+        "scheduler_handler": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": _SCHEDULER_LOGGING_PATH,
+            "level": "DEBUG",
             "mode": "a",
             "encoding": "utf-8",
             "formatter": "simple",
@@ -207,6 +229,11 @@ LOGGING = {
             "handlers": ["main_handler", "console"],
             "level": "INFO",
             "propagate": False,
+        },
+        "scheduler": {
+            "handlers": ["scheduler_handler", "console"],
+            "level": "DEBUG",
+            "propagate": True,
         },
         # 'django.db.backends': {
         #     'level': 'DEBUG',
