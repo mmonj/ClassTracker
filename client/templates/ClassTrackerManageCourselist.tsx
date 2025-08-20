@@ -1,7 +1,7 @@
 import React from "react";
 
 import { Context, interfaces, reverse, templates } from "@reactivated";
-import { Card, ListGroup } from "react-bootstrap";
+import { Alert, Card, ListGroup } from "react-bootstrap";
 
 import { faSync } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -66,16 +66,15 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
 
     const fetchResult = await refreshTermsFetcher.fetchData(fetchCallback);
     if (!fetchResult.ok) {
-      console.log(fetchResult.errors);
       return;
     }
 
-    setAvailableSchools(fetchResult.data.available_schools);
+    setAvailableSchools([ALL_SCHOOLS_OPTION, ...fetchResult.data.available_schools]);
     setAvailableTerms(fetchResult.data.available_terms);
-    setSelectedSchool(fetchResult.data.available_schools.at(0));
+    setSelectedSchool(ALL_SCHOOLS_OPTION);
     setSelectedTerm(fetchResult.data.available_terms.at(0));
 
-    alert(`${fetchResult.data.new_terms_count} new terms added`);
+    alert(`Success! ${fetchResult.data.new_terms_count} new terms added`);
   }
 
   async function handleRefreshSchoolTermData() {
@@ -107,6 +106,7 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
     if (!result.ok) return;
 
     setAvailableSubjects(result.data.available_subjects);
+    alert("Success! Subjects refreshed successfully.");
   }
 
   async function handleRefreshClassesData(schoolId: number, termId: number, subjectId: number) {
@@ -116,7 +116,7 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
 
     const callback = () =>
       fetchByReactivated(
-        reverse("class_tracker:refresh_class_data", {
+        reverse("class_tracker:fetch_new_semester_course_sections", {
           school_id: schoolId,
           term_id: termId,
           subject_id: subjectId,
@@ -127,7 +127,9 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
 
     const result = await refreshClassesFetcher.fetchData(callback);
     if (!result.ok) return;
+
     setAvailableCourses(result.data.courses);
+    alert(`Success! Found ${result.data.courses.length} courses.`);
   }
 
   async function getSubjects(schoolId: number | undefined, termId: number | undefined) {
@@ -199,7 +201,52 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
   // =======================================================================================================================
 
   return (
-    <Layout title="Course Searcher Admin" Navbar={Navbar}>
+    <Layout title="Manage Courselist" Navbar={Navbar}>
+      {/* error messages */}
+      {refreshTermsFetcher.errorMessages.length > 0 && (
+        <Alert variant="danger" className="mb-3">
+          <Alert.Heading>Error refreshing schools and terms:</Alert.Heading>
+          <ul className="mb-0">
+            {refreshTermsFetcher.errorMessages.map((msg, idx) => (
+              <li key={idx}>{msg}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
+      {refreshSubjectsFetcher.errorMessages.length > 0 && (
+        <Alert variant="danger" className="mb-3">
+          <Alert.Heading>Error refreshing subjects:</Alert.Heading>
+          <ul className="mb-0">
+            {refreshSubjectsFetcher.errorMessages.map((msg, idx) => (
+              <li key={idx}>{msg}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
+      {getSubjectsFetcher.errorMessages.length > 0 && (
+        <Alert variant="danger" className="mb-3">
+          <Alert.Heading>Error loading subjects:</Alert.Heading>
+          <ul className="mb-0">
+            {getSubjectsFetcher.errorMessages.map((msg, idx) => (
+              <li key={idx}>{msg}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
+      {refreshClassesFetcher.errorMessages.length > 0 && (
+        <Alert variant="danger" className="mb-3">
+          <Alert.Heading>Error fetching new courses:</Alert.Heading>
+          <ul className="mb-0">
+            {refreshClassesFetcher.errorMessages.map((msg, idx) => (
+              <li key={idx}>{msg}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
       <Card className="p-3">
         <Card.Title>Currently available terms and schools</Card.Title>
         <Card.Body>
@@ -310,7 +357,7 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
                   }
                   isLoadingState={refreshClassesFetcher.isLoading}
                 >
-                  Refresh available Course sections for{" "}
+                  Fetch new Course sections for{" "}
                   <b>
                     {selectedSchool.name}, {selectedTerm.full_term_name}
                   </b>

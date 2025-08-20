@@ -106,6 +106,14 @@ def create_db_courses(
     school: School,
     term: Term,
 ) -> list[Course]:
+    logger.info(
+        " - Creating %s database courses for %s (%s) - %s, %s",
+        len(gs_courses),
+        school.name,
+        term.name,
+        career.name,
+        subject.name,
+    )
     name_to_instructor_map = _create_instructors_from_gs_courses(gs_courses, school, term)
 
     course_name_to_course_map = {

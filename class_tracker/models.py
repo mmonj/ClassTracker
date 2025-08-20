@@ -1,5 +1,6 @@
 import datetime
 import re
+import sys
 from typing import Any, Self
 
 import pytz
@@ -367,12 +368,17 @@ class InstructionEntry(CommonModel):
         days_and_times: str,
     ) -> tuple[list[Day], datetime.time | None, datetime.time | None]:
         """Convert 'TuTh 5:00PM - 5:30PM' into a tuple of (list[Day], start_time, end_time) using NYC as the timezone"""
+        print(f"Parsing days and times: {days_and_times=}", file=sys.stderr)
+
         parts = days_and_times.split()
         if len(parts) == 1:
             return ([], None, None)
 
         days_part = parts[0]  # eg. yields 'TuTh'
         time_part = parts[1:]  # eg yields ['5:00PM', '-', '5:30PM']
+
+        if len(time_part) != 3 or time_part[1] != "-":  # noqa: PLR2004
+            return ([], None, None)
 
         start_time_naive = datetime.datetime.strptime(time_part[0], "%I:%M%p")  # noqa: DTZ007
         end_time_naive = datetime.datetime.strptime(time_part[2], "%I:%M%p")  # noqa: DTZ007

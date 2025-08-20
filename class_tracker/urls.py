@@ -30,9 +30,9 @@ ajax_urlpatterns = [
         name="refresh_semester_data",
     ),
     path(
-        "refresh_class_data/<int:school_id>/<int:term_id>/<int:subject_id>/",
-        ajax.refresh_class_data,
-        name="refresh_class_data",
+        "fetch_new_semester_course_sections/<int:school_id>/<int:term_id>/<int:subject_id>/",
+        ajax.fetch_new_semester_course_sections,
+        name="fetch_new_semester_course_sections",
     ),
     path(
         "get_recipient_form/<int:recipient_id>/", ajax.get_recipient_form, name="get_recipient_form"

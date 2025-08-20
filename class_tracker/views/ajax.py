@@ -131,7 +131,7 @@ def refresh_semester_data(request: HttpRequest, school_id: int, term_id: int) ->
 
 
 @staff_member_required
-def refresh_class_data(
+def fetch_new_semester_course_sections(
     request: HttpRequest, school_id: int, term_id: int, subject_id: int
 ) -> HttpResponse:
     schools = (
@@ -174,7 +174,7 @@ def refresh_class_data(
                 gs_courses = parse_gs_courses(class_result_soup)
                 courses.extend(create_db_courses(gs_courses, subject, career, school, term))
 
-                time.sleep(0.5)
+                time.sleep(2)
 
     return interfaces_response.RespRefreshCourseSections(
         courses=natsorted(courses, key=lambda c: (c.code, c.level))
