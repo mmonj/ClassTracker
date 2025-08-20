@@ -34,7 +34,8 @@ def login_view(request: HttpRequest) -> HttpResponse:
     password = request.POST["password"]
     user = authenticate(request, username=username, password=password)
 
-    if user is None:
+    # only allow login if user has a usable password
+    if user is None or not user.has_usable_password():
         return templates.ClassTrackerLogin(is_invalid_credentials=True).render(request)
 
     login(request, user)

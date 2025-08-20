@@ -40,8 +40,15 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
         discord_user.last_login = timezone.now()
         discord_user.save(update_fields=["last_login"])
 
-        messages.success(
-            request,
-            f"Welcome back, {discord_user.display_name}! Successfully logged in via Discord.",
-        )
+        # check if it user's first login
+        if discord_user.login_count == 1:
+            messages.success(
+                request,
+                f"Welcome, {discord_user.display_name}! Thanks for signing up via Discord.",
+            )
+        else:
+            messages.success(
+                request,
+                f"Welcome back, {discord_user.display_name}! Successfully logged in via Discord.",
+            )
     return redirect("discord_tracker:index")

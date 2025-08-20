@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import Self
+from typing import Any, Self
 
 import pytz
 from django.db import models
@@ -23,6 +23,17 @@ class CommonModel(models.Model):
 
     class Meta:
         abstract = True
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        # include datetime_modified if not provided
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            update_fields = list(update_fields)
+            if "datetime_modified" not in update_fields:
+                update_fields.append("datetime_modified")
+                kwargs["update_fields"] = update_fields
+
+        super().save(*args, **kwargs)
 
 
 class School(CommonModel):

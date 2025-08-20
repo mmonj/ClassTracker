@@ -25,7 +25,11 @@ SOCIALACCOUNT_ADAPTER = "discord_tracker.discord.adapters.DiscordSocialAccountAd
 
 SOCIALACCOUNT_PROVIDERS = {
     "discord": {
-        "SCOPE": ["identify", "email"],  # Minimal permissions: identity and email for verification
+        "SCOPE": [
+            "identify",
+            "email",
+            "guilds",
+        ],  # permissions for Discord API
         "AUTH_PARAMS": {"prompt": "none"},
         "VERIFIED_EMAIL": True,
         "APP": {

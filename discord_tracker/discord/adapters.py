@@ -1,4 +1,6 @@
 import logging
+from datetime import datetime, timedelta
+from os import getuid
 from typing import Any
 
 from allauth.socialaccount.adapter import (  # type: ignore[import-untyped]
@@ -7,6 +9,7 @@ from allauth.socialaccount.adapter import (  # type: ignore[import-untyped]
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.http import HttpRequest
+from django.utils import timezone
 
 from discord_tracker.models import DiscordUser
 
@@ -21,15 +24,16 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
     """adapter for Discord social account handling"""
 
     def populate_user(self, request: HttpRequest, sociallogin: Any, data: dict[str, Any]) -> User:
-        """
-        Populate base User fields from discord data
-        """
+        """Populate base User fields from discord data"""
         user: User = super().populate_user(request, sociallogin, data)
 
-        logger.info(data)
-
-        # use global_name if available, otherwise username
+        discord_id = data.get("id", getuid())
         display_name = data.get("global_name") or data.get("username", "")
+        user.username = f"{display_name}@{discord_id}"
+
+        # ensure the user cannot log in with a password
+        user.set_unusable_password()
+
         if display_name:
             # set first_name and last_name based on display name
             name_parts = display_name.split(" ", 1)
@@ -73,6 +77,11 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             return
 
         if existing_discord_user is not None:
+            existing_discord_user.login_count += 1
+            self._update_tokens(existing_discord_user, sociallogin)
+            existing_discord_user.save(
+                update_fields=["login_count", "access_token", "refresh_token", "token_expires_at"]
+            )
             sociallogin.user = existing_discord_user.user
             return
 
@@ -80,9 +89,7 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         # allauth will handle creating a new user account
 
     def save_user(self, request: HttpRequest, sociallogin: Any, form: Any = None) -> User:
-        """
-        Save the user and create associated DiscordUser.
-        """
+        """Save the user and create associated DiscordUser."""
         user: User = super().save_user(request, sociallogin, form)
 
         if sociallogin.account.provider != "discord":
@@ -105,6 +112,9 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
                 "avatar": self._get_avatar_url(discord_data),
                 "verified": discord_data.get("verified", False),
                 "login_count": 1,
+                "access_token": getattr(sociallogin.token, "token", ""),
+                "refresh_token": getattr(sociallogin.token, "token_secret", ""),
+                "token_expires_at": self._get_token_expiry(sociallogin),
             },
         )
 
@@ -118,9 +128,34 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             discord_user.avatar = self._get_avatar_url(discord_data)
             discord_user.verified = discord_data.get("verified", discord_user.verified)
             discord_user.login_count += 1
+            self._update_tokens(discord_user, sociallogin)
             discord_user.save()
 
         return user
+
+    def _update_tokens(self, discord_user: DiscordUser, sociallogin: Any) -> None:
+        """Update OAuth tokens for a DiscordUser instance."""
+        discord_user.access_token = getattr(sociallogin.token, "token", "")
+        discord_user.refresh_token = getattr(sociallogin.token, "token_secret", "")
+        discord_user.token_expires_at = self._get_token_expiry(sociallogin)
+
+    def _get_token_expiry(self, sociallogin: Any) -> datetime | None:
+        """Calculate token expiry time from sociallogin token."""
+        if hasattr(sociallogin.token, "expires_at") and sociallogin.token.expires_at:
+            # if not already datetime, convert it
+            expires_at = sociallogin.token.expires_at
+            if isinstance(expires_at, datetime):
+                return expires_at
+            # convert if it is timestamp
+            try:
+                return datetime.fromtimestamp(float(expires_at), tz=timezone.get_current_timezone())
+            except (ValueError, TypeError):
+                pass
+
+        # https://github.com/reddit-archive/reddit/wiki/OAuth2#refreshing-the-token
+        # discord access tokens will normally expire in 1 hour
+        # if we don't have explicit expiry info, calculate it
+        return timezone.now() + timedelta(hours=1)
 
     def _get_avatar_url(self, discord_data: dict[str, Any]) -> str:
         """Generate full Discord avatar URL from avatar hash."""

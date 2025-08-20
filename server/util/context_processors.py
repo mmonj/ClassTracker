@@ -21,6 +21,10 @@ _TDiscordUserPick = Pick[
         "login_count",
         "display_name",
         "avatar_url",
+        # OAuth token info (excluding sensitive tokens)
+        "token_expires_at",
+        "is_token_expired",
+        "can_refresh_token",
     ],
 ]
 
