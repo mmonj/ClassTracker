@@ -1,7 +1,10 @@
 import logging
+from datetime import timedelta
+
+from django.utils import timezone
 
 from .global_search.parser import find_open_sections
-from .models import ClassAlert, CourseSection, Recipient
+from .models import ClassAlert, CourseSection, GlobalSettings, Recipient
 from .util import (
     SearchGroup,
     get_grouped_watched_sections_for_search,
@@ -40,7 +43,15 @@ def check_for_open_sections() -> None:
                 all_recipients_with_open_sections[recipient] = sections
 
     if all_recipients_with_open_sections:
-        _notify_recipients(all_recipients_with_open_sections)
+        # Filter out sections that have recent alerts within grace period
+        filtered_recipients_with_sections = _filter_sections_within_grace_period(
+            all_recipients_with_open_sections
+        )
+
+        if filtered_recipients_with_sections:
+            _notify_recipients(filtered_recipients_with_sections)
+        else:
+            logger.info("All open sections filtered out due to grace period")
     else:
         logger.info("No open sections found for any recipients")
 
@@ -84,6 +95,65 @@ def _find_search_group_open_sections(group: SearchGroup) -> dict[Recipient, list
             "Error searching for classes in %s - %s", group.school.name, group.term.full_term_name
         )
         return {}
+
+
+def _filter_sections_within_grace_period(
+    recipients_with_open_sections: dict[Recipient, list[CourseSection]],
+) -> dict[Recipient, list[CourseSection]]:
+    """Filter out course sections that have recent ClassAlert records within the grace period."""
+    hours_grace_period = 6.0
+    try:
+        global_settings = GlobalSettings.objects.first()
+        if global_settings is not None:
+            hours_grace_period = global_settings.hours_renotify_grace_period
+
+        grace_period_cutoff = timezone.now() - timedelta(hours=hours_grace_period)
+
+        # collect all recipients and sections to prepare for bulk query
+        all_recipients = list(recipients_with_open_sections.keys())
+        all_sections = [
+            section
+            for sections_list in recipients_with_open_sections.values()
+            for section in sections_list
+        ]
+
+        recent_alerts = ClassAlert.objects.filter(
+            recipient__in=all_recipients,
+            course_section__in=all_sections,
+            datetime_created__gt=grace_period_cutoff,
+        ).select_related("recipient", "course_section")
+
+        # set (recipient_id, section_id) tuples
+        recent_alert_pairs = {
+            (alert.recipient.id, alert.course_section.id) for alert in recent_alerts
+        }
+
+        filtered_recipients_with_sections: dict[Recipient, list[CourseSection]] = {}
+
+        for recipient, open_sections in recipients_with_open_sections.items():
+            filtered_sections: list[CourseSection] = []
+
+            for section in open_sections:
+                recent_alert_exists = (recipient.id, section.id) in recent_alert_pairs
+
+                if not recent_alert_exists:
+                    filtered_sections.append(section)
+                else:
+                    logger.debug(
+                        "Skipping notification for %s - %s %s (recent alert within grace period)",
+                        recipient.name,
+                        section.course.code,
+                        section.course.level,
+                    )
+
+            if filtered_sections:
+                filtered_recipients_with_sections[recipient] = filtered_sections
+
+        return filtered_recipients_with_sections
+
+    except Exception:
+        logger.exception("Error filtering sections within grace period, proceeding without filter")
+        return recipients_with_open_sections
 
 
 def _notify_recipients(recipients_with_open_sections: dict[Recipient, list[CourseSection]]) -> None:

@@ -9,6 +9,7 @@ from .models import (
     Course,
     CourseCareer,
     CourseSection,
+    GlobalSettings,
     InstructionEntry,
     Instructor,
     Recipient,
@@ -220,3 +221,18 @@ class ClassAlertAdmin(admin.ModelAdmin[ClassAlert]):
             .get_queryset(request)
             .select_related("recipient", "course_section", "course_section__course")
         )
+
+
+@admin.register(GlobalSettings)
+class GlobalSettingsAdmin(admin.ModelAdmin[GlobalSettings]):
+    list_display = ("__str__", "hours_renotify_grace_period")
+
+    def has_add_permission(self, _request: HttpRequest) -> bool:
+        # only allow adding if no GlobalSettings record exists
+        return GlobalSettings.objects.count() == 0
+
+    def has_delete_permission(
+        self, _request: HttpRequest, _obj: GlobalSettings | None = None
+    ) -> bool:
+        # prevent deletion
+        return False

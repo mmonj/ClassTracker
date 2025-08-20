@@ -491,3 +491,10 @@ class ClassAlert(CommonModel):
 
     def __repr__(self) -> str:
         return f"<ClassAlert(id={self.id}, recipient_id={self.recipient_id}, course_section_id={self.course_section_id})>"
+
+
+class GlobalSettings(CommonModel):
+    hours_renotify_grace_period = models.FloatField(default=6.0)
+
+    def __str__(self) -> str:
+        return "Global Settings"
