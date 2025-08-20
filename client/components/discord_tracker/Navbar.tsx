@@ -41,6 +41,7 @@ export function Navbar() {
           </Nav>
 
           <Nav className="mb-2 mb-lg-0">
+            {djangoContext.user.is_superuser && <NavLink href={reverse("index")}>Home</NavLink>}
             {!djangoContext.user.is_authenticated && (
               <NavLink href={reverse("discord_tracker:login")}>Log In</NavLink>
             )}

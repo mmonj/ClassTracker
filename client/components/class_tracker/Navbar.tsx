@@ -23,7 +23,7 @@ export function Navbar() {
   return (
     <BSNavbar expand="lg">
       <Container fluid>
-        <BSNavbar.Brand href={reverse("class_tracker:index")}>Home</BSNavbar.Brand>
+        <BSNavbar.Brand href={reverse("class_tracker:index")}>Class Tracker Home</BSNavbar.Brand>
         <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
         <BSNavbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto mb-2 mb-lg-0">
@@ -36,6 +36,7 @@ export function Navbar() {
           </Nav>
 
           <Nav className="mb-2 mb-lg-0">
+            {djangoContext.user.is_superuser && <NavLink href={reverse("index")}>Home</NavLink>}
             {!djangoContext.user.is_authenticated && (
               <>
                 {/* <NavLink href={"#fix-me"}>Create Account</NavLink> */}
