@@ -1,7 +1,7 @@
 import datetime
 import re
 import sys
-from typing import Any, Self
+from typing import Any, NamedTuple, Self
 
 import pytz
 from django.db import models
@@ -16,6 +16,11 @@ TRoom = str
 TFloorNumber = str
 
 NYC_TZ = pytz.timezone("America/New_York")
+
+
+class InstructorInfo(NamedTuple):
+    name: str
+    days_times: str
 
 
 class CommonModel(models.Model):
@@ -189,6 +194,21 @@ class CourseSection(CommonModel):
 
     def __repr__(self) -> str:
         return f"<CourseSection(id={self.id}, section='{self.section}', status='{self.status}', instruction mode='{self.instruction_mode}')>"
+
+    @property
+    def instruction_list(self) -> list[InstructorInfo]:
+        entries = self.instruction_entries.all()
+        seen: set[tuple[str, str]] = set()
+        result: list[InstructorInfo] = []
+
+        for entry in entries:
+            name = entry.instructor.name
+            days_times = entry.get_days_and_times()
+            key = (name, days_times)
+            if key not in seen:
+                seen.add(key)
+                result.append(InstructorInfo(name=name, days_times=days_times))
+        return result
 
     @classmethod
     def from_gs_course_section(

@@ -149,18 +149,18 @@ export function AddWatchedSectionModal({
     if (result.ok) {
       try {
         const responseData = result.data;
-        const sectionOptions: SectionOption[] = responseData.sections.map((section) => {
-          // instructors comma-separated string
-          const instructors =
-            section.instruction_entries.map((entry) => entry.instructor.name).join(", ") || "";
-          const instructorsText =
-            instructors.length > 0 ? `(${instructors})` : "(no instructor found)";
+        const sectionOptions = responseData.sections.map((section) => {
+          const instructionEntriesText =
+            section.instruction_list
+              .map((entry) => `${entry.name} (${entry.days_times})`)
+              .join(", ") || "(no instructor found)";
 
           return {
             value: section.id,
-            label: `${section.course.code} ${section.course.level} - ${section.topic} ${instructorsText}`,
+            label: `${section.course.code} ${section.course.level} (${section.number}) - ${section.topic} - ${instructionEntriesText}`,
           };
-        });
+        }) satisfies SectionOption[];
+
         setSections(sectionOptions);
       } catch (error) {
         console.error("Error processing sections:", error);

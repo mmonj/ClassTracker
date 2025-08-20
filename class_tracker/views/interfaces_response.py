@@ -31,6 +31,7 @@ _SectionWithInstructorsPick = Pick[
         "course.level",
         "instruction_entries.instructor.id",
         "instruction_entries.instructor.name",
+        "instruction_list",
     ],
 ]
 
