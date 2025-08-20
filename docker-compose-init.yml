@@ -1,0 +1,73 @@
+services:
+  db_init:
+    image: mm-class-tracker-image
+    container_name: mm-class-tracker-db-init
+    build:
+      context: .
+      args:
+        ENV_TYPE: dev
+        UID: "${UID}"
+    command: bash -c "uv run python manage.py migrate"
+    # command: >
+    #   bash -c "
+    #   trap 'echo SIGTERM received, shutting down...; exit' SIGTERM;
+    #   while true; do
+    #     sleep 1;
+    #   done
+    #   "
+    tty: true
+    user: "${UID}"
+    ports:
+      - ${DJANGO_PORT}:${DJANGO_PORT}
+    volumes:
+      - python_venv_class_tracker:/app/.venv
+      - ./:/app
+    env_file:
+      - .env.dev
+    depends_on:
+      psql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # redis-overcommit-on-host
+  redis-overcommit:
+    build: https://github.com/bkuhl/redis-overcommit-on-host.git
+    restart: "no"
+    privileged: true
+    volumes:
+      - /proc/sys/vm:/mnt/vm
+
+  redis:
+    image: redis
+    container_name: redis-class-tracker
+    command: sh -c "redis-server --port ${REDIS_PORT} --requirepass ${REDIS_PASSWORD}"
+    env_file:
+      - .env.dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "${REDIS_PORT}", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+  psql:
+    image: postgres:15.7
+    container_name: mm-psql-class-tracker
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    env_file:
+      - .env.dev
+    ports:
+      - 8031:5432
+    volumes:
+      - ../.postgresql-class-tracker/data:/var/lib/postgresql/data
+      - ../.postgresql-class-tracker/backups:/app/backups
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+volumes:
+  python_venv_class_tracker:
+    external: true

@@ -236,6 +236,7 @@ dependencies = [
     { name = "natsort" },
     { name = "psycopg2-binary" },
     { name = "reactivated" },
+    { name = "redis" },
     { name = "requests" },
 ]
 
@@ -262,6 +263,7 @@ requires-dist = [
     { name = "natsort", specifier = ">=8.4.0,<9.0.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.9,<3.0.0" },
     { name = "reactivated", specifier = "==0.47.3" },
+    { name = "redis", specifier = ">=6.4.0" },
     { name = "requests", specifier = ">=2.32.3,<3.0.0" },
 ]
 
@@ -409,6 +411,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/37/b1/e575a39588956cc48c5f8ba060f2cce708b7ed2dcc5b204391b1f0a65ffb/reactivated-0.47.3.tar.gz", hash = "sha256:60893cac6510ec53e272973b3f0cdf1933b2ef994d818e4eec50d4d726a38f77", size = 66076, upload-time = "2025-08-08T13:53:58.605Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/ea/905029cb65bef23e5bb5d9397a26bbe6f3e647e9e42bb1666aa5334b9baf/reactivated-0.47.3-py3-none-any.whl", hash = "sha256:9b3953cd48b88c65cacf60d6734210dfc2bcb3f2ba1b07a6be1c0f930fc417ff", size = 84495, upload-time = "2025-08-08T13:53:55.739Z" },
+]
+
+[[package]]
+name = "redis"
+version = "6.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0d/d6/e8b92798a5bd67d659d51a18170e91c16ac3b59738d91894651ee255ed49/redis-6.4.0.tar.gz", hash = "sha256:b01bc7282b8444e28ec36b261df5375183bb47a07eb9c603f284e89cbc5ef010", size = 4647399, upload-time = "2025-08-07T08:10:11.441Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/02/89e2ed7e85db6c93dfa9e8f691c5087df4e3551ab39081a4d7c6d1f90e05/redis-6.4.0-py3-none-any.whl", hash = "sha256:f0544fa9604264e9464cdf4814e7d4830f74b165d52f2a330a760a88dd248b7f", size = 279847, upload-time = "2025-08-07T08:10:09.84Z" },
 ]
 
 [[package]]
