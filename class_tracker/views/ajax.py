@@ -12,9 +12,9 @@ from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound as DRFNotFound
 
 from class_tracker.views import interfaces_response
-from server.util import bulk_create_and_get, error_json_response
+from server.util import bulk_create_and_get, error_json_response, init_http_retrier
 
-from ..global_search import get_globalsearch_headers, init_http_retrier
+from ..global_search import get_globalsearch_headers
 from ..global_search.navigator import (
     get_classlist_result_page,
     get_main_page,

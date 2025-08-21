@@ -3,10 +3,10 @@ from typing import Iterable, cast
 
 from bs4 import BeautifulSoup, Comment, Doctype, PageElement, ProcessingInstruction, Tag
 
-from server.util import bulk_create_and_get
+from server.util import bulk_create_and_get, init_http_retrier
 
 from .. import models
-from . import get_globalsearch_headers, init_http_retrier
+from . import get_globalsearch_headers
 from .navigator import get_classlist_result_page, get_subject_selection_page
 from .typedefs import GSCourse
 from .util import get_course_section

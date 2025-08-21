@@ -1,9 +1,18 @@
+import re
+from urllib.parse import urlparse
+
 import cattrs
 import requests
 
-from class_tracker.global_search import init_http_retrier
+from server.util import init_http_retrier
 
 from .typedefs import TChannelData, TDiscordInviteData, TGuildAssetUrls, TGuildData, TInviterData
+
+DISCORD_INVITE_URL_PREFIXES = (
+    "https://discord.gg/",
+    "https://discord.com/invite/",
+    "https://discordapp.com/invite/",
+)
 
 DISCORD_INVITE_TEMPLATE = "https://discord.com/api/v10/invites/{invite_code}"
 GUILD_ICON_URL_TEMPLATE = "https://cdn.discordapp.com/icons/{guild_id}/{icon_hash}.{file_extension}"
@@ -84,40 +93,18 @@ def get_user_avatar_url(
 
 
 def get_guild_info_from_invite(invite_code: str) -> TGuildData:
-    """Get guild information from a Discord invite code."""
     invite_info = get_discord_invite_info(invite_code)
     return invite_info["guild"]
 
 
 def get_inviter_info_from_invite(invite_code: str) -> TInviterData:
-    """Get inviter information from a Discord invite code."""
     invite_info = get_discord_invite_info(invite_code)
     return invite_info["inviter"]
 
 
 def get_channel_info_from_invite(invite_code: str) -> TChannelData:
-    """Get channel information from a Discord invite code."""
     invite_info = get_discord_invite_info(invite_code)
     return invite_info["channel"]
-
-
-def extract_invite_code_from_url(invite_url: str) -> str:
-    """Extract the invite code from a Discord invite URL."""
-    url_prefixes = [
-        "https://discord.gg/",
-        "http://discord.gg/",
-        "https://discord.com/invite/",
-        "http://discord.com/invite/",
-        "discord.gg/",
-        "discord.com/invite/",
-    ]
-
-    for prefix in url_prefixes:
-        if invite_url.startswith(prefix):
-            return invite_url[len(prefix) :]
-
-    # default case, if no prefix matches, assume the URL is just the invite code
-    return invite_url
 
 
 def format_guild_info(guild: TGuildData) -> str:
@@ -172,3 +159,23 @@ def get_all_guild_asset_urls(guild: TGuildData, file_extension: str = "jpg") -> 
         "banner": get_guild_banner_url(guild_id, guild["banner"], file_extension),
         "splash": get_guild_splash_url(guild_id, guild["splash"], file_extension),
     }
+
+
+def extract_invite_code_from_url(invite_url: str) -> str | None:
+    """Assumes invite_url is a valid url"""
+    invite_url = re.sub(r"^https?://", "https://", invite_url, flags=re.IGNORECASE)
+    if not invite_url.startswith(DISCORD_INVITE_URL_PREFIXES):
+        return None
+
+    invite_url = invite_url.strip(" /")
+    parsed_url = urlparse(invite_url)
+
+    if parsed_url.path == "":
+        return None
+    return parsed_url.path.split("/")[-1]
+
+
+def is_valid_invite_code(code: str) -> bool:
+    if code.strip() == "":
+        return False
+    return bool(re.match(r"^[a-zA-Z0-9-]{6,25}$", code))

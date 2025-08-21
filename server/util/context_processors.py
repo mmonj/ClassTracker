@@ -14,7 +14,7 @@ _TDiscordUserPick = Pick[
         "discriminator",
         "global_name",
         "avatar",
-        "verified",
+        "is_verified",
         # Additional tracking fields
         "first_login",
         "last_login",

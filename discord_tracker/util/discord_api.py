@@ -6,8 +6,8 @@ import requests
 from django.conf import settings
 from django.utils import timezone
 
-from class_tracker.global_search import init_http_retrier
 from discord_tracker.models import DiscordUser
+from server.util import init_http_retrier
 
 logger = logging.getLogger("main")
 
@@ -108,7 +108,7 @@ def sync_discord_profile(discord_user: DiscordUser) -> bool:
     discord_user.username = profile_data.get("username", discord_user.username)
     discord_user.discriminator = profile_data.get("discriminator", discord_user.discriminator)
     discord_user.global_name = profile_data.get("global_name", discord_user.global_name)
-    discord_user.verified = profile_data.get("verified", discord_user.verified)
+    discord_user.is_verified = profile_data.get("verified", discord_user.is_verified)
 
     # update avatar
     avatar_hash = profile_data.get("avatar")

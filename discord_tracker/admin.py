@@ -12,11 +12,11 @@ class DiscordUserAdmin(admin.ModelAdmin[DiscordUser]):
         "get_user_is_active",
         "username",
         "discord_id",
-        "verified",
+        "is_verified",
         "login_count",
         "last_login",
     ]
-    list_filter = ["verified", "first_login", "last_login", "user__is_active", "user__is_staff"]
+    list_filter = ["is_verified", "first_login", "last_login", "user__is_active", "user__is_staff"]
     search_fields = ["username", "global_name", "discord_id", "user__username", "user__email"]
     readonly_fields = ["discord_id", "first_login", "last_login", "login_count"]
 
@@ -29,7 +29,7 @@ class DiscordUserAdmin(admin.ModelAdmin[DiscordUser]):
             "Discord Information",
             {"fields": ["discord_id", "username", "discriminator", "global_name", "avatar"]},
         ),
-        ("Account Status", {"fields": ["verified"]}),
+        ("Account Status", {"fields": ["is_verified"]}),
         (
             "Login Tracking",
             {"fields": ["first_login", "last_login", "login_count"], "classes": ["collapse"]},

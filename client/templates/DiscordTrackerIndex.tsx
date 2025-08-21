@@ -39,11 +39,13 @@ export function Template(_props: templates.DiscordTrackerIndex) {
 
                     <div className="d-flex justify-content-center align-items-center mb-3">
                       <FontAwesomeIcon
-                        icon={discordUser.verified ? faCheckCircle : faTimesCircle}
-                        className={discordUser.verified ? "text-success me-2" : "text-warning me-2"}
+                        icon={discordUser.is_verified ? faCheckCircle : faTimesCircle}
+                        className={
+                          discordUser.is_verified ? "text-success me-2" : "text-warning me-2"
+                        }
                       />
-                      <span className={discordUser.verified ? "text-success" : "text-warning"}>
-                        {discordUser.verified ? "Verified Account" : "Unverified Account"}
+                      <span className={discordUser.is_verified ? "text-success" : "text-warning"}>
+                        {discordUser.is_verified ? "Verified Account" : "Unverified Account"}
                       </span>
                     </div>
 

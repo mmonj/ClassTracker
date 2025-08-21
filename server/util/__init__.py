@@ -1,10 +1,31 @@
 from typing import Any, Type, TypeVar
 
+import requests
 from django.db import IntegrityError, models, transaction
 from django.http import JsonResponse
+from requests import Session
+from requests.adapters import HTTPAdapter, Retry
 
 T = TypeVar("T", bound=models.Model)
 TIsNewRecord = bool
+
+
+def init_http_retrier(
+    *, headers: dict[str, str] | None = None, num_retries: int = 3, backoff_factor: float = 0.5
+) -> Session:
+    session = requests.Session()
+
+    retry_strategy = Retry(
+        total=num_retries, backoff_factor=backoff_factor, status_forcelist=[500, 502, 503, 504]
+    )
+
+    session.mount("http://", HTTPAdapter(max_retries=retry_strategy))
+    session.mount("https://", HTTPAdapter(max_retries=retry_strategy))
+
+    if headers is not None:
+        session.headers.update(headers)
+
+    return session
 
 
 def error_json_response(errors: list[str], *, status: int, **kwargs: Any) -> JsonResponse:

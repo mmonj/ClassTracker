@@ -2,7 +2,8 @@ import logging
 import os
 from typing import Any
 
-from ..global_search import init_http_retrier
+from server.util import init_http_retrier
+
 from ..models import Recipient
 
 logger = logging.getLogger("main")

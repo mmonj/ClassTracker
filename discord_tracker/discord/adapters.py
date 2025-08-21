@@ -126,7 +126,7 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             )
             discord_user.global_name = discord_data.get("global_name", discord_user.global_name)
             discord_user.avatar = self._get_avatar_url(discord_data)
-            discord_user.verified = discord_data.get("verified", discord_user.verified)
+            discord_user.is_verified = discord_data.get("verified", discord_user.is_verified)
             discord_user.login_count += 1
             self._update_tokens(discord_user, sociallogin)
             discord_user.save()
