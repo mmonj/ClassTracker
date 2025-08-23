@@ -1,27 +1,43 @@
-import React, { useContext } from "react";
+import React, { ContextType, useContext, useState } from "react";
 
 import { Context } from "@reactivated";
 
 export function ContribMessages() {
   const djangoContext = useContext(Context);
-  const messages = djangoContext.messages;
 
-  if (messages.length === 0) {
+  return (
+    <>
+      {djangoContext.messages.length > 0 && (
+        <section className="server-messages">
+          <ul className="list-group fw-semibold text-center" style={{ listStyle: "none" }}>
+            {djangoContext.messages.map((message, idx) => (
+              <Message key={idx} message={message} />
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
+  );
+}
+
+function Message({ message }: { message: ContextType<typeof Context>["messages"][number] }) {
+  const [isShown, setIsShown] = useState(true);
+
+  if (!isShown) {
     return null;
   }
 
+  const alert_type = message.level_tag === "error" ? "danger" : message.level_tag;
+
   return (
-    <section className="server-messages">
-      <ul className="list-group fw-semibold text-center" style={{ listStyle: "none" }}>
-        {messages.map((message, idx) => {
-          const alert_type = message.level_tag === "error" ? "danger" : message.level_tag;
-          return (
-            <li key={idx} className={`alert alert-${alert_type} rounded-0`}>
-              {message.message}
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <li className={`alert alert-${alert_type} rounded-0 position-relative mb-2`}>
+      <span>{message.message}</span>
+      <button
+        type="button"
+        className="btn-close btn-close-white position-absolute top-0 end-0 mt-2 me-2"
+        aria-label="Close"
+        onClick={() => setIsShown(false)}
+      ></button>
+    </li>
   );
 }
