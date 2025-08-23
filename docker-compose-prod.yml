@@ -1,47 +1,84 @@
 services:
-  reactivated:
+  class_tracker:
+    image: mm-class-tracker-image-prod
     container_name: mm-class-tracker-prod
     build:
       context: .
       args:
         ENV_TYPE: dev
-        # UID: 1000
+        UID: "${UID}"
     command: >
-      bash -c "
-      python manage.py migrate
-      && python manage.py init_db
-      && python manage.py runserver 0.0.0.0:8000
-      "
+      uv run bash -c "python manage.py migrate
+      && python manage.py generate_client_assets
+      && python manage.py build
+      && python manage.py collectstatic --clear --noinput
+      && uvicorn server.asgi:application --host 0.0.0.0 --port ${DJANGO_PORT}"
+    tty: true
+    user: "${UID}"
     ports:
-      - 8040:8000
+      - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
-      - /app/node_modules
-      - /app/.venv
+      - node_modules_prod:/app/node_modules
+      - python_venv_class_tracker_prod:/app/.venv
       - ./:/app
     env_file:
-      - .dev.env
+      - .env.prod
+    restart: unless-stopped
+    networks:
+      - caddy_net
+    depends_on:
+      class_tracker_redis:
+        condition: service_healthy
+
+
+
+  # redis-overcommit-on-host
+  class_tracker_redis_overcommit:
+    build: https://github.com/bkuhl/redis-overcommit-on-host.git
+    restart: "no"
+    privileged: true
+    volumes:
+      - /proc/sys/vm:/mnt/vm
+    networks:
+      - caddy_net
+
+  class_tracker_redis:
+    image: redis
+    container_name: redis-class-tracker-prod
+    command: sh -c "redis-server --port ${REDIS_PORT} --requirepass ${REDIS_PASSWORD}"
+    env_file:
+      - .env.prod
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "${REDIS_PORT}", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - caddy_net
+
+  class_tracker_scheduler_worker_default:
+    image: mm-class-tracker-image-prod
+    container_name: class-tracker-scheduler-worker-default-prod
+    command: uv run python manage.py scheduler_worker
+    user: "${UID}"
+    volumes:
+      - python_venv_class_tracker_prod:/app/.venv
+      - ./:/app
+    env_file:
+      - .env.prod
     restart: unless-stopped
     depends_on:
-      - psql
+      class_tracker_redis:
+        condition: service_healthy
+    networks:
+      - caddy_net
 
-  psql:
-    image: postgres:15.7
-    container_name: mm-psql-class-tracker-prod
-    restart: always
-    # set shared memory limit when using docker-compose
-    shm_size: 128mb
-    # or set shared memory limit when deploy via swarm stack
-    env_file:
-      - .dev.env
-    ports:
-      - 8041:5432
-    volumes:
-      - ./.postgresql/data:/var/lib/postgresql/data
-  adminer:
-    image: adminer
-    container_name: mm-adminer-class-tracker-prod
-    environment:
-      ADMINER_DEFAULT_SERVER: psql
-    restart: always
-    ports:
-      - 8042:8080
+volumes:
+  node_modules_prod:
+  python_venv_class_tracker_prod:
+    external: true
+
+networks:
+  caddy_net:
+    external: true

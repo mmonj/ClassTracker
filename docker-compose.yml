@@ -1,5 +1,5 @@
 services:
-  app:
+  class_tracker:
     image: mm-class-tracker-image
     container_name: mm-class-tracker
     build:
@@ -26,47 +26,22 @@ services:
       - .env.dev
     restart: unless-stopped
     depends_on:
-      - psql
-      - redis
-
-  psql:
-    image: postgres:15.7
-    container_name: mm-psql-class-tracker
-    restart: always
-    # set shared memory limit when using docker-compose
-    shm_size: 128mb
-    # or set shared memory limit when deploy via swarm stack
-    env_file:
-      - .env.dev
-    ports:
-      - 8031:5432
-    volumes:
-      - ../.postgresql-class-tracker/data:/var/lib/postgresql/data
-      - ../.postgresql-class-tracker/backups:/app/backups
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DB", "-h", "localhost"]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-
-  adminer:
-    image: adminer
-    container_name: mm-adminer-class-tracker
-    environment:
-      ADMINER_DEFAULT_SERVER: psql
-    restart: always
-    ports:
-      - 8032:8080
+      class_tracker_redis:
+        condition: service_healthy
+    networks:
+      - class_tracker_dev
 
   # redis-overcommit-on-host
-  redis-overcommit:
+  class_tracker_redis_overcommit:
     build: https://github.com/bkuhl/redis-overcommit-on-host.git
     restart: "no"
     privileged: true
     volumes:
       - /proc/sys/vm:/mnt/vm
+    networks:
+      - class_tracker_dev
 
-  redis:
+  class_tracker_redis:
     image: redis
     container_name: redis-class-tracker
     command: sh -c "redis-server --port ${REDIS_PORT} --requirepass ${REDIS_PASSWORD}"
@@ -78,8 +53,10 @@ services:
       interval: 5s
       timeout: 3s
       retries: 3
+    networks:
+      - class_tracker_dev
 
-  scheduler_worker_default:
+  class_tracker_scheduler_worker_default:
     image: mm-class-tracker-image
     container_name: class-tracker-scheduler-worker-default
     command: uv run python manage.py scheduler_worker
@@ -91,12 +68,16 @@ services:
       - .env.dev
     restart: unless-stopped
     depends_on:
-      redis:
+      class_tracker_redis:
         condition: service_healthy
-      psql:
-        condition: service_healthy
+    networks:
+      - class_tracker_dev
 
 volumes:
   node_modules:
   python_venv_class_tracker:
+    external: true
+
+networks:
+  class_tracker_dev:
     external: true
