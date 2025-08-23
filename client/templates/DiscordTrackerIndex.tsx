@@ -7,6 +7,7 @@ import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { faCheckCircle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { LoginBanner } from "@client/components/DiscordTrackerIndex";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
@@ -18,6 +19,7 @@ export function Template(_props: templates.DiscordTrackerIndex) {
   return (
     <Layout title="Discord Tracker" Navbar={Navbar}>
       <Container>
+        {!discordUser && <LoginBanner />}
         <Row>
           <Col xs={12} md={8} lg={6} className="mx-auto">
             <Card className="shadow-sm">

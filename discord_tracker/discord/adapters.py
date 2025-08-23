@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from os import getuid
 from typing import Any
 
@@ -148,7 +148,7 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
                 return expires_at
             # convert if it is timestamp
             try:
-                return datetime.fromtimestamp(float(expires_at), tz=timezone.get_current_timezone())
+                return datetime.fromtimestamp(float(expires_at), tz=UTC)
             except (ValueError, TypeError):
                 pass
 

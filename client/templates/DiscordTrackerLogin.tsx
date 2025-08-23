@@ -1,6 +1,6 @@
 import React from "react";
 
-import { CSRFToken, templates } from "@reactivated";
+import { CSRFToken, reverse, templates } from "@reactivated";
 import { Button, Card, Col, Container, Row } from "react-bootstrap";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
@@ -8,9 +8,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Layout } from "@client/layouts/Layout";
 
-export function Template(props: templates.DiscordTrackerLogin) {
+export function Template(_props: templates.DiscordTrackerLogin) {
   return (
-    <Layout title={props.title}>
+    <Layout title="Discord Login">
       <Container className="d-flex align-items-center justify-content-center min-vh-100">
         <Row className="w-100">
           <Col xs={12} md={6} lg={4} className="mx-auto">
@@ -24,7 +24,7 @@ export function Template(props: templates.DiscordTrackerLogin) {
                   Sign in with your Discord account to access the Discord tracking features.
                 </p>
 
-                <form method="POST" action={props.redirect_url}>
+                <form method="POST" action={reverse("discord_login")}>
                   <CSRFToken />
                   <Button variant="primary" size="lg" className="w-100 mb-3" type="submit">
                     <FontAwesomeIcon icon={faDiscord} className="me-2" />

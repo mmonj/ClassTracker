@@ -23,12 +23,7 @@ def login(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         return redirect("discord_tracker:index")
 
-    # Get the Discord OAuth login URL using allauth
-    discord_login_url = reverse("discord_login")
-
-    return templates.DiscordTrackerLogin(
-        title="Discord Login", redirect_url=discord_login_url
-    ).render(request)
+    return templates.DiscordTrackerLogin().render(request)
 
 
 @login_required

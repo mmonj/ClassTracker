@@ -19,7 +19,6 @@ export function Navbar() {
   const publicRoutes = [
     { name: "Home", href: reverse("discord_tracker:index") },
   ] satisfies TRoute[];
-  const staffRoutes = [{ name: "Admin", href: "/admin" }] satisfies TRoute[];
 
   return (
     <>
@@ -31,13 +30,6 @@ export function Navbar() {
             <Nav className="me-auto mb-2 mb-lg-0">
               {djangoContext.user.is_superuser &&
                 publicRoutes.map((route) => (
-                  <NavLink key={route.name} href={route.href}>
-                    {route.name}
-                  </NavLink>
-                ))}
-
-              {djangoContext.user.is_superuser &&
-                staffRoutes.map((route) => (
                   <NavLink key={route.name} href={route.href}>
                     {route.name}
                   </NavLink>
@@ -63,6 +55,7 @@ export function Navbar() {
                   {djangoContext.user.is_superuser && (
                     <>
                       <NavDropdown.Item href={reverse("index")}>Home</NavDropdown.Item>
+                      <NavDropdown.Item href={"/admin"}>Admin</NavDropdown.Item>
                       <NavDropdown.Divider />
                     </>
                   )}
@@ -117,7 +110,7 @@ function ProfileDropdownTitle({
           className="rounded-circle me-2"
           style={{ width: "24px", height: "24px" }}
         />
-        Profile
+        {discordUser.display_name}
       </>
     );
   }

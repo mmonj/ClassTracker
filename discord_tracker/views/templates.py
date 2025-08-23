@@ -35,8 +35,7 @@ class DiscordTrackerIndex(NamedTuple):
 
 @template
 class DiscordTrackerLogin(NamedTuple):
-    title: str
-    redirect_url: str
+    pass
 
 
 @template
