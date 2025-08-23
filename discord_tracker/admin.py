@@ -12,6 +12,7 @@ class DiscordUserAdmin(admin.ModelAdmin[DiscordUser]):
         "get_user_is_active",
         "username",
         "discord_id",
+        "school",
         "is_verified",
         "login_count",
         "last_login",
@@ -23,13 +24,21 @@ class DiscordUserAdmin(admin.ModelAdmin[DiscordUser]):
     fieldsets = [
         (
             "Associated User",
-            {"fields": ["user"]},
+            {"fields": ["user", "school"]},
         ),
         (
             "Discord Information",
-            {"fields": ["discord_id", "username", "discriminator", "global_name", "avatar"]},
+            {
+                "fields": [
+                    "discord_id",
+                    "username",
+                    "discriminator",
+                    "global_name",
+                    "avatar",
+                    "is_verified",
+                ]
+            },
         ),
-        ("Account Status", {"fields": ["is_verified"]}),
         (
             "Login Tracking",
             {"fields": ["first_login", "last_login", "login_count"], "classes": ["collapse"]},

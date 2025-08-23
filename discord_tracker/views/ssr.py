@@ -6,11 +6,14 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
+from discord_tracker.decorators import school_required
 from discord_tracker.models import DiscordUser
 from discord_tracker.views import templates
+from discord_tracker.views.forms import SchoolSelectionForm
 from server.util.typedefs import AuthenticatedRequest
 
 
+@school_required
 def index(request: HttpRequest) -> HttpResponse:
     return templates.DiscordTrackerIndex().render(request)
 
@@ -36,21 +39,27 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
         messages.warning(
             request, "Discord account not properly linked. Please contact an administrator."
         )
-    else:
-        discord_user.last_login = timezone.now()
-        discord_user.save(update_fields=["last_login"])
+        return redirect("discord_tracker:index")
 
-        # check if it user's first login
-        if discord_user.login_count == 1:
-            messages.success(
-                request,
-                f"Welcome, {discord_user.display_name}! Thanks for signing up via Discord.",
-            )
-        else:
-            messages.success(
-                request,
-                f"Welcome back, {discord_user.display_name}! Successfully logged in via Discord.",
-            )
+    discord_user.last_login = timezone.now()
+    discord_user.save(update_fields=["last_login"])
+
+    is_first_login = discord_user.login_count == 1
+
+    if is_first_login:
+        messages.success(
+            request,
+            f"Welcome, {discord_user.display_name}! Thanks for signing up via Discord.",
+        )
+    else:
+        messages.success(
+            request,
+            f"Welcome back, {discord_user.display_name}! Successfully logged in via Discord.",
+        )
+
+    if discord_user.school is None:
+        return redirect(reverse("discord_tracker:profile"))
+
     return redirect("discord_tracker:index")
 
 
@@ -58,6 +67,13 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
 def profile(request: AuthenticatedRequest) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 
+    is_show_school_modal = discord_user.school is None
+
+    school_form = SchoolSelectionForm(instance=discord_user)
+
     return templates.DiscordTrackerProfile(
-        discord_user=discord_user, school=discord_user.school
+        discord_user=discord_user,
+        school=discord_user.school,
+        school_form=school_form,
+        show_school_modal=is_show_school_modal,
     ).render(request)

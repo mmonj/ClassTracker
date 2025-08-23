@@ -4,6 +4,7 @@ from reactivated import Pick, template
 
 from class_tracker.models import School
 from discord_tracker.models import DiscordUser
+from discord_tracker.views.forms import SchoolSelectionForm
 
 _SchoolPick = Pick[School, Literal["id", "name"]]
 
@@ -42,3 +43,5 @@ class DiscordTrackerLogin(NamedTuple):
 class DiscordTrackerProfile(NamedTuple):
     discord_user: _DiscordUserProfilePick
     school: _SchoolPick | None
+    school_form: SchoolSelectionForm
+    show_school_modal: bool
