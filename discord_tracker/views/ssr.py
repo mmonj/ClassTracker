@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -52,3 +52,12 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
                 f"Welcome back, {discord_user.display_name}! Successfully logged in via Discord.",
             )
     return redirect("discord_tracker:index")
+
+
+@login_required
+def profile(request: AuthenticatedRequest) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+
+    return templates.DiscordTrackerProfile(
+        discord_user=discord_user, school=discord_user.school
+    ).render(request)

@@ -23,6 +23,7 @@ class DiscordUser(CommonModel):
     avatar = models.URLField(blank=True)
     # if their discord account is verified by email
     is_verified = models.BooleanField(default=False)
+    is_disabled = models.BooleanField(default=False)
 
     role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.REGULAR)
 
@@ -36,9 +37,7 @@ class DiscordUser(CommonModel):
     token_expires_at = models.DateTimeField(null=True, blank=True)
 
     # school that the user is a student of
-    school = models.ForeignKey(
-        "class_tracker.School", on_delete=models.SET_NULL, null=True, blank=True
-    )
+    school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.global_name or self.username} ({self.discord_id})"

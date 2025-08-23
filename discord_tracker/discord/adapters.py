@@ -110,7 +110,7 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
                 "discriminator": discord_data.get("discriminator", ""),
                 "global_name": discord_data.get("global_name", ""),
                 "avatar": self._get_avatar_url(discord_data),
-                "verified": discord_data.get("verified", False),
+                "is_verified": discord_data.get("verified", False),
                 "login_count": 1,
                 "access_token": getattr(sociallogin.token, "token", ""),
                 "refresh_token": getattr(sociallogin.token, "token_secret", ""),
