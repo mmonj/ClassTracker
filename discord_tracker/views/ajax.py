@@ -16,6 +16,7 @@ from discord_tracker.discord.util import (
 from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser
 from discord_tracker.views import interfaces_response
 from discord_tracker.views.forms import SchoolSelectionForm
+from server.util import error_json_response
 from server.util.typedefs import AuthenticatedRequest
 
 logger = logging.getLogger("main")
@@ -96,6 +97,67 @@ def get_available_schools(request: AuthenticatedRequest) -> HttpResponse:
 
 @roles_required(required_roles=["trusted", "manager"])
 @require_http_methods(["POST"])
+def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
+    """Validate Discord invite and return server info (including existing DB data if server exists)"""
+    discord_user: DiscordUser = request.user.discord_user
+
+    invite_url = request.POST.get("invite_url", "").strip()
+
+    if not invite_url:
+        return error_json_response(["Invite URL is required"], status=400)
+
+    invite_code = extract_invite_code_from_url(invite_url)
+    if invite_code is None:
+        return error_json_response(["Invalid Discord invite URL provided"], status=400)
+
+    invite_result = get_discord_invite_info(invite_code)
+    if not invite_result.ok:
+        return error_json_response(
+            [f"Failed to verify Discord server: {invite_result.err}"], status=400
+        )
+
+    invite_info = invite_result.val
+
+    # expires_at=null indicates invite is permanent
+    if invite_info["expires_at"] is not None:
+        return error_json_response(
+            [
+                "Only permanent Discord invites are allowed. Please create a permanent invite that never expires"
+            ],
+            status=400,
+        )
+
+    guild_id = invite_info["guild"]["id"]
+    guild_name = invite_info["guild"]["name"]
+    guild_icon_url = get_guild_icon_url(guild_id, invite_info["guild"]["icon"])
+
+    # check if server already exists in database
+    existing_server = DiscordServer.objects.filter(server_id=guild_id).first()
+
+    # get available schools
+    available_schools: list[School] = []
+    if not discord_user.is_manager and discord_user.school is None:
+        return error_json_response(["User is not a manager and has no school assigned"], status=400)
+
+    if not discord_user.is_manager and discord_user.school is not None:
+        available_schools = [discord_user.school]
+    elif discord_user.is_manager:
+        available_schools = list(School.objects.all())
+
+    return interfaces_response.ValidateDiscordInviteResponse(
+        guild_info={
+            "id": guild_id,
+            "name": guild_name,
+            "icon_url": guild_icon_url or "",
+        },
+        existing_server_info=existing_server,
+        available_schools=available_schools,
+        is_new_server=existing_server is None,
+    ).render(request)
+
+
+@roles_required(required_roles=["trusted", "manager"])
+@require_http_methods(["POST"])
 def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR0911, PLR0912
     discord_user: DiscordUser = request.user.discord_user
 
@@ -106,68 +168,70 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     school_id = request.POST.get("school_id")
     subject_id = request.POST.get("subject_id")
     course_id = request.POST.get("course_id")
+    privacy_level = request.POST.get("privacy_level", "privileged").strip()
 
     if not all([invite_url, guild_name, guild_id, school_id]):
-        return interfaces_response.SubmitInviteResponse(
-            success=False,
-            message="Required fields missing: invite_url, guild_name, guild_id, and school_id are required",
-            discord_server=None,
-        ).render(request)
+        return error_json_response(
+            [
+                "Required fields missing: invite_url, guild_name, guild_id, and school_id are required"
+            ],
+            status=400,
+        )
+
+    # validate privacy_level
+    if privacy_level not in ["public", "privileged"]:
+        return error_json_response(
+            ["Invalid privacy level. Must be 'public' or 'privileged'"], status=400
+        )
+
+    # only managers can create privileged servers
+    if privacy_level == "privileged" and not discord_user.is_manager:
+        return error_json_response(["Only managers can create privileged servers"], status=400)
 
     if DiscordInvite.objects.filter(invite_url=invite_url).exists():
-        return interfaces_response.SubmitInviteResponse(
-            success=False,
-            message="This Discord invite has already been submitted",
-            discord_server=None,
-        ).render(request)
+        return error_json_response(["This Discord invite has already been submitted"], status=400)
 
     invite_code = extract_invite_code_from_url(invite_url)
     if invite_code is None:
-        return interfaces_response.SubmitInviteResponse(
-            success=False,
-            message="Invalid Discord invite URL provided",
-            discord_server=None,
-        ).render(request)
+        return error_json_response(["Invalid Discord invite URL provided"], status=400)
 
     invite_result = get_discord_invite_info(invite_code)
     if not invite_result.ok:
-        return interfaces_response.SubmitInviteResponse(
-            success=False,
-            message=f"Failed to verify Discord server: {invite_result.err}",
-            discord_server=None,
-        ).render(request)
+        return error_json_response(
+            [f"Failed to verify Discord server: {invite_result.err}"], status=400
+        )
 
     invite_info = invite_result.val
 
+    # expires_at=null indicates invite is permanent
+    if invite_info["expires_at"] is not None:
+        return error_json_response(
+            [
+                "Only permanent Discord invites are allowed. Please create a permanent invite that never expires."
+            ],
+            status=400,
+        )
+
     if invite_info["guild"]["id"] != guild_id or invite_info["guild"]["name"] != guild_name:
-        return interfaces_response.SubmitInviteResponse(
-            success=False,
-            message="Internally validated discord server information does not match what the client provided",
-            discord_server=None,
-        ).render(request)
+        return error_json_response(
+            [
+                "Internally validated discord server information does not match what the client provided"
+            ],
+            status=400,
+        )
 
     if school_id is None:
-        return interfaces_response.SubmitInviteResponse(
-            success=False,
-            message="School selection is required",
-            discord_server=None,
-        ).render(request)
+        return error_json_response(["School selection is required"], status=400)
 
     school = School.objects.filter(id=int(school_id)).first()
     if school is None:
-        return interfaces_response.SubmitInviteResponse(
-            success=False,
-            message="Invalid school selected",
-            discord_server=None,
-        ).render(request)
+        return error_json_response(["Invalid school selected"], status=400)
 
     # validate whether user can access this school
     if discord_user.school != school and not discord_user.is_manager:
-        return interfaces_response.SubmitInviteResponse(
-            success=False,
-            message="You don't have permission to associate servers with this school",
-            discord_server=None,
-        ).render(request)
+        return error_json_response(
+            ["You don't have permission to associate servers with this school"], status=400
+        )
 
     subject: Subject | None = None
     if subject_id is not None:
@@ -178,12 +242,17 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
         course = Course.objects.filter(id=int(course_id), subject=subject).first()
 
     # create server
+    privacy_level_enum = (
+        DiscordServer.PrivacyLevel.PUBLIC
+        if privacy_level == "public"
+        else DiscordServer.PrivacyLevel.PRIVILEGED
+    )
     discord_server, _server_created = DiscordServer.objects.get_or_create(
         server_id=guild_id,
         defaults={
             "name": guild_name,
             "icon_url": get_guild_icon_url(guild_id, invite_info["guild"]["icon"]),
-            "privacy_level": DiscordServer.PrivacyLevel.PUBLIC,
+            "privacy_level": privacy_level_enum,
             "added_by": discord_user,
         },
     )
@@ -209,8 +278,6 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
         success_message += " It has been automatically approved."
 
     return interfaces_response.SubmitInviteResponse(
-        success=True,
-        message=success_message,
         discord_server=discord_server,
     ).render(request)
 

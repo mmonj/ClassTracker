@@ -7,7 +7,6 @@ import Select from "react-select";
 import { fetchByReactivated } from "@client/utils";
 
 import { useFetch } from "@client/hooks/useFetch";
-import { validateAndFetchDiscordInvite } from "@client/utils/discord_tracker/discord-api-fetcher";
 
 interface Props {
   show: boolean;
@@ -38,21 +37,21 @@ export function AddInviteModal({ show, onHide }: Props) {
   const [selectedCourse, setSelectedCourse] = useState<CourseOption | null>(null);
   const [showSchoolSelection, setShowSchoolSelection] = useState(false);
   const [guildInfo, setGuildInfo] = useState<{ name: string; id: string } | null>(null);
+  const [isPublic, setIsPublic] = useState(false);
+  const [availableSchools, setAvailableSchools] = useState<SchoolOption[]>([]);
 
   // client side validation state
   const [isValidating, setIsValidating] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
 
-  const schoolsFetcher = useFetch<interfaces.GetAvailableSchoolsResponse>();
-  const submitFetcher = useFetch<interfaces.SubmitInviteResponse>();
+  const discordUser = context.user.discord_user;
+  const isManager = discordUser?.is_manager === true;
+
+  const inviteValidationFetcher = useFetch<interfaces.ValidateDiscordInviteResponse>();
+  const submitInviteFetcher = useFetch<interfaces.SubmitInviteResponse>();
   const subjectsFetcher = useFetch<interfaces.GetSubjectsResponse>();
   const coursesFetcher = useFetch<interfaces.GetCoursesResponse>();
 
-  const schoolOptions: SchoolOption[] =
-    schoolsFetcher.data?.available_schools.map((school) => ({
-      value: school.id,
-      label: school.name,
-    })) ?? [];
+  const schoolOptions: SchoolOption[] = availableSchools;
 
   const subjectOptions: SubjectOption[] =
     subjectsFetcher.data?.subjects.map((subject) => ({
@@ -66,53 +65,117 @@ export function AddInviteModal({ show, onHide }: Props) {
       label: `${course.code} ${course.level} - ${course.title}`,
     })) ?? [];
 
-  const handleValidateInvite = async (e: React.FormEvent) => {
+  async function handleDirectSubmit(
+    guildInfo: { id: string; name: string; icon_url: string },
+    existingServerInfo: NonNullable<
+      interfaces.ValidateDiscordInviteResponse["existing_server_info"]
+    >,
+  ) {
+    const formData = new URLSearchParams({
+      invite_url: inviteUrl,
+      notes: notes,
+      guild_name: guildInfo.name,
+      guild_id: guildInfo.id,
+      // use existing server's first school (required field)
+      school_id:
+        existingServerInfo.schools.length > 0 ? existingServerInfo.schools[0].id.toString() : "",
+      // use existing server's privacy level
+      privacy_level: existingServerInfo.privacy_level,
+    });
+
+    // add subject if exists
+    if (existingServerInfo.subjects.length > 0) {
+      formData.append("subject_id", existingServerInfo.subjects[0].id.toString());
+    }
+
+    // add course if exists
+    if (existingServerInfo.courses.length > 0) {
+      formData.append("course_id", existingServerInfo.courses[0].id.toString());
+    }
+
+    const result = await submitInviteFetcher.fetchData(() =>
+      fetchByReactivated(
+        reverse("discord_tracker:submit_invite"),
+        context.csrf_token,
+        "POST",
+        formData,
+      ),
+    );
+
+    if (result.ok) {
+      setTimeout(() => {
+        handleClose();
+      }, 2000);
+    }
+  }
+
+  async function handleValidateInvite(e: React.FormEvent) {
     e.preventDefault();
 
     setIsValidating(true);
-    setValidationError(null);
 
     try {
-      const validationResult = await validateAndFetchDiscordInvite(inviteUrl);
-
-      if (!validationResult.isValid) {
-        setValidationError(validationResult.error ?? "Failed to validate Discord invite");
-        return;
-      }
-
-      if (!validationResult.inviteData) {
-        setValidationError("No invite data received");
-        return;
-      }
-
-      // set guild info from discord API response
-      setGuildInfo({
-        name: validationResult.inviteData.guild.name,
-        id: validationResult.inviteData.guild.id,
+      const formData = new URLSearchParams({
+        invite_url: inviteUrl,
       });
 
-      // fetch available schools from backend
-      const schoolsResult = await schoolsFetcher.fetchData(() =>
+      const validationResult = await inviteValidationFetcher.fetchData(() =>
         fetchByReactivated(
-          reverse("discord_tracker:get_available_schools"),
+          reverse("discord_tracker:validate_discord_invite"),
           context.csrf_token,
-          "GET",
+          "POST",
+          formData,
         ),
       );
 
-      if (schoolsResult.ok && schoolsResult.data.success) {
-        setShowSchoolSelection(true);
-      } else {
-        setValidationError("Failed to fetch available schools");
+      if (!validationResult.ok) {
+        // useFetch will automatically handle and display errors
+        return;
       }
-    } catch (error) {
-      setValidationError(error instanceof Error ? error.message : "Unknown error occurred");
+
+      const { guild_info, existing_server_info, is_new_server, available_schools } =
+        validationResult.data;
+
+      if (!guild_info) {
+        // ideally shoulnd't happen
+        return;
+      }
+
+      // set guild info from backend response
+      setGuildInfo({
+        name: guild_info.name,
+        id: guild_info.id,
+      });
+
+      // if server already exists, submit invite directly without step 2
+      if (!is_new_server && existing_server_info) {
+        await handleDirectSubmit(
+          {
+            id: guild_info.id,
+            name: guild_info.name,
+            icon_url: guild_info.icon_url,
+          },
+          existing_server_info,
+        );
+        return;
+      }
+
+      // server is new, populate schools dropdown and show step 2 for configuration
+      setAvailableSchools(
+        available_schools.map((school) => ({
+          value: school.id,
+          label: school.name,
+        })),
+      );
+      setShowSchoolSelection(true);
+    } catch {
+      // useFetch will handle errors automatically
     } finally {
       setIsValidating(false);
     }
-  };
+  }
 
-  const handleSubmit = async () => {
+  async function handleSubmit() {
     if (!guildInfo || !selectedSchool) {
       return;
     }
@@ -123,6 +186,7 @@ export function AddInviteModal({ show, onHide }: Props) {
       guild_name: guildInfo.name,
       guild_id: guildInfo.id,
       school_id: selectedSchool.value.toString(),
+      privacy_level: isPublic ? "public" : "privileged",
     });
 
     if (selectedSubject) {
@@ -133,7 +197,7 @@ export function AddInviteModal({ show, onHide }: Props) {
       formData.append("course_id", selectedCourse.value.toString());
     }
 
-    const result = await submitFetcher.fetchData(() =>
+    const result = await submitInviteFetcher.fetchData(() =>
       fetchByReactivated(
         reverse("discord_tracker:submit_invite"),
         context.csrf_token,
@@ -148,11 +212,11 @@ export function AddInviteModal({ show, onHide }: Props) {
 
     setTimeout(() => {
       handleClose();
-      window.location.reload(); // refresh to show new server
+      window.location.reload(); // refresh page
     }, 2000);
-  };
+  }
 
-  const handleSchoolChange = async (option: SchoolOption | null) => {
+  async function handleSchoolChange(option: SchoolOption | null) {
     setSelectedSchool(option);
     setSelectedSubject(null);
     setSelectedCourse(null);
@@ -166,9 +230,9 @@ export function AddInviteModal({ show, onHide }: Props) {
         "GET",
       ),
     );
-  };
+  }
 
-  const handleSubjectChange = async (option: SubjectOption | null) => {
+  async function handleSubjectChange(option: SubjectOption | null) {
     setSelectedSubject(option);
     setSelectedCourse(null);
 
@@ -184,13 +248,13 @@ export function AddInviteModal({ show, onHide }: Props) {
         "GET",
       ),
     );
-  };
+  }
 
-  const handleCourseChange = (option: CourseOption | null) => {
+  function handleCourseChange(option: CourseOption | null) {
     setSelectedCourse(option);
-  };
+  }
 
-  const handleClose = () => {
+  function handleClose() {
     setInviteUrl("");
     setNotes("");
     setSelectedSchool(null);
@@ -198,10 +262,18 @@ export function AddInviteModal({ show, onHide }: Props) {
     setSelectedCourse(null);
     setShowSchoolSelection(false);
     setGuildInfo(null);
+    setIsPublic(false);
+    setAvailableSchools([]);
     setIsValidating(false);
-    setValidationError(null);
+
+    // Reset all useFetch states to clear any errors or data from previous sessions
+    inviteValidationFetcher.reset();
+    submitInviteFetcher.reset();
+    subjectsFetcher.reset();
+    coursesFetcher.reset();
+
     onHide();
-  };
+  }
 
   return (
     <Modal show={show} onHide={handleClose} centered size="lg">
@@ -249,9 +321,19 @@ export function AddInviteModal({ show, onHide }: Props) {
               </Form.Text>
             </Form.Group>
 
-            {validationError !== null && (
+            {inviteValidationFetcher.errorMessages.length > 0 && (
               <Alert variant="danger" className="mb-3">
-                {validationError}
+                {inviteValidationFetcher.errorMessages.map((error, index) => (
+                  <div key={index}>{error}</div>
+                ))}
+              </Alert>
+            )}
+
+            {submitInviteFetcher.errorMessages.length > 0 && (
+              <Alert variant="danger" className="mb-3">
+                {submitInviteFetcher.errorMessages.map((error, index) => (
+                  <div key={index}>{error}</div>
+                ))}
               </Alert>
             )}
 
@@ -277,7 +359,7 @@ export function AddInviteModal({ show, onHide }: Props) {
               academic information.
             </Alert>
 
-            {submitFetcher.data && submitFetcher.errorMessages.length === 0 && (
+            {submitInviteFetcher.data && submitInviteFetcher.errorMessages.length === 0 && (
               <Alert variant="success" className="mb-3">
                 Discord server successfully added!
               </Alert>
@@ -293,7 +375,6 @@ export function AddInviteModal({ show, onHide }: Props) {
                 options={schoolOptions}
                 placeholder="Select a school..."
                 isSearchable
-                isLoading={schoolsFetcher.isLoading}
                 classNamePrefix="react-select"
               />
             </Form.Group>
@@ -326,9 +407,25 @@ export function AddInviteModal({ show, onHide }: Props) {
               />
             </Form.Group>
 
-            {submitFetcher.errorMessages.length > 0 && (
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                id="public-invite-checkbox"
+                label="Make this invite publicly visible to all users"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+                disabled={!isManager}
+              />
+              <Form.Text className="text-muted">
+                {isManager
+                  ? "If unchecked, this invite will only be visible to trusted and manager users"
+                  : "Only managers can create privileged invites. This invite will be publicly visible."}
+              </Form.Text>
+            </Form.Group>
+
+            {submitInviteFetcher.errorMessages.length > 0 && (
               <Alert variant="danger" className="mb-3">
-                {submitFetcher.errorMessages.map((error, index) => (
+                {submitInviteFetcher.errorMessages.map((error, index) => (
                   <div key={index}>{error}</div>
                 ))}
               </Alert>
@@ -339,16 +436,20 @@ export function AddInviteModal({ show, onHide }: Props) {
                 variant="secondary"
                 onClick={() => setShowSchoolSelection(false)}
                 className="me-2"
-                disabled={submitFetcher.isLoading}
+                disabled={submitInviteFetcher.isLoading}
               >
                 Back
               </Button>
               <Button
                 variant="primary"
                 onClick={handleSubmit}
-                disabled={!selectedSchool || submitFetcher.isLoading}
+                disabled={
+                  !selectedSchool ||
+                  submitInviteFetcher.isLoading ||
+                  submitInviteFetcher.data !== null
+                }
               >
-                {submitFetcher.isLoading ? "Submitting..." : "Submit Invite"}
+                {submitInviteFetcher.isLoading ? "Submitting..." : "Submit Invite"}
               </Button>
             </div>
           </div>

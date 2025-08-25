@@ -1,8 +1,8 @@
-from typing import Literal, NamedTuple
+from typing import Literal, NamedTuple, TypedDict
 
 from reactivated import Pick, interface
 
-from class_tracker.models import Course, Instructor, School, Subject
+from class_tracker.models import Course, School, Subject
 from discord_tracker.models import DiscordInvite, DiscordServer
 
 _DiscordInvitePick = Pick[
@@ -46,7 +46,6 @@ _DiscordServerPick = Pick[
 _SchoolPick = Pick[School, Literal["id", "name"]]
 _SubjectPick = Pick[Subject, Literal["id", "name"]]
 _CoursePick = Pick[Course, Literal["id", "code", "level", "title"]]
-_InstructorPick = Pick[Instructor, Literal["id", "name"]]
 
 
 @interface
@@ -71,6 +70,20 @@ class ValidateInviteResponse(NamedTuple):
     available_schools: list[_SchoolPick]
 
 
+class TSimpleGuildInfo(TypedDict):
+    id: str
+    name: str
+    icon_url: str
+
+
+@interface
+class ValidateDiscordInviteResponse(NamedTuple):
+    guild_info: TSimpleGuildInfo | None
+    existing_server_info: _DiscordServerPick | None
+    available_schools: list[_SchoolPick]
+    is_new_server: bool
+
+
 @interface
 class ServerInvitesResponse(NamedTuple):
     success: bool
@@ -80,8 +93,6 @@ class ServerInvitesResponse(NamedTuple):
 
 @interface
 class SubmitInviteResponse(NamedTuple):
-    success: bool
-    message: str
     discord_server: _DiscordServerPick | None
 
 

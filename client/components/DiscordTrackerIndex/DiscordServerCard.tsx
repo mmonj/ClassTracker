@@ -66,17 +66,17 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
             </div>
           </div>
 
-          {server.description && (
-            <p className="text-muted small mb-3 flex-grow-1">{server.description}</p>
-          )}
+          {server.description && <p className="text-muted small mb-3">{server.description}</p>}
 
-          <Button
-            variant={isPrivileged ? "outline-warning" : "outline-primary"}
-            className="w-100"
-            onClick={() => onShowInvites(server.id)}
-          >
-            View Invites
-          </Button>
+          <div className="mt-auto">
+            <Button
+              variant={isPrivileged ? "outline-warning" : "outline-primary"}
+              className="w-100"
+              onClick={() => onShowInvites(server.id)}
+            >
+              View Invites
+            </Button>
+          </div>
         </Card.Body>
       </Card>
     </Col>

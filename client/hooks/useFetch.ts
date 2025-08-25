@@ -19,7 +19,7 @@ export function useFetch<T>() {
   async function fetchData(
     fetchCallback: () => ApiPromise<T>,
     identifier?: number,
-    onSuccess?: () => void
+    onSuccess?: () => void,
   ): Promise<TUseFetchResult<T>> {
     setData(() => null);
     setIsLoading(() => true);
@@ -56,5 +56,12 @@ export function useFetch<T>() {
       });
   }
 
-  return { data, isLoading, errorMessages, identifier, fetchData };
+  function reset() {
+    setData(() => null);
+    setIsLoading(() => false);
+    setErrorMessages(() => []);
+    setIdentifier(() => undefined);
+  }
+
+  return { data, isLoading, errorMessages, identifier, reset, fetchData };
 }

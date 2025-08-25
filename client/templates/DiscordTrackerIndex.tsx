@@ -99,7 +99,7 @@ export function Template(props: templates.DiscordTrackerIndex) {
           <section className="mb-5">
             <h2 className="h3 mb-4">Privileged Servers</h2>
             <Alert variant="info" className="mb-3">
-              <strong>Note:</strong> These servers are only visible to trusted and manager users.
+              <b>Note:</b> These servers are only visible to trusted users
             </Alert>
             <Row>
               {privilegedServers.map((server) => (

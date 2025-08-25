@@ -15,6 +15,11 @@ ajax_patterns = [
     path("ajax/select-school/", ajax.select_school, name="select_school"),
     path("ajax/servers/<int:server_id>/invites/", ajax.server_invites, name="server_invites"),
     path("ajax/get-available-schools/", ajax.get_available_schools, name="get_available_schools"),
+    path(
+        "ajax/validate-discord-invite/",
+        ajax.validate_discord_invite,
+        name="validate_discord_invite",
+    ),
     path("ajax/submit-invite/", ajax.submit_invite, name="submit_invite"),
     path("ajax/schools/<int:school_id>/subjects/", ajax.get_subjects, name="get_subjects"),
     path(

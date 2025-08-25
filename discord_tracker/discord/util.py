@@ -145,22 +145,18 @@ def format_inviter_info(inviter: TInviterData) -> str:
 
 
 def is_guild_partnered(guild: TGuildData) -> bool:
-    """Check if a guild is discord-partnered"""
     return "PARTNERED" in guild["features"]
 
 
 def is_guild_verified(guild: TGuildData) -> bool:
-    """Check if a guild is discord verified"""
     return "VERIFIED" in guild["features"]
 
 
 def has_guild_vanity_url(guild: TGuildData) -> bool:
-    """Check if a guild has a vanity URL"""
     return "VANITY_URL" in guild["features"]
 
 
 def get_all_guild_asset_urls(guild: TGuildData, file_extension: str = "jpg") -> TGuildAssetUrls:
-    """Get all available asset urls for a guild"""
     guild_id = guild["id"]
 
     return TGuildAssetUrls(
