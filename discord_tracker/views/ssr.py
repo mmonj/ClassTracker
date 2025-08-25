@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from discord_tracker.decorators import school_required
-from discord_tracker.models import DiscordUser
+from discord_tracker.models import DiscordServer, DiscordUser
 from discord_tracker.views import templates
 from discord_tracker.views.forms import SchoolSelectionForm
 from server.util.typedefs import AuthenticatedRequest
@@ -15,7 +15,25 @@ from server.util.typedefs import AuthenticatedRequest
 
 @school_required
 def index(request: HttpRequest) -> HttpResponse:
-    return templates.DiscordTrackerIndex().render(request)
+    public_servers = DiscordServer.objects.filter(
+        privacy_level=DiscordServer.PrivacyLevel.PUBLIC
+    ).order_by("name")
+
+    # get privileged servers (only visible to trusted/manager users)
+    privileged_servers = DiscordServer.objects.none()
+
+    if request.user.is_authenticated:
+        discord_user = request.user.discord_user
+
+        if discord_user.is_trusted or discord_user.is_manager:
+            privileged_servers = DiscordServer.objects.filter(
+                privacy_level=DiscordServer.PrivacyLevel.PRIVILEGED
+            ).order_by("name")
+
+    return templates.DiscordTrackerIndex(
+        public_servers=list(public_servers),
+        privileged_servers=list(privileged_servers),
+    ).render(request)
 
 
 @require_http_methods(["GET"])

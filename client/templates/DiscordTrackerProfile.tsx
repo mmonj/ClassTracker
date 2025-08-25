@@ -43,7 +43,7 @@ export function Template(props: templates.DiscordTrackerProfile) {
 
     if (result.ok) {
       setShowModal(false);
-      // Reload the page to show updated profile
+      // reload the page to show updated profile
       window.location.reload();
     }
   };
@@ -65,17 +65,6 @@ export function Template(props: templates.DiscordTrackerProfile) {
         return "success";
       default:
         return "secondary";
-    }
-  };
-
-  const getRoleDisplayName = (role: string) => {
-    switch (role) {
-      case "discord_manager":
-        return "Discord Manager";
-      case "trusted":
-        return "Trusted User";
-      default:
-        return "Regular User";
     }
   };
 
@@ -111,7 +100,7 @@ export function Template(props: templates.DiscordTrackerProfile) {
           </form>
         </Modal.Body>
       </Modal>
-      <Container className="mt-4">
+      <Container className="mt-4 px-0">
         <Row className="justify-content-center">
           <Col md={8} lg={6}>
             <Card>
@@ -148,8 +137,11 @@ export function Template(props: templates.DiscordTrackerProfile) {
                     </span>
                   </div>
 
-                  <Badge bg={getRoleBadgeVariant(props.discord_user.role)} className="mb-3">
-                    {getRoleDisplayName(props.discord_user.role)}
+                  <Badge
+                    bg={getRoleBadgeVariant(props.discord_user.role_info.value)}
+                    className="mb-3"
+                  >
+                    {props.discord_user.role_info.label}
                   </Badge>
                 </div>
 
@@ -230,8 +222,8 @@ export function Template(props: templates.DiscordTrackerProfile) {
                     <strong>Role:</strong>
                   </Col>
                   <Col sm={6}>
-                    <Badge bg={getRoleBadgeVariant(props.discord_user.role)}>
-                      {getRoleDisplayName(props.discord_user.role)}
+                    <Badge bg={getRoleBadgeVariant(props.discord_user.role_info.value)}>
+                      {props.discord_user.role_info.label}
                     </Badge>
                   </Col>
                 </Row>

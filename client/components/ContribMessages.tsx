@@ -33,7 +33,7 @@ function Message({ message }: { message: ContextType<typeof Context>["messages"]
       variant={alert_type}
       dismissible
       onClose={() => setIsShown(false)}
-      className="rounded-0 mb-2 fw-semibold text-center btn-close-white"
+      className="rounded-0 mb-1 fw-semibold text-center btn-close-white"
     >
       {message.message}
     </Alert>

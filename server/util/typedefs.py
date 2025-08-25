@@ -10,7 +10,7 @@ E = TypeVar("E")
 
 @dataclass
 class Success(Generic[T]):
-    value: T
+    val: T
     ok: Literal[True] = True
 
 
@@ -20,7 +20,7 @@ class Failure(Generic[E]):
     ok: Literal[False] = False
 
 
-Result: TypeAlias = Success[E] | Failure[T]  # noqa: UP040
+TResult: TypeAlias = Success[E] | Failure[T]  # noqa: UP040
 
 
 class AuthenticatedRequest(HttpRequest):

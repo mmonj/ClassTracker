@@ -1,4 +1,6 @@
-from typing import NotRequired, TypedDict
+from typing import TypedDict
+
+from reactivated import interface
 
 TAwareDatetime = str
 
@@ -21,20 +23,18 @@ class TInviterData(TypedDict):
     global_name: str | None
     avatar_decoration_data: TAvatarDecorationData | None
     banner_color: str | None
-    clan: None
-    primary_guild: None
 
 
 class TGuildData(TypedDict):
     id: str
     name: str
-    splash: None
-    banner: None
-    description: None
+    splash: str | None
+    banner: str | None
+    description: str | None
     icon: str | None
     features: list[str]
     verification_level: int
-    vanity_url_code: None
+    vanity_url_code: str | None
     nsfw_level: int
     nsfw: bool
     premium_subscription_count: int
@@ -52,12 +52,12 @@ class TGuildAssetUrls(TypedDict):
     splash: str | None
 
 
-class TDiscordInviteData(TypedDict):
+@interface
+class TDiscordInviteData(TypedDict):  # type: ignore [type-var]
     type: int
     code: str
     inviter: TInviterData
     expires_at: TAwareDatetime | None
-    flags: NotRequired[int]
     guild: TGuildData
     guild_id: str
     channel: TChannelData

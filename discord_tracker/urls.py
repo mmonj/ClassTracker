@@ -13,6 +13,15 @@ ssr_patterns = [
 
 ajax_patterns = [
     path("ajax/select-school/", ajax.select_school, name="select_school"),
+    path("ajax/servers/<int:server_id>/invites/", ajax.server_invites, name="server_invites"),
+    path("ajax/get-available-schools/", ajax.get_available_schools, name="get_available_schools"),
+    path("ajax/submit-invite/", ajax.submit_invite, name="submit_invite"),
+    path("ajax/schools/<int:school_id>/subjects/", ajax.get_subjects, name="get_subjects"),
+    path(
+        "ajax/schools/<int:school_id>/subjects/<int:subject_id>/courses/",
+        ajax.get_courses,
+        name="get_courses",
+    ),
 ]
 
 urlpatterns = ssr_patterns + ajax_patterns

@@ -3,7 +3,7 @@ from typing import Callable
 
 from requests import RequestException, Response
 
-from server.util.typedefs import Failure, Result, Success
+from server.util.typedefs import Failure, Success, TResult
 
 logger = logging.getLogger("main")
 
@@ -32,9 +32,9 @@ def get_globalsearch_headers() -> dict[str, str]:
 
 def get_response_result(
     request_callback: Callable[[], Response],
-) -> Result[Response, RequestException]:
+) -> TResult[Response, RequestException]:
     try:
         resp = request_callback()
-        return Success(value=resp)
+        return Success(val=resp)
     except RequestException as exc:
         return Failure(err=exc)

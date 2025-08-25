@@ -1,107 +1,139 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 
-import { CSRFToken, Context, reverse, templates } from "@reactivated";
-import { Button, Card, Col, Container, Row } from "react-bootstrap";
+import { Context, templates } from "@reactivated";
+import { Alert, Button, Card, Container, Row } from "react-bootstrap";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
-import { faCheckCircle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { LoginBanner } from "@client/components/DiscordTrackerIndex";
+import {
+  AddInviteModal,
+  DiscordServerCard,
+  InvitesModal,
+  LoginBanner,
+} from "@client/components/DiscordTrackerIndex";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
-export function Template(_props: templates.DiscordTrackerIndex) {
+export function Template(props: templates.DiscordTrackerIndex) {
   const context = useContext(Context);
+  const [selectedServerId, setSelectedServerId] = useState<number | null>(null);
+  const [selectedServerName, setSelectedServerName] = useState("");
+  const [showInvitesModal, setShowInvitesModal] = useState(false);
+  const [showAddInviteModal, setShowAddInviteModal] = useState(false);
 
   const discordUser = context.user.discord_user;
+
+  const publicServers = props.public_servers;
+  const privilegedServers = props.privileged_servers;
+
+  const canUserAddInvites =
+    discordUser !== null && (discordUser.is_trusted === true || discordUser.is_manager === true);
+
+  const handleShowInvites = (serverId: number) => {
+    const allServers = [...publicServers, ...privilegedServers];
+    const server = allServers.find((s) => s.id === serverId);
+    if (server !== undefined) {
+      setSelectedServerId(serverId);
+      setSelectedServerName(server.display_name);
+      setShowInvitesModal(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowInvitesModal(false);
+    setSelectedServerId(null);
+    setSelectedServerName("");
+  };
+
+  const handleCloseAddInviteModal = () => {
+    setShowAddInviteModal(false);
+  };
 
   return (
     <Layout title="Discord Tracker" Navbar={Navbar}>
       <Container>
         {!discordUser && <LoginBanner />}
-        <Row>
-          <Col xs={12} md={8} lg={6} className="mx-auto">
-            <Card className="shadow-sm">
-              <Card.Body className="text-center p-4">
-                {discordUser ? (
-                  <>
-                    <div className="mb-4">
-                      <img
-                        src={discordUser.avatar_url}
-                        alt={`${discordUser.display_name}'s avatar`}
-                        className="rounded-circle mb-3"
-                        width="80"
-                        height="80"
-                        style={{ border: "3px solid #5865F2" }}
-                      />
-                    </div>
 
-                    <h2 className="h3 mb-2">{discordUser.display_name}</h2>
+        <div className="text-center mb-5">
+          <div className="d-flex align-items-center justify-content-center mb-3">
+            <FontAwesomeIcon icon={faDiscord} size="3x" className="text-primary me-3" />
+            <h1 className="h2 mb-0">Discord Servers</h1>
+          </div>
+          <p className="text-muted lead">Discover and join Discord servers for your classes</p>
 
-                    <div className="d-flex justify-content-center align-items-center mb-3">
-                      <FontAwesomeIcon
-                        icon={discordUser.is_verified ? faCheckCircle : faTimesCircle}
-                        className={
-                          discordUser.is_verified ? "text-success me-2" : "text-warning me-2"
-                        }
-                      />
-                      <span className={discordUser.is_verified ? "text-success" : "text-warning"}>
-                        {discordUser.is_verified ? "Verified Account" : "Unverified Account"}
-                      </span>
-                    </div>
+          {/* 'add invite' button */}
+          {canUserAddInvites && (
+            <div className="mt-3">
+              <Button
+                variant="success"
+                onClick={() => setShowAddInviteModal((prev) => !prev)}
+                className="d-flex align-items-center mx-auto"
+              >
+                <FontAwesomeIcon icon={faPlus} className="me-2" />
+                Add Discord Invite
+              </Button>
+            </div>
+          )}
+        </div>
 
-                    <Card className="bg-light mb-3">
-                      <Card.Body className="py-2">
-                        <Row className="text-center">
-                          <Col xs={6}>
-                            <div className="fw-bold">{discordUser.login_count}</div>
-                            <small className="text-muted">Total Logins</small>
-                          </Col>
-                          <Col xs={6}>
-                            <div className="fw-bold">
-                              {new Date(discordUser.first_login).toLocaleDateString()}
-                            </div>
-                            <small className="text-muted">Member Since</small>
-                          </Col>
-                        </Row>
-                      </Card.Body>
-                    </Card>
+        {/* public Servers Section */}
+        {publicServers.length > 0 && (
+          <section className="mb-5">
+            <h2 className="h3 mb-4">Public Servers</h2>
+            <Row>
+              {publicServers.map((server) => (
+                <DiscordServerCard
+                  key={server.id}
+                  server={server}
+                  onShowInvites={handleShowInvites}
+                />
+              ))}
+            </Row>
+          </section>
+        )}
 
-                    <p className="text-muted small mb-3">
-                      Last login: {new Date(discordUser.last_login).toLocaleString()}
-                    </p>
+        {/* privileged servers section */}
+        {privilegedServers.length > 0 && (
+          <section className="mb-5">
+            <h2 className="h3 mb-4">Privileged Servers</h2>
+            <Alert variant="info" className="mb-3">
+              <strong>Note:</strong> These servers are only visible to trusted and manager users.
+            </Alert>
+            <Row>
+              {privilegedServers.map((server) => (
+                <DiscordServerCard
+                  key={server.id}
+                  server={server}
+                  onShowInvites={handleShowInvites}
+                />
+              ))}
+            </Row>
+          </section>
+        )}
 
-                    <form action={reverse("account_logout")} method="POST">
-                      <CSRFToken />
-                      <Button variant="outline-secondary" className="w-100" type="submit">
-                        <FontAwesomeIcon icon={faDiscord} className="me-2" />
-                        Sign Out
-                      </Button>
-                    </form>
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faDiscord} size="4x" className="text-primary mb-4" />
-                    <h2 className="h3 mb-3">Welcome to Discord Tracker</h2>
-                    <p className="text-muted mb-4">
-                      Please log in to view your Discord profile and tracker features.
-                    </p>
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      href={reverse("discord_tracker:login")}
-                      className="w-100 mb-3"
-                    >
-                      <FontAwesomeIcon icon={faDiscord} className="me-2" />
-                      Sign in with Discord
-                    </Button>
-                  </>
-                )}
+        {/* no servers msg */}
+        {publicServers.length === 0 && privilegedServers.length === 0 && (
+          <div className="text-center py-5">
+            <Card className="border-0">
+              <Card.Body>
+                <FontAwesomeIcon icon={faDiscord} size="4x" className="text-muted mb-3" />
+                <h3 className="text-muted">No Discord Servers Available</h3>
+                <p className="text-muted">No Discord servers have been added yet</p>
               </Card.Body>
             </Card>
-          </Col>
-        </Row>
+          </div>
+        )}
+
+        <InvitesModal
+          show={showInvitesModal}
+          onHide={handleCloseModal}
+          serverId={selectedServerId}
+          serverName={selectedServerName}
+        />
+
+        <AddInviteModal show={showAddInviteModal} onHide={handleCloseAddInviteModal} />
       </Container>
     </Layout>
   );

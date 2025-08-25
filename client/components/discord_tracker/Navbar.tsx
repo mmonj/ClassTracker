@@ -16,9 +16,7 @@ type TRoute = {
 export function Navbar() {
   const djangoContext = React.useContext(Context);
 
-  const publicRoutes = [
-    { name: "Home", href: reverse("discord_tracker:index") },
-  ] satisfies TRoute[];
+  const publicRoutes = [] as TRoute[];
 
   return (
     <>

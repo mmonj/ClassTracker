@@ -15,16 +15,20 @@ _TDiscordUserPick = Pick[
         "global_name",
         "avatar",
         "is_verified",
-        # Additional tracking fields
+        ##
         "first_login",
         "last_login",
         "login_count",
         "display_name",
         "avatar_url",
-        # OAuth token info (excluding sensitive tokens)
+        ##
         "token_expires_at",
         "is_token_expired",
         "can_refresh_token",
+        ##
+        "role",
+        "is_trusted",
+        "is_manager",
     ],
 ]
 

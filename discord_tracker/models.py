@@ -1,10 +1,43 @@
-from typing import Any
+from typing import Any, Literal, NamedTuple, cast
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.query import QuerySet
 from django.utils import timezone
 
 from class_tracker.models import CommonModel, Course, Instructor, School, Subject
+
+TUserRoleValue = Literal["regular", "trusted", "manager"]
+TServerPrivacyLevelValue = Literal["public", "privileged"]
+
+
+class TUserRole(NamedTuple):
+    value: TUserRoleValue
+    label: str
+
+
+class TServerPrivacyLevel(NamedTuple):
+    value: TServerPrivacyLevelValue
+    label: str
+
+
+class DiscordServerQuerySet(QuerySet["DiscordServer"]):
+    def enabled(self) -> "DiscordServerQuerySet":
+        return self.filter(is_disabled=False)
+
+
+class DiscordServerManager(models.Manager["DiscordServer"]):
+    """Exclude servers that are disabled"""
+
+    def get_queryset(self) -> DiscordServerQuerySet:
+        return DiscordServerQuerySet(self.model, using=self._db).enabled()
+
+
+class AllDiscordServerManager(models.Manager["DiscordServer"]):
+    """Include all servers"""
+
+    def get_queryset(self) -> DiscordServerQuerySet:
+        return DiscordServerQuerySet(self.model, using=self._db)
 
 
 class DiscordUser(CommonModel):
@@ -12,8 +45,8 @@ class DiscordUser(CommonModel):
     # 'trusted' role is set as soon as another trusted/manager DiscordUser vouches for them, or if that user is already a member of the required server(s) upon authenticating
     class UserRole(models.TextChoices):
         REGULAR = "regular", "Regular User"
-        TRUSTED = "trusted", "Trusted User"
-        MANAGER = "discord_manager", "Discord Manager"
+        TRUSTED = "trusted", "Verified User"
+        MANAGER = "manager", "Discord Manager"
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="discord_user")
     discord_id = models.CharField(max_length=64, unique=True, db_index=True)
@@ -41,6 +74,10 @@ class DiscordUser(CommonModel):
 
     def __str__(self) -> str:
         return f"{self.global_name or self.username} ({self.discord_id})"
+
+    @property
+    def role_info(self) -> TUserRole:
+        return TUserRole(cast("TUserRoleValue", self.role), label=self.get_role_display())
 
     @property
     def display_name(self) -> str:
@@ -98,8 +135,10 @@ class DiscordServer(CommonModel):
         max_length=20, choices=PrivacyLevel.choices, default=PrivacyLevel.PUBLIC
     )
 
-    custom_title = models.CharField(max_length=255, blank=True)  # Override display name
-    description = models.TextField(blank=True)  # Admin-provided description
+    custom_title = models.CharField(
+        max_length=255, blank=True
+    )  # override display name; potentially unused
+    description = models.TextField(blank=True)  # server description
     is_active = models.BooleanField(default=True)  # to reduce visibility on homepage
     # to allow DiscordManagers to disable/remove servers (defunct servers, etc.)
     is_disabled = models.BooleanField(default=False)
@@ -110,13 +149,25 @@ class DiscordServer(CommonModel):
     courses = models.ManyToManyField(Course, related_name="discord_servers", blank=True)
     instructors = models.ManyToManyField(Instructor, related_name="discord_servers", blank=True)
 
-    datetime_last_synced = models.DateTimeField(null=True, blank=True)  # Last API sync
+    datetime_last_synced = models.DateTimeField(null=True, blank=True)  # last API sync
+    # should be `initially_added_by`
     added_by = models.ForeignKey(
         DiscordUser, on_delete=models.SET_NULL, null=True, related_name="added_servers"
     )
 
+    # custom managers
+    objects = DiscordServerManager()  # excludes disabled servers
+    all_objects = AllDiscordServerManager()  # includes all servers
+
     def __str__(self) -> str:
         return self.custom_title or self.name
+
+    @property
+    def privacy_level_info(self) -> TServerPrivacyLevel:
+        return TServerPrivacyLevel(
+            cast("TServerPrivacyLevelValue", self.privacy_level),
+            label=self.get_privacy_level_display(),
+        )
 
     @property
     def is_general_server(self) -> bool:
@@ -130,7 +181,8 @@ class DiscordServer(CommonModel):
 class DiscordInvite(CommonModel):
     invite_url = models.URLField(max_length=200, unique=True, db_index=True)
 
-    notes_md = models.CharField(max_length=511, blank=True)  # Submitter's notes about the server
+    # submitter's notes (markdown) about the server
+    notes_md = models.CharField(max_length=511, blank=True)
 
     # invite status. discord API returns null if invite was created as `unlimited` invite
     expires_at = models.DateTimeField(null=True, blank=True)  # When invite expires
@@ -138,13 +190,12 @@ class DiscordInvite(CommonModel):
     max_uses = models.PositiveIntegerField(blank=True, default=0)  # Usage limit
     uses_count = models.PositiveIntegerField(default=0)  # How many times this invite has been used
 
-    # Validation tracking
+    # tracks whether the invite is usable (ie. not expired)
     is_valid = models.BooleanField(default=True)
 
-    # DiscordUsers with the `DiscordManager` role can submit invites without the need for approval.
-    # Allow DiscordUsers that have the 'DiscordManager' role to approve invites.
-    # DiscordUser users who don't have the `DiscordManager` role can submit invites as suggestions, but they won't
-    # be visible in the discord index page until a `DiscordManager` approves it.
+    # DiscordUsers with the `Manager` role can submit invites without the need for approval and approve other invites
+    # other 'trusted' users can submit invites as suggestions, but they won't
+    # be visible in the discord index page until a `Manager` approves it.
     approved_by = models.ForeignKey(
         DiscordUser,
         on_delete=models.SET_NULL,

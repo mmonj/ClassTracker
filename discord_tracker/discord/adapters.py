@@ -17,12 +17,10 @@ logger = logging.getLogger("main")
 
 
 class DiscordUserConflictError(Exception):
-    """raised when a discord account is already linked to another user"""
+    pass
 
 
 class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
-    """adapter for Discord social account handling"""
-
     def populate_user(self, request: HttpRequest, sociallogin: Any, data: dict[str, Any]) -> User:
         """Populate base User fields from discord data"""
         user: User = super().populate_user(request, sociallogin, data)
@@ -31,7 +29,7 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         display_name = data.get("global_name") or data.get("username", "")
         user.username = f"{display_name}@{discord_id}"
 
-        # ensure the user cannot log in with a password
+        # make sure the base user cannot log in with a password
         user.set_unusable_password()
 
         if display_name:
@@ -44,10 +42,7 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         return user
 
     def pre_social_login(self, request: HttpRequest, sociallogin: Any) -> None:
-        """
-        Handle pre-login logic for discord accounts
-        This is called before the user is logged in.
-        """
+        """Handle pre-login logic for discord accounts. Called before the user is logged in."""
         super().pre_social_login(request, sociallogin)
 
         if sociallogin.account.provider != "discord":
