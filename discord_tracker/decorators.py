@@ -42,7 +42,7 @@ def roles_required(
 
     def decorator(view_fn: TViewCallable) -> TViewCallable:
         @wraps(view_fn)
-        def wrapper(request: HttpRequest) -> HttpResponse:
+        def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
             # can replace @login_required
             if not request.user.is_authenticated:
                 return redirect("discord_tracker:login")
@@ -57,7 +57,7 @@ def roles_required(
                     f"You don't have permission to access this feature. Required roles: {role_names}",
                 )
 
-            return view_fn(request)
+            return view_fn(request, *args, **kwargs)
 
         return wrapper
 

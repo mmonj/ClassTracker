@@ -210,7 +210,7 @@ export function AddInviteModal({ show, onHide }: Props) {
       formData.append("course_id", selectedCourse.value.toString());
     }
 
-    // Add instructor IDs if any are selected
+    // add instructor ids if any are selected
     selectedInstructors.forEach((instructor) => {
       formData.append("instructor_ids", instructor.value.toString());
     });
@@ -257,7 +257,7 @@ export function AddInviteModal({ show, onHide }: Props) {
 
     if (option === null || selectedSchool === null) return;
 
-    // Fetch both courses and instructors when subject changes
+    // fetch both courses and instructors when subject changes
     await Promise.all([
       coursesFetcher.fetchData(() =>
         fetchByReactivated(
@@ -303,7 +303,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     setAvailableSchools([]);
     setIsValidating(false);
 
-    // Reset all useFetch states to clear any errors or data from previous sessions
+    // reset all useFetch states to clear any errors or data from previous sessions
     inviteValidationFetcher.reset();
     submitInviteFetcher.reset();
     subjectsFetcher.reset();
@@ -470,12 +470,11 @@ export function AddInviteModal({ show, onHide }: Props) {
                 label="Make this invite publicly visible to all users"
                 checked={isPublic}
                 onChange={(e) => setIsPublic(e.target.checked)}
-                disabled={!isManager}
               />
               <Form.Text className="text-muted">
                 {isManager
-                  ? "If unchecked, this invite will only be visible to trusted and manager users"
-                  : "Only managers can create privileged invites. This invite will be publicly visible."}
+                  ? "If unchecked, only verified users and site managers can see your invite. Your invites are automatically approved"
+                  : "If unchecked, only verified users and site managers can see your invite. Note: All of your invites require manager approval before becoming visible to anyone"}
               </Form.Text>
             </Form.Group>
 

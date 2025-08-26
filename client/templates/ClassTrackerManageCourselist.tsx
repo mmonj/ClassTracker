@@ -43,7 +43,7 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
 
   const djangoContext = React.useContext(Context);
 
-  // Create useCallback to make usre that when setting available subjects, we also add the ALL_SUBJECTS_OPTION as first element
+  // create useCallback to make usre that when setting available subjects, we also add the ALL_SUBJECTS_OPTION as first element
   const setAvailableSubjects = React.useCallback(
     (subjects: interfaces.RespSubjectsUpdate["available_subjects"]) => {
       _setAvailableSubjects([ALL_SUBJECTS_OPTION, ...subjects]);
@@ -263,8 +263,8 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
 
           <ButtonWithSpinner
             type="button"
-            size="sm"
-            variant="light"
+            spinnerSize="sm"
+            spinnerVariant="light"
             hideChildren={false}
             className="btn btn-primary d-block mb-3"
             onClick={handleRefreshSchoolsAndTerms}
@@ -330,7 +330,7 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
                 </select>
                 <ButtonWithSpinner
                   type="button"
-                  size="sm"
+                  spinnerSize="sm"
                   hideChildren={true}
                   className="btn btn-primary ms-2"
                   disabled={selectedSchool.id === ALL_SCHOOLS_ID}
@@ -349,8 +349,8 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
               {selectedSchool.id !== ALL_SCHOOLS_ID && selectedSubject !== undefined && (
                 <ButtonWithSpinner
                   type="button"
-                  size="sm"
-                  variant="light"
+                  spinnerSize="sm"
+                  spinnerVariant="light"
                   className="btn btn-primary d-block mb-3"
                   onClick={() =>
                     handleRefreshClassesData(selectedSchool.id, selectedTerm.id, selectedSubject.id)

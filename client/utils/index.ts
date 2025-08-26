@@ -52,3 +52,18 @@ export async function getErrorList(
     return ["An unexpected error occurred"];
   }
 }
+
+export function randChoice<T>(items: T[]): T {
+  const index = Math.floor(Math.random() * items.length);
+  return items[index];
+}
+
+export function formatDateTypical(dateString: string) {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}

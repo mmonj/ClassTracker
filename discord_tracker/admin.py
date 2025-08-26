@@ -27,6 +27,7 @@ class DiscordUserAdmin(admin.ModelAdmin[DiscordUser]):
     list_filter = ["is_verified", "first_login", "last_login", "user__is_active", "user__is_staff"]
     search_fields = ["username", "global_name", "discord_id", "user__username", "user__email"]
     readonly_fields = ["discord_id", "first_login", "last_login", "login_count"]
+    list_editable = ["is_verified"]
 
     fieldsets = [
         (
@@ -97,6 +98,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
     ]
     search_fields = ["name", "custom_title", "description", "server_id"]
     readonly_fields = ["server_id", "datetime_last_synced"]
+    list_editable = ["is_active", "is_disabled"]
     filter_horizontal = ["schools", "subjects", "courses", "instructors"]
 
     fieldsets = [
@@ -192,6 +194,7 @@ class DiscordInviteAdmin(admin.ModelAdmin[DiscordInvite]):
         "notes_md",
     ]
     readonly_fields = ["uses_count"]
+    list_editable = ["is_valid"]
 
     fieldsets = [
         (
@@ -216,12 +219,14 @@ class DiscordInviteAdmin(admin.ModelAdmin[DiscordInvite]):
             },
         ),
         (
-            "Approval",
+            "Approval/Rejection",
             {
                 "fields": [
                     "submitter",
                     "approved_by",
                     "datetime_approved",
+                    "rejected_by",
+                    "datetime_rejected",
                 ]
             },
         ),

@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 from urllib.parse import urlparse
@@ -45,7 +44,6 @@ def get_discord_invite_info(
     try:
         resp = session.get(invite_info_url, timeout=timeout)
         resp.raise_for_status()
-        logger.info(json.dumps(resp.json()))
         return Success(cattrs.structure(resp.json(), TDiscordInviteData))
     except requests.HTTPError as e:
         return Failure(DiscordAPIError(f"Failed to fetch invite info: {e}"))

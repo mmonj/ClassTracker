@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_http_methods
 
@@ -168,9 +169,8 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
             ["Invalid privacy level. Must be 'public' or 'privileged'"], status=400
         )
 
-    # only managers can create privileged servers
-    if privacy_level == "privileged" and not discord_user.is_manager:
-        return error_json_response(["Only managers can create privileged servers"], status=400)
+    # both managers and trusted users can create any type of invite
+    # managers' invites are auto approved, trusted users' invites need to be manually approved
 
     if DiscordInvite.objects.filter(invite_url=invite_url).exists():
         return error_json_response(["This Discord invite has already been submitted"], status=400)
@@ -360,5 +360,54 @@ def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpRes
 
     invite.uses_count += 1
     invite.save(update_fields=["uses_count"])
+
+    return interfaces_response.BlankResponse().render(request)
+
+
+@roles_required(required_roles=["manager"])
+@require_http_methods(["POST"])
+def approve_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+    invite = get_object_or_404(DiscordInvite, id=invite_id)
+
+    if invite.is_approved:
+        return error_json_response(["This invite has already been approved"], status=400)
+
+    if not invite.is_valid:
+        return error_json_response(["Cannot approve an invalid invite"], status=400)
+
+    # handle invite approval
+    invite.approved_by = discord_user
+    invite.datetime_approved = timezone.now()
+
+    invite.rejected_by = None
+    invite.datetime_rejected = None
+
+    invite.save(
+        update_fields=["approved_by", "datetime_approved", "rejected_by", "datetime_rejected"]
+    )
+
+    return interfaces_response.BlankResponse().render(request)
+
+
+@roles_required(required_roles=["manager"])
+@require_http_methods(["POST"])
+def reject_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+    invite = get_object_or_404(DiscordInvite, id=invite_id)
+
+    if invite.rejected_by is not None:
+        return error_json_response(["This invite has already been rejected"], status=400)
+
+    # handle invite rejection
+    invite.approved_by = None
+    invite.datetime_approved = None
+
+    invite.rejected_by = discord_user
+    invite.datetime_rejected = timezone.now()
+
+    invite.save(
+        update_fields=["rejected_by", "datetime_rejected", "approved_by", "datetime_approved"]
+    )
 
     return interfaces_response.BlankResponse().render(request)

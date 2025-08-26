@@ -37,6 +37,16 @@ ajax_patterns = [
         ajax.track_invite_usage,
         name="track_invite_usage",
     ),
+    path(
+        "ajax/invites/<int:invite_id>/approve/",
+        ajax.approve_invite,
+        name="approve_invite",
+    ),
+    path(
+        "ajax/invites/<int:invite_id>/reject/",
+        ajax.reject_invite,
+        name="reject_invite",
+    ),
 ]
 
 urlpatterns = ssr_patterns + ajax_patterns

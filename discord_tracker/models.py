@@ -215,7 +215,15 @@ class DiscordInvite(CommonModel):
         blank=True,
         related_name="approved_invites",
     )
+    rejected_by = models.ForeignKey(
+        DiscordUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="rejected_invites",
+    )
     datetime_approved = models.DateTimeField(null=True, blank=True)
+    datetime_rejected = models.DateTimeField(null=True, blank=True)
 
     submitter = models.ForeignKey(
         DiscordUser, on_delete=models.CASCADE, related_name="submitted_invites"

@@ -18,20 +18,27 @@ def index(request: HttpRequest) -> HttpResponse:
     prefetches = ("subjects", "courses", "instructors", "schools")
 
     public_servers = (
-        DiscordServer.objects.filter(privacy_level=DiscordServer.PrivacyLevel.PUBLIC)
+        DiscordServer.objects.filter(
+            privacy_level=DiscordServer.PrivacyLevel.PUBLIC, invites__approved_by__isnull=False
+        )
+        .distinct()
         .prefetch_related(*prefetches)
         .order_by("name")
     )
 
-    privileged_servers = (
-        DiscordServer.objects.filter(privacy_level=DiscordServer.PrivacyLevel.PRIVILEGED)
+    privileged_servers = list(
+        DiscordServer.objects.filter(
+            privacy_level=DiscordServer.PrivacyLevel.PRIVILEGED,
+            invites__approved_by__isnull=False,
+        )
+        .distinct()
         .prefetch_related(*prefetches)
         .order_by("name")
     )
 
     return templates.DiscordTrackerIndex(
         public_servers=list(public_servers),
-        privileged_servers=list(privileged_servers),
+        privileged_servers=privileged_servers,
     ).render(request)
 
 
@@ -94,7 +101,7 @@ def profile(request: AuthenticatedRequest) -> HttpResponse:
 @roles_required(required_roles=["manager"])
 def unapproved_invites(request: AuthenticatedRequest) -> HttpResponse:
     unapproved_invites = (
-        DiscordInvite.objects.filter(datetime_approved__isnull=True)
+        DiscordInvite.objects.filter(approved_by__isnull=True, rejected_by__isnull=True)
         .select_related("submitter", "discord_server")
         .order_by("-datetime_created")
     )
