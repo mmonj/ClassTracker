@@ -149,7 +149,7 @@ class DiscordServer(CommonModel):
     courses = models.ManyToManyField(Course, related_name="discord_servers", blank=True)
     instructors = models.ManyToManyField(Instructor, related_name="discord_servers", blank=True)
 
-    datetime_last_synced = models.DateTimeField(null=True, blank=True)  # last API sync
+    datetime_last_synced = models.DateTimeField(auto_now_add=True)  # last API sync
     # should be `initially_added_by`
     added_by = models.ForeignKey(
         DiscordUser, on_delete=models.SET_NULL, null=True, related_name="added_servers"
@@ -244,17 +244,21 @@ class DiscordInvite(CommonModel):
     def is_approved(self) -> bool:
         return self.approved_by is not None
 
+    @property
+    def is_unlimited(self) -> bool:
+        return self.expires_at is None
+
 
 class InviteUsage(CommonModel):
-    """Track who used which invites (for analytics)."""
+    """track invite uses for analytics"""
 
     invite = models.ForeignKey(DiscordInvite, on_delete=models.CASCADE, related_name="usages")
     used_by = models.ForeignKey(
         DiscordUser, on_delete=models.SET_NULL, null=True, related_name="invite_usages"
     )
 
-    # Usage tracking
-    ip_address = models.GenericIPAddressField(null=True, blank=True)  # For abuse prevention
+    # usage tracking for abuse prevention
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
     user_agent = models.TextField(blank=True)
 
     class Meta:

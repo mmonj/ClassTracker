@@ -12,9 +12,9 @@ _DiscordInvitePick = Pick[
         "invite_url",
         "notes_md",
         "expires_at",
-        "max_uses",
         "uses_count",
         "is_valid",
+        "is_unlimited",
     ],
 ]
 
@@ -47,6 +47,11 @@ _SchoolPick = Pick[School, Literal["id", "name"]]
 _SubjectPick = Pick[Subject, Literal["id", "name"]]
 _CoursePick = Pick[Course, Literal["id", "code", "level", "title"]]
 _InstructorPick = Pick[Instructor, Literal["id", "name"]]
+
+
+@interface
+class BlankResponse(NamedTuple):
+    pass
 
 
 @interface

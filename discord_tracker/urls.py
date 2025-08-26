@@ -31,6 +31,11 @@ ajax_patterns = [
         ajax.get_instructors,
         name="get_instructors",
     ),
+    path(
+        "ajax/invites/<int:invite_id>/track-usage/",
+        ajax.track_invite_usage,
+        name="track_invite_usage",
+    ),
 ]
 
 urlpatterns = ssr_patterns + ajax_patterns

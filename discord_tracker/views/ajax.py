@@ -1,9 +1,11 @@
 import logging
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_http_methods
 
 from class_tracker.models import Course, Instructor, School, Subject
@@ -13,7 +15,7 @@ from discord_tracker.discord.util import (
     get_discord_invite_info,
     get_guild_icon_url,
 )
-from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser
+from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, InviteUsage
 from discord_tracker.views import interfaces_response
 from discord_tracker.views.forms import SchoolSelectionForm
 from server.util import error_json_response
@@ -136,7 +138,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
 
 @roles_required(required_roles=["trusted", "manager"])
 @require_http_methods(["POST"])
-def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR0911, PLR0912
+def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR0911, PLR0912, PLR0915
     discord_user: DiscordUser = request.user.discord_user
 
     invite_url = request.POST.get("invite_url", "").strip()
@@ -247,12 +249,21 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
         },
     )
 
-    # create invite
+    max_uses_value = invite_info.get("max_uses", 0)
+
+    # parse expires_at ISO string from discord API
+    expires_at_str = invite_info.get("expires_at")
+    expires_at_datetime: datetime | None = None
+    if expires_at_str is not None:
+        expires_at_datetime = parse_datetime(expires_at_str)
+
     discord_invite = DiscordInvite.objects.create(
         invite_url=invite_url,
         notes_md=notes,
         submitter=discord_user,
         discord_server=discord_server,
+        expires_at=expires_at_datetime,
+        max_uses=max_uses_value if isinstance(max_uses_value, int) else 0,  # 0 means unlimited
     )
 
     discord_server.schools.add(school)
@@ -319,3 +330,32 @@ def get_instructors(request: AuthenticatedRequest, school_id: int, subject_id: i
         instructors=instructors,
         message="Instructors fetched successfully.",
     ).render(request)
+
+
+@login_required
+@require_http_methods(["PUT"])
+def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+    invite = get_object_or_404(DiscordInvite, id=invite_id)
+
+    # check if user can access this server
+    if not discord_user.can_access_server(invite.discord_server):
+        return error_json_response(
+            ["You don't have permission to use invites for this server"], status=403
+        )
+
+    # check if invite is valid
+    if not invite.is_valid or not invite.is_approved:
+        return error_json_response(["This invite is no longer valid"], status=400)
+
+    InviteUsage.objects.create(
+        invite=invite,
+        used_by=discord_user,
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=request.META.get("HTTP_USER_AGENT", ""),
+    )
+
+    invite.uses_count += 1
+    invite.save(update_fields=["uses_count"])
+
+    return interfaces_response.BlankResponse().render(request)
