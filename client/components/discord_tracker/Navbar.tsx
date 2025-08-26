@@ -17,6 +17,9 @@ export function Navbar() {
   const djangoContext = React.useContext(Context);
 
   const publicRoutes = [] as TRoute[];
+  const managerRoutes = [
+    { name: "Unapproved Invites", href: reverse("discord_tracker:unapproved_invites") },
+  ] satisfies TRoute[];
 
   return (
     <>
@@ -26,8 +29,13 @@ export function Navbar() {
           <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
           <BSNavbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto mb-2 mb-lg-0">
-              {djangoContext.user.is_superuser &&
-                publicRoutes.map((route) => (
+              {publicRoutes.map((route) => (
+                <NavLink key={route.name} href={route.href}>
+                  {route.name}
+                </NavLink>
+              ))}
+              {djangoContext.user.discord_user?.is_manager === true &&
+                managerRoutes.map((route) => (
                   <NavLink key={route.name} href={route.href}>
                     {route.name}
                   </NavLink>

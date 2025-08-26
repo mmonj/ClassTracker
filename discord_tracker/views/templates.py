@@ -3,7 +3,7 @@ from typing import Literal, NamedTuple
 from reactivated import Pick, template
 
 from class_tracker.models import School
-from discord_tracker.models import DiscordServer, DiscordUser
+from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser
 from discord_tracker.views.forms import SchoolSelectionForm
 
 _SchoolPick = Pick[School, Literal["id", "name"]]
@@ -29,6 +29,23 @@ _DiscordServerPick = Pick[
         "courses.title",
         "instructors.id",
         "instructors.name",
+    ],
+]
+
+_DiscordInvitePick = Pick[
+    DiscordInvite,
+    Literal[
+        "id",
+        "invite_url",
+        "notes_md",
+        "is_valid",
+        "expires_at",
+        "datetime_created",
+        "submitter.display_name",
+        "submitter.role_info",
+        "discord_server.display_name",
+        "discord_server.icon_url",
+        "discord_server.privacy_level",
     ],
 ]
 
@@ -69,3 +86,8 @@ class DiscordTrackerProfile(NamedTuple):
     school: _SchoolPick | None
     school_form: SchoolSelectionForm
     show_school_modal: bool
+
+
+@template
+class DiscordTrackerUnapprovedInvites(NamedTuple):
+    unapproved_invites: list[_DiscordInvitePick]

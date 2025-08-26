@@ -4,6 +4,8 @@ django-allauth config for discord OAuth
 
 import os
 
+from django.urls import reverse_lazy
+
 # django.contrib.sites config for django-allauth to function properly
 SITE_ID = 1
 
@@ -39,5 +41,5 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-LOGIN_REDIRECT_URL = "/discords/login-success/"  # name="login_success"
-LOGOUT_REDIRECT_URL = "/discords/"
+LOGIN_REDIRECT_URL = reverse_lazy("discord_tracker:login_success")
+LOGOUT_REDIRECT_URL = reverse_lazy("discord_tracker:index")

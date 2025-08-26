@@ -2,12 +2,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from discord_tracker.decorators import school_required
-from discord_tracker.models import DiscordServer, DiscordUser
+from discord_tracker.decorators import roles_required, school_required
+from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser
 from discord_tracker.views import templates
 from discord_tracker.views.forms import SchoolSelectionForm
 from server.util.typedefs import AuthenticatedRequest
@@ -43,7 +43,7 @@ def login(request: HttpRequest) -> HttpResponse:
     return templates.DiscordTrackerLogin().render(request)
 
 
-@login_required
+@login_required(login_url=reverse_lazy("discord_tracker:login"))
 def login_success(request: AuthenticatedRequest) -> HttpResponse:
     discord_user = DiscordUser.objects.filter(user=request.user).first()
 
@@ -75,7 +75,7 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
     return redirect("discord_tracker:index")
 
 
-@login_required
+@login_required(login_url=reverse_lazy("discord_tracker:login"))
 def profile(request: AuthenticatedRequest) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 
@@ -88,4 +88,17 @@ def profile(request: AuthenticatedRequest) -> HttpResponse:
         school=discord_user.school,
         school_form=school_form,
         show_school_modal=is_show_school_modal,
+    ).render(request)
+
+
+@roles_required(required_roles=["manager"])
+def unapproved_invites(request: AuthenticatedRequest) -> HttpResponse:
+    unapproved_invites = (
+        DiscordInvite.objects.filter(datetime_approved__isnull=True)
+        .select_related("submitter", "discord_server")
+        .order_by("-datetime_created")
+    )
+
+    return templates.DiscordTrackerUnapprovedInvites(
+        unapproved_invites=list(unapproved_invites),
     ).render(request)

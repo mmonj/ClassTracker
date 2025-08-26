@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -20,6 +20,9 @@ from discord_tracker.views import interfaces_response
 from discord_tracker.views.forms import SchoolSelectionForm
 from server.util import error_json_response
 from server.util.typedefs import AuthenticatedRequest
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 logger = logging.getLogger("main")
 

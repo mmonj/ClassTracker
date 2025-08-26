@@ -3,7 +3,6 @@ from functools import wraps
 from typing import Any, Callable, List
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
@@ -43,15 +42,14 @@ def roles_required(
 
     def decorator(view_fn: TViewCallable) -> TViewCallable:
         @wraps(view_fn)
-        @login_required
         def wrapper(request: HttpRequest) -> HttpResponse:
             # can replace @login_required
             if not request.user.is_authenticated:
-                raise PermissionDenied("User is not authenticated")
+                return redirect("discord_tracker:login")
 
             discord_user = DiscordUser.objects.filter(user__id=request.user.id).first()
             if discord_user is None:
-                raise PermissionDenied("User must have a Discord account linked.")
+                return redirect("discord_tracker:login")
 
             if discord_user.role not in required_roles:
                 role_names = ", ".join(required_roles)

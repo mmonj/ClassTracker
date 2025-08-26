@@ -9,6 +9,7 @@ ssr_patterns = [
     path("login/", ssr.login, name="login"),
     path("login-success/", ssr.login_success, name="login_success"),
     path("profile/", ssr.profile, name="profile"),
+    path("unapproved-invites/", ssr.unapproved_invites, name="unapproved_invites"),
 ]
 
 ajax_patterns = [
