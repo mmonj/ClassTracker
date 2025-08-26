@@ -14,7 +14,6 @@ ssr_patterns = [
 ajax_patterns = [
     path("ajax/select-school/", ajax.select_school, name="select_school"),
     path("ajax/servers/<int:server_id>/invites/", ajax.server_invites, name="server_invites"),
-    path("ajax/get-available-schools/", ajax.get_available_schools, name="get_available_schools"),
     path(
         "ajax/validate-discord-invite/",
         ajax.validate_discord_invite,

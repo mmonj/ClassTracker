@@ -36,16 +36,18 @@ const noRecipientsAnimation = {
 };
 
 // generate animate prop with stagger delay based on recipient ID
-const getRecipientCardAnimate = (recipientId: number) => ({
-  opacity: 1,
-  y: 0,
-  scale: 1,
-  transition: {
-    duration: 0.3,
-    ease: "easeOut" as const,
-    delay: (recipientId % 10) * 0.1,
-  },
-});
+function getRecipientCardAnimate(recipientId: number) {
+  return {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut" as const,
+      delay: (recipientId % 10) * 0.1,
+    },
+  };
+}
 
 export function Template(props: templates.ClassTrackerAddClasses) {
   const [recipients, setRecipients] = useState(props.recipients);

@@ -74,28 +74,6 @@ def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpRespons
 
 
 @roles_required(required_roles=["trusted", "manager"])
-@require_http_methods(["GET"])
-def get_available_schools(request: AuthenticatedRequest) -> HttpResponse:
-    """Get available schools based on user role."""
-    discord_user = get_object_or_404(DiscordUser, user=request.user)
-
-    available_schools: list[School] = []
-    if not discord_user.is_manager and discord_user.school is None:
-        raise ValueError("User is not a manager and has no school assigned")
-
-    if not discord_user.is_manager and discord_user.school is not None:
-        available_schools = [discord_user.school]
-    elif discord_user.is_manager:
-        available_schools = list(School.objects.all())
-
-    return interfaces_response.GetAvailableSchoolsResponse(
-        success=True,
-        available_schools=available_schools,
-        message="Available schools fetched successfully.",
-    ).render(request)
-
-
-@roles_required(required_roles=["trusted", "manager"])
 @require_http_methods(["POST"])
 def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     """Validate Discord invite and return server info (including existing DB data if server exists)"""

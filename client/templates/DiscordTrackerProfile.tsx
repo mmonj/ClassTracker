@@ -26,7 +26,7 @@ export function Template(props: templates.DiscordTrackerProfile) {
 
   const schoolSelectionFetcher = useFetch<SchoolSelectionResponse>();
 
-  const handleSchoolSubmit = async (e: React.FormEvent) => {
+  async function handleSchoolSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formRef.current) return;
 
@@ -46,8 +46,9 @@ export function Template(props: templates.DiscordTrackerProfile) {
       // reload the page to show updated profile
       window.location.reload();
     }
-  };
-  const formatDate = (dateString: string) => {
+  }
+
+  function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -55,9 +56,9 @@ export function Template(props: templates.DiscordTrackerProfile) {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
+  }
 
-  const getRoleBadgeVariant = (role: string) => {
+  function getRoleBadgeVariant(role: string) {
     switch (role) {
       case "discord_manager":
         return "danger";
@@ -66,7 +67,7 @@ export function Template(props: templates.DiscordTrackerProfile) {
       default:
         return "secondary";
     }
-  };
+  }
 
   return (
     <Layout title="Discord Profile" Navbar={Navbar}>

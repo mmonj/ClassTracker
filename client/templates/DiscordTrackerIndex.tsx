@@ -31,7 +31,7 @@ export function Template(props: templates.DiscordTrackerIndex) {
   const canUserAddInvites =
     discordUser !== null && (discordUser.is_trusted === true || discordUser.is_manager === true);
 
-  const handleShowInvites = (serverId: number) => {
+  function handleShowInvites(serverId: number) {
     const allServers = [...publicServers, ...privilegedServers];
     const server = allServers.find((s) => s.id === serverId);
     if (server !== undefined) {
@@ -39,17 +39,17 @@ export function Template(props: templates.DiscordTrackerIndex) {
       setSelectedServerName(server.display_name);
       setShowInvitesModal(true);
     }
-  };
+  }
 
-  const handleCloseModal = () => {
+  function handleCloseModal() {
     setShowInvitesModal(false);
     setSelectedServerId(null);
     setSelectedServerName("");
-  };
+  }
 
-  const handleCloseAddInviteModal = () => {
+  function handleCloseAddInviteModal() {
     setShowAddInviteModal(false);
-  };
+  }
 
   return (
     <Layout title="Discord Tracker" Navbar={Navbar}>

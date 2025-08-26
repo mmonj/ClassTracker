@@ -55,22 +55,6 @@ class SchoolSelectionResponse(NamedTuple):
     message: str
 
 
-@interface
-class GetAvailableSchoolsResponse(NamedTuple):
-    success: bool
-    available_schools: list[_SchoolPick]
-    message: str
-
-
-@interface
-class ValidateInviteResponse(NamedTuple):
-    success: bool
-    message: str
-    guild_name: str
-    guild_id: str
-    available_schools: list[_SchoolPick]
-
-
 class TSimpleGuildInfo(TypedDict):
     id: str
     name: str
