@@ -15,20 +15,19 @@ from server.util.typedefs import AuthenticatedRequest
 
 @school_required
 def index(request: HttpRequest) -> HttpResponse:
-    public_servers = DiscordServer.objects.filter(
-        privacy_level=DiscordServer.PrivacyLevel.PUBLIC
-    ).order_by("name")
+    prefetches = ("subjects", "courses", "instructors", "schools")
 
-    # get privileged servers (only visible to trusted/manager users)
-    privileged_servers = DiscordServer.objects.none()
+    public_servers = (
+        DiscordServer.objects.filter(privacy_level=DiscordServer.PrivacyLevel.PUBLIC)
+        .prefetch_related(*prefetches)
+        .order_by("name")
+    )
 
-    if request.user.is_authenticated:
-        discord_user = request.user.discord_user
-
-        if discord_user.is_trusted or discord_user.is_manager:
-            privileged_servers = DiscordServer.objects.filter(
-                privacy_level=DiscordServer.PrivacyLevel.PRIVILEGED
-            ).order_by("name")
+    privileged_servers = (
+        DiscordServer.objects.filter(privacy_level=DiscordServer.PrivacyLevel.PRIVILEGED)
+        .prefetch_related(*prefetches)
+        .order_by("name")
+    )
 
     return templates.DiscordTrackerIndex(
         public_servers=list(public_servers),

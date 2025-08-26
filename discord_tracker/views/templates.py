@@ -21,6 +21,14 @@ _DiscordServerPick = Pick[
         "is_active",
         "display_name",
         "is_general_server",
+        "subjects.id",
+        "subjects.name",
+        "courses.id",
+        "courses.code",
+        "courses.level",
+        "courses.title",
+        "instructors.id",
+        "instructors.name",
     ],
 ]
 

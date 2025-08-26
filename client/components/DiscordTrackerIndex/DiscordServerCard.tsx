@@ -1,22 +1,13 @@
 import React from "react";
 
+import { templates } from "@reactivated";
 import { Button, Card, Col } from "react-bootstrap";
 
 import { faLock, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface Props {
-  server: {
-    id: number;
-    server_id: string;
-    name: string;
-    icon_url: string;
-    privacy_level: string;
-    custom_title: string;
-    description: string;
-    display_name: string;
-    is_general_server: boolean;
-  };
+  server: templates.DiscordTrackerIndex["public_servers"][number];
   onShowInvites: (serverId: number) => void;
 }
 
@@ -47,7 +38,12 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               className={`rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3 text-white fw-bold ${
                 server.icon_url ? "d-none" : ""
               }`}
-              style={{ width: 40, height: 40 }}
+              style={{
+                width: 40,
+                height: 40,
+                minWidth: 40,
+                minHeight: 40,
+              }}
             >
               {server.display_name.charAt(0).toUpperCase()}
             </div>
@@ -67,6 +63,43 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
           </div>
 
           {server.description && <p className="text-muted small mb-3">{server.description}</p>}
+
+          {/* relevant academic info */}
+          <div className="mb-3">
+            {server.subjects.length > 0 ? (
+              <div className="mb-1">
+                <small className="text-muted fw-bold">Subject: </small>
+                <small className="text-muted">
+                  {server.subjects.map((subject) => subject.name).join(", ")}
+                </small>
+              </div>
+            ) : (
+              <div className="mb-1">
+                <small className="text-muted fw-bold">Type: </small>
+                <small className="text-muted">General Server</small>
+              </div>
+            )}
+
+            {server.courses.length > 0 && (
+              <div className="mb-1">
+                <small className="text-muted fw-bold">Course: </small>
+                <small className="text-muted">
+                  {server.courses
+                    .map((course) => `${course.code} ${course.level} - ${course.title}`)
+                    .join(", ")}
+                </small>
+              </div>
+            )}
+
+            {server.instructors.length > 0 && (
+              <div className="mb-1">
+                <small className="text-muted fw-bold">Instructors: </small>
+                <small className="text-muted">
+                  {server.instructors.map((instructor) => instructor.name).join(", ")}
+                </small>
+              </div>
+            )}
+          </div>
 
           <div className="mt-auto">
             <Button

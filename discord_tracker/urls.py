@@ -27,6 +27,11 @@ ajax_patterns = [
         ajax.get_courses,
         name="get_courses",
     ),
+    path(
+        "ajax/schools/<int:school_id>/subjects/<int:subject_id>/instructors/",
+        ajax.get_instructors,
+        name="get_instructors",
+    ),
 ]
 
 urlpatterns = ssr_patterns + ajax_patterns

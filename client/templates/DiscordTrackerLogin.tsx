@@ -6,11 +6,12 @@ import { Button, Card, Col, Container, Row } from "react-bootstrap";
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
 export function Template(_props: templates.DiscordTrackerLogin) {
   return (
-    <Layout title="Discord Login">
+    <Layout title="Discord Login" Navbar={Navbar}>
       <Container className="d-flex align-items-center justify-content-center min-vh-100">
         <Row className="w-100">
           <Col xs={12} md={6} lg={4} className="mx-auto">

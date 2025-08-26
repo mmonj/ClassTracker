@@ -36,3 +36,9 @@
 .react-select__group {
   padding: 0 !important;
 }
+.react-select__multi-value {
+  background-color: #19222c !important;
+}
+.react-select__multi-value__label {
+  color: var(--bs-secondary-bg-rgb) !important;
+}

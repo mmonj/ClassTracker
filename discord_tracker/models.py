@@ -171,7 +171,19 @@ class DiscordServer(CommonModel):
 
     @property
     def is_general_server(self) -> bool:
-        return not self.courses.exists() and (self.subjects.exists() or self.schools.exists())
+        # prevent further queries if related objects already prefetched. check count without loading all objects
+        try:
+            # if prefetched, _prefetched_objects_cache contains the related objects
+            has_courses = bool(len(getattr(self.courses, "_prefetched_objects_cache", [])))
+            has_subjects = bool(len(getattr(self.subjects, "_prefetched_objects_cache", [])))
+            has_schools = bool(len(getattr(self.schools, "_prefetched_objects_cache", [])))
+        except AttributeError:
+            # fall back to exists() if not prefetched
+            has_courses = self.courses.exists()
+            has_subjects = self.subjects.exists()
+            has_schools = self.schools.exists()
+
+        return not has_courses and (has_subjects or has_schools)
 
     @property
     def display_name(self) -> str:

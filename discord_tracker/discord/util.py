@@ -51,11 +51,9 @@ def get_discord_invite_info(
         return Failure(DiscordAPIError(f"Failed to fetch invite info: {e}"))
 
 
-def get_guild_icon_url(
-    guild_id: str, icon_hash: str | None, file_extension: str = "jpg"
-) -> str | None:
+def get_guild_icon_url(guild_id: str, icon_hash: str | None, file_extension: str = "jpg") -> str:
     if not icon_hash:
-        return None
+        return ""
 
     return GUILD_ICON_URL_TEMPLATE.format(
         guild_id=guild_id, icon_hash=icon_hash, file_extension=file_extension

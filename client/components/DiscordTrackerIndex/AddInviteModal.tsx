@@ -28,6 +28,11 @@ interface CourseOption {
   label: string;
 }
 
+interface InstructorOption {
+  value: number;
+  label: string;
+}
+
 export function AddInviteModal({ show, onHide }: Props) {
   const context = React.useContext(Context);
   const [inviteUrl, setInviteUrl] = useState("");
@@ -35,6 +40,7 @@ export function AddInviteModal({ show, onHide }: Props) {
   const [selectedSchool, setSelectedSchool] = useState<SchoolOption | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<SubjectOption | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<CourseOption | null>(null);
+  const [selectedInstructors, setSelectedInstructors] = useState<InstructorOption[]>([]);
   const [showSchoolSelection, setShowSchoolSelection] = useState(false);
   const [guildInfo, setGuildInfo] = useState<{ name: string; id: string } | null>(null);
   const [isPublic, setIsPublic] = useState(false);
@@ -50,6 +56,7 @@ export function AddInviteModal({ show, onHide }: Props) {
   const submitInviteFetcher = useFetch<interfaces.SubmitInviteResponse>();
   const subjectsFetcher = useFetch<interfaces.GetSubjectsResponse>();
   const coursesFetcher = useFetch<interfaces.GetCoursesResponse>();
+  const instructorsFetcher = useFetch<interfaces.GetInstructorsResponse>();
 
   const schoolOptions: SchoolOption[] = availableSchools;
 
@@ -63,6 +70,12 @@ export function AddInviteModal({ show, onHide }: Props) {
     coursesFetcher.data?.courses.map((course) => ({
       value: course.id,
       label: `${course.code} ${course.level} - ${course.title}`,
+    })) ?? [];
+
+  const instructorOptions: InstructorOption[] =
+    instructorsFetcher.data?.instructors.map((instructor) => ({
+      value: instructor.id,
+      label: instructor.name,
     })) ?? [];
 
   async function handleDirectSubmit(
@@ -197,6 +210,11 @@ export function AddInviteModal({ show, onHide }: Props) {
       formData.append("course_id", selectedCourse.value.toString());
     }
 
+    // Add instructor IDs if any are selected
+    selectedInstructors.forEach((instructor) => {
+      formData.append("instructor_ids", instructor.value.toString());
+    });
+
     const result = await submitInviteFetcher.fetchData(() =>
       fetchByReactivated(
         reverse("discord_tracker:submit_invite"),
@@ -235,23 +253,41 @@ export function AddInviteModal({ show, onHide }: Props) {
   async function handleSubjectChange(option: SubjectOption | null) {
     setSelectedSubject(option);
     setSelectedCourse(null);
+    setSelectedInstructors([]);
 
     if (option === null || selectedSchool === null) return;
 
-    await coursesFetcher.fetchData(() =>
-      fetchByReactivated(
-        reverse("discord_tracker:get_courses", {
-          school_id: selectedSchool.value,
-          subject_id: option.value,
-        }),
-        context.csrf_token,
-        "GET",
+    // Fetch both courses and instructors when subject changes
+    await Promise.all([
+      coursesFetcher.fetchData(() =>
+        fetchByReactivated(
+          reverse("discord_tracker:get_courses", {
+            school_id: selectedSchool.value,
+            subject_id: option.value,
+          }),
+          context.csrf_token,
+          "GET",
+        ),
       ),
-    );
+      instructorsFetcher.fetchData(() =>
+        fetchByReactivated(
+          reverse("discord_tracker:get_instructors", {
+            school_id: selectedSchool.value,
+            subject_id: option.value,
+          }),
+          context.csrf_token,
+          "GET",
+        ),
+      ),
+    ]);
   }
 
   function handleCourseChange(option: CourseOption | null) {
     setSelectedCourse(option);
+  }
+
+  function handleInstructorsChange(options: readonly InstructorOption[]) {
+    setSelectedInstructors([...options]);
   }
 
   function handleClose() {
@@ -260,6 +296,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     setSelectedSchool(null);
     setSelectedSubject(null);
     setSelectedCourse(null);
+    setSelectedInstructors([]);
     setShowSchoolSelection(false);
     setGuildInfo(null);
     setIsPublic(false);
@@ -271,6 +308,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     submitInviteFetcher.reset();
     subjectsFetcher.reset();
     coursesFetcher.reset();
+    instructorsFetcher.reset();
 
     onHide();
   }
@@ -405,6 +443,24 @@ export function AddInviteModal({ show, onHide }: Props) {
                 isLoading={coursesFetcher.isLoading}
                 classNamePrefix="react-select"
               />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Instructor(s) (Optional)</Form.Label>
+              <Select
+                isMulti
+                value={selectedInstructors}
+                onChange={handleInstructorsChange}
+                options={instructorOptions}
+                placeholder="Select instructor(s)..."
+                isSearchable
+                isDisabled={!selectedSubject}
+                isLoading={instructorsFetcher.isLoading}
+                classNamePrefix="react-select"
+              />
+              <Form.Text className="text-muted">
+                Select one or more instructors who teach this subject (optional)
+              </Form.Text>
             </Form.Group>
 
             <Form.Group className="mb-3">

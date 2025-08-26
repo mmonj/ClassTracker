@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
-from class_tracker.models import Course, School, Subject
+from class_tracker.models import Course, Instructor, School, Subject
 from discord_tracker.decorators import roles_required
 from discord_tracker.discord.util import (
     extract_invite_code_from_url,
@@ -148,7 +148,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
         guild_info={
             "id": guild_id,
             "name": guild_name,
-            "icon_url": guild_icon_url or "",
+            "icon_url": guild_icon_url,
         },
         existing_server_info=existing_server,
         available_schools=available_schools,
@@ -168,6 +168,7 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     school_id = request.POST.get("school_id")
     subject_id = request.POST.get("subject_id")
     course_id = request.POST.get("course_id")
+    instructor_ids = request.POST.getlist("instructor_ids")  # Can be multiple instructors
     privacy_level = request.POST.get("privacy_level", "privileged").strip()
 
     if not all([invite_url, guild_name, guild_id, school_id]):
@@ -241,6 +242,17 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     if course_id is not None:
         course = Course.objects.filter(id=int(course_id), subject=subject).first()
 
+    # get instructors if provided
+    instructors: list[Instructor] = []
+    if instructor_ids:
+        # validate that all instructor ids belong to the school and subject
+        instructors = list(
+            school.instructors.filter(
+                id__in=[int(instructor_id) for instructor_id in instructor_ids],
+                instruction_entries__course_section__course__subject=subject,
+            ).distinct()
+        )
+
     # create server
     privacy_level_enum = (
         DiscordServer.PrivacyLevel.PUBLIC
@@ -272,6 +284,10 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
 
     if course is not None:
         discord_server.courses.add(course)
+
+    # add instructor associations
+    if instructors:
+        discord_server.instructors.add(*instructors)
 
     success_message = f"Discord invite for '{guild_name}' has been successfully submitted!"
     if discord_invite.is_approved:
@@ -305,4 +321,23 @@ def get_courses(request: AuthenticatedRequest, school_id: int, subject_id: int) 
     return interfaces_response.GetCoursesResponse(
         courses=courses,
         message="Courses fetched successfully.",
+    ).render(request)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_instructors(request: AuthenticatedRequest, school_id: int, subject_id: int) -> HttpResponse:
+    school = get_object_or_404(School, id=school_id)
+    subject = get_object_or_404(Subject, id=subject_id)
+
+    # get instructors who teach courses in this subject at this school
+    instructors = list(
+        school.instructors.filter(instruction_entries__course_section__course__subject=subject)
+        .distinct()
+        .order_by("name")
+    )
+
+    return interfaces_response.GetInstructorsResponse(
+        instructors=instructors,
+        message="Instructors fetched successfully.",
     ).render(request)
