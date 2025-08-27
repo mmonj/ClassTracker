@@ -96,9 +96,9 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
               <h4 className="mb-1">{server.display_name}</h4>
               <div className="d-flex justify-content-center gap-2">
                 <span
-                  className={`badge bg-${server.privacy_level === "public" ? "success" : "warning"}`}
+                  className={`badge bg-${server.privacy_level_info.value === "public" ? "success" : "warning"}`}
                 >
-                  {server.privacy_level === "public" ? "Public" : "Privileged"}
+                  {server.privacy_level_info.label}
                 </span>
                 {server.is_general_server && <span className="badge bg-info">General Server</span>}
               </div>
@@ -172,9 +172,17 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
                           )}
                         </div>
                         {invite.notes_md && (
-                          <div className="bg-light rounded p-2 mt-2">
-                            <small className="text-muted mb-0">{invite.notes_md}</small>
-                          </div>
+                          <>
+                            <b>Notes:</b>
+                            <div className="bg-light rounded p-2 mt-2">
+                              <pre
+                                className="text-muted mb-0 small"
+                                style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}
+                              >
+                                {invite.notes_md}
+                              </pre>
+                            </div>
+                          </>
                         )}
                       </div>
                       {invite.is_valid ? (

@@ -93,7 +93,7 @@ export function AddInviteModal({ show, onHide }: Props) {
       school_id:
         existingServerInfo.schools.length > 0 ? existingServerInfo.schools[0].id.toString() : "",
       // use existing server's privacy level
-      privacy_level: existingServerInfo.privacy_level,
+      privacy_level: existingServerInfo.privacy_level_info.value,
     });
 
     // add subject if exists
@@ -355,7 +355,7 @@ export function AddInviteModal({ show, onHide }: Props) {
                 disabled={isValidating}
               />
               <Form.Text className="text-muted">
-                Optional notes about the server that will help others understand what it's for
+                Optional notes about the server to give extra context
               </Form.Text>
             </Form.Group>
 

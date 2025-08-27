@@ -13,7 +13,7 @@ from .models import (
 
 class DiscordInviteInline(admin.TabularInline[DiscordInvite, DiscordServer]):
     model = DiscordInvite
-    fields = ["invite_url", "notes_md", "expires_at", "max_uses"]
+    fields = ["invite_url", "notes_md", "expires_at", "max_uses", "submitter"]
     extra = 1
     show_change_link = True
 
@@ -92,7 +92,6 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
         "is_disabled",
         "get_school_count",
         "get_subject_count",
-        "get_course_count",
         "datetime_last_synced",
         "added_by",
     ]
@@ -107,7 +106,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
     search_fields = ["name", "custom_title", "description", "server_id"]
     readonly_fields = ["datetime_last_synced"]
     list_editable = ["is_active", "is_disabled"]
-    filter_horizontal = ["schools", "subjects", "courses", "instructors"]
+    filter_horizontal = ["schools", "subjects"]
     inlines = [DiscordInviteInline]
 
     def get_readonly_fields(
@@ -138,6 +137,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
                     "privacy_level",
                     "is_active",
                     "is_disabled",
+                    "is_required_for_trust",
                 ]
             },
         ),
@@ -147,8 +147,6 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
                 "fields": [
                     "schools",
                     "subjects",
-                    "courses",
-                    "instructors",
                 ]
             },
         ),
@@ -174,12 +172,6 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
         return obj.subjects.count()
 
     get_subject_count.short_description = "Subjects"  # type: ignore[attr-defined]
-
-    def get_course_count(self, obj: DiscordServer) -> int:
-        """Get the number of associated courses."""
-        return obj.courses.count()
-
-    get_course_count.short_description = "Courses"  # type: ignore[attr-defined]
 
 
 @admin.register(DiscordInvite)

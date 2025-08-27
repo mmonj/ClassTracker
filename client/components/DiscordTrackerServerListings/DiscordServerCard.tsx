@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function DiscordServerCard({ server, onShowInvites }: Props) {
-  const isPrivileged = server.privacy_level === "privileged";
+  const isPrivileged = server.privacy_level_info.value === "privileged";
 
   return (
     <Col xs={12} md={6} lg={4} className="mb-4">
@@ -58,7 +58,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
                   size="sm"
                 />
                 <small className={isPrivileged ? "text-warning" : "text-muted"}>
-                  {isPrivileged ? "Privileged" : "Public"}
+                  {isPrivileged ? "Private" : "Public"}
                 </small>
               </div>
             </div>

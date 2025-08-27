@@ -93,10 +93,10 @@ export function Template(props: templates.DiscordTrackerServerListings) {
           </section>
         )}
 
-        {/* privileged servers section */}
+        {/* private servers section */}
         {privilegedServers.length > 0 && (
           <section className="mb-5">
-            <h2 className="h3 mb-4">Privileged Servers</h2>
+            <h2 className="h3 mb-4">Private Servers</h2>
             <Alert variant="info" className="mb-3">
               <b>Note:</b> These servers' invites are only visible to trusted authenticated users
             </Alert>

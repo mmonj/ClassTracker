@@ -193,7 +193,9 @@ export function UnapprovedInviteCard({
                 <div className="mb-3">
                   <strong>Notes:</strong>
                   <div className="bg-light rounded p-3 mt-2">
-                    <p className="mb-0">{invite.notes_md}</p>
+                    <pre className="mb-0" style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
+                      {invite.notes_md}
+                    </pre>
                   </div>
                 </div>
               )}
