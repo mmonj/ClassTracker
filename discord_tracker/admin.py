@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpRequest
 
 from .models import (
     DiscordInvite,
@@ -8,6 +9,13 @@ from .models import (
     RequiredDiscordServer,
     UserVouch,
 )
+
+
+class DiscordInviteInline(admin.TabularInline[DiscordInvite, DiscordServer]):
+    model = DiscordInvite
+    fields = ["invite_url", "notes_md", "expires_at", "max_uses"]
+    extra = 1
+    show_change_link = True
 
 
 @admin.register(DiscordUser)
@@ -97,9 +105,18 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
         "subjects",
     ]
     search_fields = ["name", "custom_title", "description", "server_id"]
-    readonly_fields = ["server_id", "datetime_last_synced"]
+    readonly_fields = ["datetime_last_synced"]
     list_editable = ["is_active", "is_disabled"]
     filter_horizontal = ["schools", "subjects", "courses", "instructors"]
+    inlines = [DiscordInviteInline]
+
+    def get_readonly_fields(
+        self, _request: HttpRequest, obj: DiscordServer | None = None
+    ) -> list[str]:
+        """Make server_id readonly only for existing objects."""
+        if obj is not None:  # when existing record
+            return [*self.readonly_fields, "server_id"]
+        return list(self.readonly_fields)  # when creating new record
 
     fieldsets = [
         (

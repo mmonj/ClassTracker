@@ -151,6 +151,8 @@ class DiscordServer(CommonModel):
     instructors = models.ManyToManyField(Instructor, related_name="discord_servers", blank=True)
 
     datetime_last_synced = models.DateTimeField(auto_now_add=True)  # last API sync
+    is_required_for_trust = models.BooleanField(default=False)
+
     # should be `initially_added_by`
     added_by = models.ForeignKey(
         DiscordUser, on_delete=models.SET_NULL, null=True, related_name="added_servers"
@@ -159,6 +161,11 @@ class DiscordServer(CommonModel):
     # custom managers
     objects = DiscordServerManager()  # excludes disabled servers
     all_objects = AllDiscordServerManager()  # includes all servers
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["server_id", "is_required_for_trust"]),
+        ]
 
     def __str__(self) -> str:
         return self.custom_title or self.name
