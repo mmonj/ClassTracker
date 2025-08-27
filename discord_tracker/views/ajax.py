@@ -11,16 +11,17 @@ from django.views.decorators.http import require_http_methods
 
 from class_tracker.models import Course, Instructor, School, Subject
 from discord_tracker.decorators import roles_required
-from discord_tracker.discord.util import (
-    extract_invite_code_from_url,
-    get_discord_invite_info,
-    get_guild_icon_url,
-)
 from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, InviteUsage
 from discord_tracker.views import interfaces_response
 from discord_tracker.views.forms import SchoolSelectionForm
 from server.util import error_json_response
 from server.util.typedefs import AuthenticatedRequest
+
+from ..util.discord_api import (
+    extract_invite_code_from_url,
+    get_discord_invite_info,
+    get_guild_icon_url,
+)
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -86,7 +87,7 @@ def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpRespons
 @require_http_methods(["POST"])
 def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     """Validate Discord invite and return server info (including existing DB data if server exists)"""
-    discord_user: DiscordUser = request.user.discord_user
+    discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
 
     invite_url = request.POST.get("invite_url", "").strip()
 
@@ -146,7 +147,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
 @roles_required(required_roles=["trusted", "manager"])
 @require_http_methods(["POST"])
 def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR0911, PLR0912, PLR0915
-    discord_user: DiscordUser = request.user.discord_user
+    discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
 
     invite_url = request.POST.get("invite_url", "").strip()
     notes = request.POST.get("notes", "").strip()

@@ -25,7 +25,9 @@ export function Navbar() {
     <>
       <BSNavbar expand="lg">
         <Container fluid>
-          <BSNavbar.Brand href={reverse("discord_tracker:index")}>Discord Tracker</BSNavbar.Brand>
+          <BSNavbar.Brand href={reverse("discord_tracker:listings")}>
+            Discord Tracker
+          </BSNavbar.Brand>
           <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
           <BSNavbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto mb-2 mb-lg-0">

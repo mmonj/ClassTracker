@@ -26,5 +26,5 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("class_tracker/", include("class_tracker.urls")),
     path("scheduler/", include("scheduler.urls")),
-    path("discords/", include("discord_tracker.urls")),
+    path("classcords/", include("discord_tracker.urls")),
 ]

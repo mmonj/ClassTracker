@@ -4,7 +4,7 @@ import { templates } from "@reactivated";
 import { Badge, Card, Col, Row } from "react-bootstrap";
 
 interface Props {
-  server: templates.DiscordTrackerIndex["public_servers"][number];
+  server: templates.DiscordTrackerServerListings["public_servers"][number];
   className?: string;
 }
 

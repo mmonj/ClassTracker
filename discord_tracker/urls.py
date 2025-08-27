@@ -5,10 +5,10 @@ from .views import ajax, ssr
 app_name = "discord_tracker"
 
 ssr_patterns = [
-    path("", ssr.index, name="index"),
     path("login/", ssr.login, name="login"),
     path("login-success/", ssr.login_success, name="login_success"),
     path("profile/", ssr.profile, name="profile"),
+    path("listings/", ssr.server_listings, name="listings"),
     path("unapproved-invites/", ssr.unapproved_invites, name="unapproved_invites"),
 ]
 

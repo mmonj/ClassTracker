@@ -23,7 +23,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD: str | None = None
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_LOGIN_ON_GET = False
-SOCIALACCOUNT_ADAPTER = "discord_tracker.discord.adapters.DiscordSocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "discord_tracker.util.auth_adapters.DiscordSocialAccountAdapter"
 
 SOCIALACCOUNT_PROVIDERS = {
     "discord": {
@@ -42,4 +42,4 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 LOGIN_REDIRECT_URL = reverse_lazy("discord_tracker:login_success")
-LOGOUT_REDIRECT_URL = reverse_lazy("discord_tracker:index")
+LOGOUT_REDIRECT_URL = reverse_lazy("discord_tracker:listings")

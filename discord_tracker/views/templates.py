@@ -70,7 +70,7 @@ _DiscordUserProfilePick = Pick[
 
 
 @template
-class DiscordTrackerIndex(NamedTuple):
+class DiscordTrackerServerListings(NamedTuple):
     public_servers: list[_DiscordServerPick]
     privileged_servers: list[_DiscordServerPick]
 

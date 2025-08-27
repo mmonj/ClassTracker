@@ -14,7 +14,7 @@ from server.util.typedefs import AuthenticatedRequest
 
 
 @school_required
-def index(request: HttpRequest) -> HttpResponse:
+def server_listings(request: HttpRequest) -> HttpResponse:
     prefetches = ("subjects", "courses", "instructors", "schools")
 
     public_servers = (
@@ -36,7 +36,7 @@ def index(request: HttpRequest) -> HttpResponse:
         .order_by("name")
     )
 
-    return templates.DiscordTrackerIndex(
+    return templates.DiscordTrackerServerListings(
         public_servers=list(public_servers),
         privileged_servers=privileged_servers,
     ).render(request)
@@ -45,7 +45,7 @@ def index(request: HttpRequest) -> HttpResponse:
 @require_http_methods(["GET"])
 def login(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
-        return redirect("discord_tracker:index")
+        return redirect("discord_tracker:listings")
 
     return templates.DiscordTrackerLogin().render(request)
 
@@ -58,7 +58,7 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
         messages.warning(
             request, "Discord account not properly linked. Please contact an administrator."
         )
-        return redirect("discord_tracker:index")
+        return redirect("discord_tracker:listings")
 
     discord_user.last_login = timezone.now()
     discord_user.save(update_fields=["last_login"])
@@ -79,7 +79,7 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
     if discord_user.school is None:
         return redirect(reverse("discord_tracker:profile"))
 
-    return redirect("discord_tracker:index")
+    return redirect("discord_tracker:listings")
 
 
 @login_required(login_url=reverse_lazy("discord_tracker:login"))
@@ -98,6 +98,7 @@ def profile(request: AuthenticatedRequest) -> HttpResponse:
     ).render(request)
 
 
+@school_required
 @roles_required(required_roles=["manager"])
 def unapproved_invites(request: AuthenticatedRequest) -> HttpResponse:
     unapproved_invites = (

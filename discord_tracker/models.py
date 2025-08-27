@@ -112,7 +112,7 @@ class DiscordUser(CommonModel):
     def can_access_server(self, server: "DiscordServer") -> bool:
         if server.privacy_level == DiscordServer.PrivacyLevel.PUBLIC:
             return True
-        return self.is_trusted or self.is_manager
+        return self.role_info.value == "trusted" or self.role_info.value == "manager"  # noqa: PLR1714
 
 
 TServerPrivacyLevelValue = Literal["public", "privileged"]
