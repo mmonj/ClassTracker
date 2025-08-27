@@ -1,4 +1,3 @@
-import sys
 from typing import Any, Literal, NamedTuple, cast
 
 from django.contrib.auth.models import User
@@ -7,19 +6,6 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 
 from class_tracker.models import CommonModel, Course, Instructor, School, Subject
-
-TUserRoleValue = Literal["regular", "trusted", "manager"]
-TServerPrivacyLevelValue = Literal["public", "privileged"]
-
-
-class TUserRole(NamedTuple):
-    value: TUserRoleValue
-    label: str
-
-
-class TServerPrivacyLevel(NamedTuple):
-    value: TServerPrivacyLevelValue
-    label: str
 
 
 class DiscordServerQuerySet(QuerySet["DiscordServer"]):
@@ -41,7 +27,14 @@ class AllDiscordServerManager(models.Manager["DiscordServer"]):
         return DiscordServerQuerySet(self.model, using=self._db)
 
 
+TUserRoleValue = Literal["regular", "trusted", "manager"]
+
+
 class DiscordUser(CommonModel):
+    class TUserRole(NamedTuple):
+        value: TUserRoleValue
+        label: str
+
     # trusted or manager DiscordUsers can vouch for users (trust them), allowing them to see the invites of servers without needing to also be apart of other required server(s)
     # 'trusted' role is set as soon as another trusted/manager DiscordUser vouches for them, or if that user is already a member of the required server(s) upon authenticating
     class UserRole(models.TextChoices):
@@ -78,7 +71,7 @@ class DiscordUser(CommonModel):
 
     @property
     def role_info(self) -> TUserRole:
-        return TUserRole(cast("TUserRoleValue", self.role), label=self.get_role_display())
+        return self.TUserRole(cast("TUserRoleValue", self.role), label=self.get_role_display())
 
     @property
     def display_name(self) -> str:
@@ -122,7 +115,14 @@ class DiscordUser(CommonModel):
         return self.is_trusted or self.is_manager
 
 
+TServerPrivacyLevelValue = Literal["public", "privileged"]
+
+
 class DiscordServer(CommonModel):
+    class TServerPrivacyLevel(NamedTuple):
+        value: TServerPrivacyLevelValue
+        label: str
+
     class PrivacyLevel(models.TextChoices):
         PUBLIC = "public", "Public - visible to all users"
         PRIVILEGED = "privileged", "Privileged - trusted/manager users only"
@@ -165,17 +165,13 @@ class DiscordServer(CommonModel):
 
     @property
     def privacy_level_info(self) -> TServerPrivacyLevel:
-        return TServerPrivacyLevel(
+        return self.TServerPrivacyLevel(
             cast("TServerPrivacyLevelValue", self.privacy_level),
             label=self.get_privacy_level_display(),
         )
 
     @property
     def is_general_server(self) -> bool:
-        print("Discord name:", self.name, file=sys.stderr)
-
-        from typing import Any
-
         def has_related(manager: models.Manager[Any]) -> bool:
             qs = manager.all()
             # attempt to avoid further db queries. check if related fields are already prefetched

@@ -52,30 +52,33 @@ def select_school(request: AuthenticatedRequest) -> HttpResponse:
     ).render(request)
 
 
-@login_required
 @require_http_methods(["GET"])
 def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpResponse:
-    discord_user = get_object_or_404(DiscordUser, user=request.user)
     server = get_object_or_404(DiscordServer, id=server_id)
-
-    # check if user can access server
-    if not discord_user.can_access_server(server):
-        return interfaces_response.ServerInvitesResponse(
-            success=False,
-            invites=[],
-            message="You don't have permission to view invites for this server.",
-        ).render(request)
-
-    # get approved invites for this server
     invites = server.invites.filter(
         is_valid=True,
         datetime_approved__isnull=False,
     ).order_by("-datetime_created")
 
+    # unauthenticated users can view public invites
+    if not request.user.is_authenticated and server.privacy_level_info.value == "public":
+        return interfaces_response.ServerInvitesResponse(
+            invites=list(invites),
+        ).render(request)
+
+    if not request.user.is_authenticated:
+        return error_json_response(["Authentication required to view server invites."], status=401)
+
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+
+    # check if user can access server
+    if not discord_user.can_access_server(server):
+        return error_json_response(
+            ["You don't have permission to view invites for this server."], status=403
+        )
+
     return interfaces_response.ServerInvitesResponse(
-        success=True,
         invites=list(invites),
-        message="Invites fetched successfully.",
     ).render(request)
 
 

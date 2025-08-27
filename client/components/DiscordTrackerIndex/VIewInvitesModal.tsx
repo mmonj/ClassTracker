@@ -129,7 +129,7 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
 
         {invitesFetcher.errorMessages.length > 0 && (
           <Alert variant="danger" className="mb-3">
-            <ul className="mb-0">
+            <ul className="mb-0" style={{ listStyleType: "disclosure-closed" }}>
               {invitesFetcher.errorMessages.map((error, index) => (
                 <li key={index}>{error}</li>
               ))}

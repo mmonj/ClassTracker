@@ -76,9 +76,7 @@ class ValidateDiscordInviteResponse(NamedTuple):
 
 @interface
 class ServerInvitesResponse(NamedTuple):
-    success: bool
     invites: list[_DiscordInvitePick]
-    message: str
 
 
 @interface

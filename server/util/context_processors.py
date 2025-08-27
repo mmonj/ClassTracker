@@ -26,7 +26,7 @@ _TDiscordUserPick = Pick[
         "is_token_expired",
         "can_refresh_token",
         ##
-        "role",
+        "role_info",
         "is_trusted",
         "is_manager",
     ],
