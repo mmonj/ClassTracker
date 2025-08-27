@@ -57,7 +57,7 @@ class TDiscordInviteData(TypedDict):  # type: ignore [type-var]
     type: int
     code: str
     inviter: TInviterData
-    expires_at: TAwareDatetime | None
+    expires_at: TAwareDatetime | None  # ISO format (UTC)
     guild: TGuildData
     guild_id: str
     channel: TChannelData

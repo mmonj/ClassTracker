@@ -10,16 +10,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   AddInviteModal,
   DiscordServerCard,
-  InvitesModal,
   LoginBanner,
+  ViewInvitesModal,
 } from "@client/components/DiscordTrackerIndex";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
 export function Template(props: templates.DiscordTrackerIndex) {
   const context = useContext(Context);
-  const [selectedServerId, setSelectedServerId] = useState<number | null>(null);
-  const [selectedServerName, setSelectedServerName] = useState("");
+  const [selectedServer, setSelectedServer] = useState<(typeof props.public_servers)[0] | null>(
+    null,
+  );
   const [showInvitesModal, setShowInvitesModal] = useState(false);
   const [showAddInviteModal, setShowAddInviteModal] = useState(false);
 
@@ -35,16 +36,14 @@ export function Template(props: templates.DiscordTrackerIndex) {
     const allServers = [...publicServers, ...privilegedServers];
     const server = allServers.find((s) => s.id === serverId);
     if (server !== undefined) {
-      setSelectedServerId(serverId);
-      setSelectedServerName(server.display_name);
+      setSelectedServer(server);
       setShowInvitesModal(true);
     }
   }
 
   function handleCloseModal() {
     setShowInvitesModal(false);
-    setSelectedServerId(null);
-    setSelectedServerName("");
+    setSelectedServer(null);
   }
 
   function handleCloseAddInviteModal() {
@@ -126,11 +125,10 @@ export function Template(props: templates.DiscordTrackerIndex) {
           </div>
         )}
 
-        <InvitesModal
+        <ViewInvitesModal
           show={showInvitesModal}
           onHide={handleCloseModal}
-          serverId={selectedServerId}
-          serverName={selectedServerName}
+          server={selectedServer}
         />
 
         <AddInviteModal show={showAddInviteModal} onHide={handleCloseAddInviteModal} />

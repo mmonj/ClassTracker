@@ -1,3 +1,4 @@
+import sys
 from typing import Any, Literal, NamedTuple, cast
 
 from django.contrib.auth.models import User
@@ -171,19 +172,23 @@ class DiscordServer(CommonModel):
 
     @property
     def is_general_server(self) -> bool:
-        # prevent further queries if related objects already prefetched. check count without loading all objects
-        try:
-            # if prefetched, _prefetched_objects_cache contains the related objects
-            has_courses = bool(len(getattr(self.courses, "_prefetched_objects_cache", [])))
-            has_subjects = bool(len(getattr(self.subjects, "_prefetched_objects_cache", [])))
-            has_schools = bool(len(getattr(self.schools, "_prefetched_objects_cache", [])))
-        except AttributeError:
-            # fall back to exists() if not prefetched
-            has_courses = self.courses.exists()
-            has_subjects = self.subjects.exists()
-            has_schools = self.schools.exists()
+        print("Discord name:", self.name, file=sys.stderr)
 
-        return not has_courses and (has_subjects or has_schools)
+        from typing import Any
+
+        def has_related(manager: models.Manager[Any]) -> bool:
+            qs = manager.all()
+            # attempt to avoid further db queries. check if related fields are already prefetched
+            if hasattr(qs, "_result_cache") and qs._result_cache is not None:  # noqa: SLF001
+                return bool(len(qs._result_cache))  # noqa: SLF001
+            # fallback to .exists() (queries db)
+            return manager.exists()
+
+        has_courses = has_related(self.courses)
+        has_subjects = has_related(self.subjects)
+        has_schools = has_related(self.schools)
+
+        return has_schools and not has_subjects and not has_courses
 
     @property
     def display_name(self) -> str:

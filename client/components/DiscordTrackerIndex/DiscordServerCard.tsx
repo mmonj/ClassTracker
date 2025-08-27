@@ -6,6 +6,8 @@ import { Button, Card, Col } from "react-bootstrap";
 import { faLock, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { DiscordServerInfo } from "./DiscordServerInfo";
+
 interface Props {
   server: templates.DiscordTrackerIndex["public_servers"][number];
   onShowInvites: (serverId: number) => void;
@@ -18,7 +20,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
     <Col xs={12} md={6} lg={4} className="mb-4">
       <Card className="h-100 shadow-sm">
         <Card.Body className="d-flex flex-column">
-          <div className="d-flex align-items-center mb-3">
+          <div className="d-flex align-items-center mb-1">
             {server.icon_url ? (
               <img
                 src={server.icon_url}
@@ -65,41 +67,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
           {server.description && <p className="text-muted small mb-3">{server.description}</p>}
 
           {/* relevant academic info */}
-          <div className="mb-3">
-            {server.subjects.length > 0 ? (
-              <div className="mb-1">
-                <small className="text-muted fw-bold">Subject: </small>
-                <small className="text-muted">
-                  {server.subjects.map((subject) => subject.name).join(", ")}
-                </small>
-              </div>
-            ) : (
-              <div className="mb-1">
-                <small className="text-muted fw-bold">Type: </small>
-                <small className="text-muted">General Server</small>
-              </div>
-            )}
-
-            {server.courses.length > 0 && (
-              <div className="mb-1">
-                <small className="text-muted fw-bold">Course: </small>
-                <small className="text-muted">
-                  {server.courses
-                    .map((course) => `${course.code} ${course.level} - ${course.title}`)
-                    .join(", ")}
-                </small>
-              </div>
-            )}
-
-            {server.instructors.length > 0 && (
-              <div className="mb-1">
-                <small className="text-muted fw-bold">Instructors: </small>
-                <small className="text-muted">
-                  {server.instructors.map((instructor) => instructor.name).join(", ")}
-                </small>
-              </div>
-            )}
-          </div>
+          <DiscordServerInfo server={server} className="mb-0 border-0" />
 
           <div className="mt-auto">
             <Button
