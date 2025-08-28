@@ -75,7 +75,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               className="w-100"
               onClick={() => onShowInvites(server.id)}
             >
-              View Invites
+              View Info
             </Button>
           </div>
         </Card.Body>

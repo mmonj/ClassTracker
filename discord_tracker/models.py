@@ -39,7 +39,7 @@ class DiscordUser(CommonModel):
     # 'trusted' role is set as soon as another trusted/manager DiscordUser vouches for them, or if that user is already a member of the required server(s) upon authenticating
     class UserRole(models.TextChoices):
         REGULAR = "regular", "Regular User"
-        TRUSTED = "trusted", "Verified User"
+        TRUSTED = "trusted", "Trusted User"
         MANAGER = "manager", "Discord Manager"
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="discord_user")

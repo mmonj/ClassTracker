@@ -118,7 +118,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     if (result.ok) {
       setTimeout(() => {
         handleClose();
-      }, 2000);
+      }, 800);
     }
   }
 
@@ -231,7 +231,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     setTimeout(() => {
       handleClose();
       window.location.reload(); // refresh page
-    }, 2000);
+    }, 800);
   }
 
   async function handleSchoolChange(option: SchoolOption | null) {
@@ -473,8 +473,8 @@ export function AddInviteModal({ show, onHide }: Props) {
               />
               <Form.Text className="text-muted">
                 {isManager
-                  ? "If unchecked, only verified users and site managers can see your invite. Your invites are automatically approved"
-                  : "If unchecked, only verified users and site managers can see your invite. Note: All of your invites require manager approval before becoming visible to anyone"}
+                  ? "If unchecked, only trusted users and site managers can see your invite. Your invites are automatically approved"
+                  : "If unchecked, only trusted users and site managers can see your invite. Note: All of your invites require manager approval before becoming visible to anyone"}
               </Form.Text>
             </Form.Group>
 

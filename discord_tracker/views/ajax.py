@@ -68,7 +68,9 @@ def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpRespons
         ).render(request)
 
     if not request.user.is_authenticated:
-        return error_json_response(["Authentication required to view server invites."], status=401)
+        return error_json_response(
+            ["Authentication/trusted state required to view server invites."], status=401
+        )
 
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 
