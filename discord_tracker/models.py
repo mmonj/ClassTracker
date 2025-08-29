@@ -42,27 +42,27 @@ class DiscordUser(CommonModel):
         TRUSTED = "trusted", "Trusted User"
         MANAGER = "manager", "Discord Manager"
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="discord_user")
+    role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.REGULAR)
     discord_id = models.CharField(max_length=64, unique=True, db_index=True)
     username = models.CharField(max_length=100)
     discriminator = models.CharField(max_length=10, blank=True)
     global_name = models.CharField(max_length=100, blank=True)
     avatar = models.URLField(blank=True)
+
     # if their discord account is verified by email
     is_verified = models.BooleanField(default=False)
     is_disabled = models.BooleanField(default=False)
 
-    role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.REGULAR)
-
-    first_login = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(auto_now=True)
-    login_count = models.PositiveIntegerField(default=0)
+    first_login = models.DateTimeField(auto_now_add=True, editable=False)
+    last_login = models.DateTimeField(auto_now=True, editable=False)
+    login_count = models.PositiveIntegerField(default=0, editable=False)
 
     # OAuth token fields
-    access_token = models.TextField(blank=True)
-    refresh_token = models.TextField(blank=True)
-    token_expires_at = models.DateTimeField(null=True, blank=True)
+    access_token = models.TextField(blank=True, editable=False)
+    refresh_token = models.TextField(blank=True, editable=False)
+    token_expires_at = models.DateTimeField(null=True, blank=True, editable=False)
 
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="discord_user")
     # school that the user is a student of
     school = models.ForeignKey(School, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -150,7 +150,7 @@ class DiscordServer(CommonModel):
     courses = models.ManyToManyField(Course, related_name="discord_servers", blank=True)
     instructors = models.ManyToManyField(Instructor, related_name="discord_servers", blank=True)
 
-    datetime_last_synced = models.DateTimeField(auto_now_add=True)  # last API sync
+    datetime_last_synced = models.DateTimeField(auto_now_add=True, editable=False)  # last API sync
     is_required_for_trust = models.BooleanField(default=False)
 
     # should be `initially_added_by`
@@ -208,7 +208,9 @@ class DiscordInvite(CommonModel):
     expires_at = models.DateTimeField(null=True, blank=True)  # When invite expires
     # if invite was created with no usage limit, discord returns this field as `0`
     max_uses = models.PositiveIntegerField(blank=True, default=0)  # Usage limit
-    uses_count = models.PositiveIntegerField(default=0)  # How many times this invite has been used
+    uses_count = models.PositiveIntegerField(
+        default=0, editable=False
+    )  # How many times this invite has been used
 
     # tracks whether the invite is usable (ie. not expired)
     is_valid = models.BooleanField(default=True)
@@ -230,8 +232,8 @@ class DiscordInvite(CommonModel):
         blank=True,
         related_name="rejected_invites",
     )
-    datetime_approved = models.DateTimeField(null=True, blank=True)
-    datetime_rejected = models.DateTimeField(null=True, blank=True)
+    datetime_approved = models.DateTimeField(null=True, blank=True, editable=False)
+    datetime_rejected = models.DateTimeField(null=True, blank=True, editable=False)
 
     submitter = models.ForeignKey(
         DiscordUser, on_delete=models.CASCADE, related_name="submitted_invites"

@@ -6,8 +6,6 @@ from .models import (
     DiscordServer,
     DiscordUser,
     InviteUsage,
-    RequiredDiscordServer,
-    UserVouch,
 )
 
 
@@ -34,7 +32,7 @@ class DiscordUserAdmin(admin.ModelAdmin[DiscordUser]):
     ]
     list_filter = ["is_verified", "first_login", "last_login", "user__is_active", "user__is_staff"]
     search_fields = ["username", "global_name", "discord_id", "user__username", "user__email"]
-    readonly_fields = ["discord_id", "first_login", "last_login", "login_count"]
+    readonly_fields = ["discord_id"]
     list_editable = ["is_verified"]
 
     fieldsets = [
@@ -104,7 +102,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
         "subjects",
     ]
     search_fields = ["name", "custom_title", "description", "server_id"]
-    readonly_fields = ["datetime_last_synced"]
+    readonly_fields = []
     list_editable = ["is_active", "is_disabled"]
     filter_horizontal = ["schools", "subjects"]
     inlines = [DiscordInviteInline]
@@ -114,8 +112,8 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
     ) -> list[str]:
         """Make server_id readonly only for existing objects."""
         if obj is not None:  # when existing record
-            return [*self.readonly_fields, "server_id"]
-        return list(self.readonly_fields)  # when creating new record
+            return ["server_id"]
+        return []  # when creating new record
 
     fieldsets = [
         (
@@ -202,7 +200,7 @@ class DiscordInviteAdmin(admin.ModelAdmin[DiscordInvite]):
         "submitter__global_name",
         "notes_md",
     ]
-    readonly_fields = ["uses_count"]
+    readonly_fields = []
     list_editable = ["is_valid"]
 
     fieldsets = [
@@ -270,7 +268,7 @@ class InviteUsageAdmin(admin.ModelAdmin[InviteUsage]):
         "used_by__global_name",
         "ip_address",
     ]
-    readonly_fields = ["datetime_created"]
+    readonly_fields = []
 
     fieldsets = [
         (
@@ -299,84 +297,3 @@ class InviteUsageAdmin(admin.ModelAdmin[InviteUsage]):
         return obj.invite.discord_server.display_name
 
     get_discord_server.short_description = "Discord Server"  # type: ignore[attr-defined]
-
-
-@admin.register(RequiredDiscordServer)
-class RequiredDiscordServerAdmin(admin.ModelAdmin[RequiredDiscordServer]):
-    list_display = [
-        "discord_server",
-        "get_server_privacy",
-        "datetime_created",
-    ]
-    list_filter = [
-        "discord_server__privacy_level",
-        "datetime_created",
-    ]
-    search_fields = [
-        "discord_server__name",
-        "discord_server__custom_title",
-    ]
-
-    fieldsets = [
-        (
-            "Required Server",
-            {
-                "fields": [
-                    "discord_server",
-                ]
-            },
-        ),
-    ]
-
-    def get_server_privacy(self, obj: RequiredDiscordServer) -> str:
-        """Get the privacy level of the required server."""
-        return obj.discord_server.get_privacy_level_display()
-
-    get_server_privacy.short_description = "Privacy Level"  # type: ignore[attr-defined]
-
-
-@admin.register(UserVouch)
-class UserVouchAdmin(admin.ModelAdmin[UserVouch]):
-    list_display = [
-        "voucher",
-        "vouched_for",
-        "get_voucher_role",
-        "get_vouched_for_role",
-        "datetime_created",
-    ]
-    list_filter = [
-        "voucher__role",
-        "vouched_for__role",
-        "datetime_created",
-    ]
-    search_fields = [
-        "voucher__username",
-        "voucher__global_name",
-        "vouched_for__username",
-        "vouched_for__global_name",
-    ]
-
-    fieldsets = [
-        (
-            "Vouch Information",
-            {
-                "fields": [
-                    "voucher",
-                    "vouched_for",
-                    "datetime_created",
-                ]
-            },
-        ),
-    ]
-
-    def get_voucher_role(self, obj: UserVouch) -> str:
-        """Get the role of the voucher."""
-        return obj.voucher.get_role_display()
-
-    get_voucher_role.short_description = "Voucher Role"  # type: ignore[attr-defined]
-
-    def get_vouched_for_role(self, obj: UserVouch) -> str:
-        """Get the role of the vouched-for user."""
-        return obj.vouched_for.get_role_display()
-
-    get_vouched_for_role.short_description = "Vouched For Role"  # type: ignore[attr-defined]

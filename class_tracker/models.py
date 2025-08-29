@@ -24,8 +24,8 @@ class InstructorInfo(NamedTuple):
 
 
 class CommonModel(models.Model):
-    datetime_created = models.DateTimeField(auto_now_add=True)
-    datetime_modified = models.DateTimeField(auto_now=True)
+    datetime_created = models.DateTimeField(auto_now_add=True, editable=False)
+    datetime_modified = models.DateTimeField(auto_now=True, editable=False)
 
     class Meta:
         abstract = True
