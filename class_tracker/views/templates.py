@@ -2,8 +2,9 @@ from typing import List, Literal, NamedTuple
 
 from reactivated import Pick, template
 
+from server.util.typedefs import TPaginationData
+
 from .. import models
-from .typedefs import TPaginationData
 
 _TermPick = Pick[models.Term, Literal["id", "name", "year", "globalsearch_key", "full_term_name"]]
 _SchoolPick = Pick[models.School, Literal["id", "name", "globalsearch_key"]]

@@ -11,9 +11,10 @@ from django.utils.encoding import iri_to_uri
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_http_methods
 
+from server.util.typedefs import TPaginationData
+
 from ..models import ClassAlert, Recipient, School, Term
 from . import templates
-from .typedefs import TPaginationData
 
 logger = logging.getLogger("main")
 
