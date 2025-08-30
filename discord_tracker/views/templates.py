@@ -3,8 +3,9 @@ from typing import Literal, NamedTuple
 from reactivated import Pick, template
 
 from class_tracker.models import School
-from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser
-from discord_tracker.views.forms import SchoolSelectionForm
+from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, UserReferral
+from discord_tracker.views.forms import ReferralCreationForm, SchoolSelectionForm
+from server.util.typedefs import TPaginationData
 
 _SchoolPick = Pick[School, Literal["id", "name"]]
 
@@ -69,6 +70,21 @@ _DiscordUserProfilePick = Pick[
     ],
 ]
 
+_UserReferralPick = Pick[
+    UserReferral,
+    Literal[
+        "id",
+        "url",
+        "max_uses",
+        "num_uses",
+        "datetime_created",
+        "datetime_expires",
+        "expiry_timeframe",
+        "is_valid",
+        "is_expired",
+    ],
+]
+
 
 @template
 class DiscordTrackerServerListings(NamedTuple):
@@ -92,3 +108,10 @@ class DiscordTrackerProfile(NamedTuple):
 @template
 class DiscordTrackerUnapprovedInvites(NamedTuple):
     unapproved_invites: list[_DiscordInvitePick]
+
+
+@template
+class DiscordTrackerReferralManagement(NamedTuple):
+    referral_form: ReferralCreationForm
+    referrals: list[_UserReferralPick]
+    pagination: TPaginationData

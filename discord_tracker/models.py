@@ -1,11 +1,16 @@
+import uuid
+from datetime import timedelta
 from typing import Any, Literal, NamedTuple, cast
 
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models.query import QuerySet
+from django.urls import reverse
 from django.utils import timezone
 
 from class_tracker.models import CommonModel, Course, Instructor, School, Subject
+from server.util.typedefs import Failure, Success, TResult
 
 
 class DiscordServerQuerySet(QuerySet["DiscordServer"]):
@@ -79,10 +84,10 @@ class DiscordUser(CommonModel):
 
     @property
     def avatar_url(self) -> str:
-        if self.avatar:
+        if self.avatar is not None and self.avatar != "":
             return self.avatar
         # Default Discord avatar based on discriminator or user ID
-        if self.discriminator and self.discriminator != "0":
+        if self.discriminator is not None and self.discriminator != "0":
             default_num = int(self.discriminator) % 5
         else:
             default_num = (int(self.discord_id) >> 22) % 6
@@ -313,3 +318,131 @@ class UserVouch(CommonModel):
 
     class Meta:
         unique_together = ("voucher", "vouched_for")
+
+
+class UserReferral(CommonModel):
+    class ExpiryTimeframe(models.TextChoices):
+        ONE_WEEK = "1w", "1 Week"
+        TWO_WEEKS = "2w", "2 Weeks"
+        PERMANENT = "permanent", "Never Expires"
+
+    class MaxUsesChoices(models.TextChoices):
+        TEN = "10", "10 Uses"
+        TWENTY = "20", "20 Uses"
+        FIFTY = "50", "50 Uses"
+        HUNDRED = "100", "100 Uses"
+
+    _max_uses = 100
+
+    code = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
+    max_uses = models.PositiveIntegerField(default=1, validators=[MaxValueValidator(_max_uses)])
+    num_uses = models.PositiveIntegerField(default=0, editable=False)
+
+    datetime_expires = models.DateTimeField(null=True, blank=True)
+    expiry_timeframe = models.CharField(
+        max_length=20,
+        choices=ExpiryTimeframe.choices,
+        default=ExpiryTimeframe.ONE_WEEK,
+        help_text="Expiry timeframe from creation date",
+    )
+    max_uses_choice = models.CharField(
+        max_length=10,
+        choices=MaxUsesChoices.choices,
+        default=MaxUsesChoices.TEN,
+        help_text="Preset options for maximum uses",
+    )
+
+    created_by = models.ForeignKey(
+        DiscordUser, on_delete=models.CASCADE, related_name="referrals_created"
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_by"]),
+        ]
+
+    def __str__(self) -> str:
+        if self.num_uses >= self.max_uses:
+            status = "fully redeemed"
+        elif self.num_uses > 0:
+            status = f"partially redeemed ({self.num_uses}/{self.max_uses})"
+        elif self.is_expired():
+            status = "expired"
+        else:
+            status = "pending"
+        return f"Referral {self.code} ({status}) by {self.created_by.display_name}"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if self.created_by is not None and self.created_by.role not in [
+            DiscordUser.UserRole.TRUSTED,
+            DiscordUser.UserRole.MANAGER,
+        ]:
+            raise ValueError("Only trusted or manager users can create referral codes")
+
+        # set max_uses based on max_uses_choice
+        if self.max_uses_choice:
+            self.max_uses = int(self.max_uses_choice)
+
+        # only manager users can create permanent referrals
+        if (
+            self.expiry_timeframe == self.ExpiryTimeframe.PERMANENT
+            and self.created_by is not None
+            and self.created_by.role != DiscordUser.UserRole.MANAGER
+        ):
+            raise ValueError("Only manager users can create permanent referrals")
+
+        # datetime_expires based on expiry_timeframe
+        if self.expiry_timeframe == self.ExpiryTimeframe.PERMANENT:
+            self.datetime_expires = None
+        else:
+            now = timezone.now()
+
+            if self.expiry_timeframe == self.ExpiryTimeframe.ONE_WEEK:
+                self.datetime_expires = now + timedelta(weeks=1)
+            elif self.expiry_timeframe == self.ExpiryTimeframe.TWO_WEEKS:
+                self.datetime_expires = now + timedelta(weeks=2)
+
+        super().save(*args, **kwargs)
+
+    def is_expired(self) -> bool:
+        return self.datetime_expires is not None and timezone.now() > self.datetime_expires
+
+    def is_valid(self) -> bool:
+        return not self.is_expired() and self.num_uses < self.max_uses
+
+    def redeem(self, user_target: "DiscordUser") -> TResult[str, str]:
+        if not self.is_valid():
+            return Failure("Invalid referral code")
+
+        if self.redemptions.filter(redeemed_by=user_target).exists():
+            return Failure("You have already redeemed this referral code")
+
+        self.redemptions.create(redeemed_by=user_target)
+
+        self.num_uses += 1
+        self.save(update_fields=["num_uses"])
+
+        return Success("Referral code redeemed successfully")
+
+    def revoke(self) -> bool:
+        if self.num_uses > 0:
+            return False  # Cannot revoke a referral that has already been used
+
+        self.datetime_expires = timezone.now()
+        self.save(update_fields=["datetime_expires"])
+        return True
+
+    @property
+    def url(self) -> str:
+        return reverse("discord_tracker:referral_redeem", args=[self.code])
+
+
+class UserReferralRedemption(CommonModel):
+    referral = models.ForeignKey(UserReferral, on_delete=models.CASCADE, related_name="redemptions")
+    redeemed_by = models.ForeignKey(
+        DiscordUser, on_delete=models.CASCADE, related_name="referral_redemptions"
+    )
+    datetime_redeemed = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"Referral Redemption: {self.referral.code} by {self.redeemed_by.display_name} at {self.datetime_redeemed}"

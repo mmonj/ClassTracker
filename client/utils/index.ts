@@ -58,7 +58,9 @@ export function randChoice<T>(items: T[]): T {
   return items[index];
 }
 
-export function formatDateTypical(dateString: string) {
+export function formatDateTypical(dateString: string | null) {
+  if (dateString === null || dateString === "") return "n/a";
+
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",

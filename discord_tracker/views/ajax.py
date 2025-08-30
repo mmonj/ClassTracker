@@ -38,7 +38,7 @@ def select_school(request: AuthenticatedRequest) -> HttpResponse:
 
     if form.is_valid():
         form.save()
-        messages.add_message(request, messages.SUCCESS, "School selected successfully!")
+        messages.success(request, "School selected successfully!")
         return interfaces_response.SchoolSelectionResponse(
             success=True, message="School selected successfully!"
         ).render(request)

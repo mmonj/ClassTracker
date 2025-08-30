@@ -17,9 +17,25 @@ export function Navbar() {
   const djangoContext = React.useContext(Context);
 
   const publicRoutes = [] as TRoute[];
-  const managerRoutes = [
-    { name: "Unapproved Invites", href: reverse("discord_tracker:unapproved_invites") },
-  ] satisfies TRoute[];
+
+  function getTrustedAndAboveRoutes() {
+    if (djangoContext.user.discord_user === null) return [];
+    if (djangoContext.user.discord_user.role_info.value === "regular") return [];
+
+    return [
+      {
+        name: "Referrals",
+        href: reverse("discord_tracker:referral_management"),
+      },
+    ] satisfies TRoute[];
+  }
+
+  function getManagerRoutes() {
+    if (djangoContext.user.discord_user?.role_info.value !== "manager") return [];
+    return [
+      { name: "Unapproved Invites", href: reverse("discord_tracker:unapproved_invites") },
+    ] satisfies TRoute[];
+  }
 
   return (
     <>
@@ -36,12 +52,16 @@ export function Navbar() {
                   {route.name}
                 </NavLink>
               ))}
-              {djangoContext.user.discord_user?.is_manager === true &&
-                managerRoutes.map((route) => (
-                  <NavLink key={route.name} href={route.href}>
-                    {route.name}
-                  </NavLink>
-                ))}
+              {getTrustedAndAboveRoutes().map((route) => (
+                <NavLink key={route.name} href={route.href}>
+                  {route.name}
+                </NavLink>
+              ))}
+              {getManagerRoutes().map((route) => (
+                <NavLink key={route.name} href={route.href}>
+                  {route.name}
+                </NavLink>
+              ))}
             </Nav>
 
             <Nav className="mb-2 mb-lg-0">

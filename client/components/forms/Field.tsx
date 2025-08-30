@@ -33,6 +33,8 @@ export function Field({ field }: Props) {
         </label>
       )}
 
+      {field.help_text !== "" && <div className="form-text">{field.help_text}</div>}
+
       {field.error !== null && (
         <>
           <div className="invalid-feedback ms-1">{field.error}</div>

@@ -10,6 +10,8 @@ ssr_patterns = [
     path("profile/", ssr.profile, name="profile"),
     path("listings/", ssr.server_listings, name="listings"),
     path("unapproved-invites/", ssr.unapproved_invites, name="unapproved_invites"),
+    path("referrals/", ssr.referral_management, name="referral_management"),
+    path("referral/<str:referral_code>/", ssr.referral_redeem, name="referral_redeem"),
 ]
 
 ajax_patterns = [
