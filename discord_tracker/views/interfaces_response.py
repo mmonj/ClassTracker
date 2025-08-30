@@ -26,6 +26,7 @@ _DiscordServerPick = Pick[
         "name",
         "display_name",
         "description",
+        "member_count",
         "icon_url",
         "privacy_level_info",
         "is_active",

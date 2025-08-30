@@ -13,9 +13,10 @@ export function DiscordServerInfo({ server, className }: Props) {
   const hasCourses = server.courses.length > 0;
   const hasInstructors = server.instructors.length > 0;
   const isGeneralServer = server.is_general_server;
+  const hasMemberCount = server.member_count > 0;
   console.log("isGeneralServer:", isGeneralServer);
 
-  if (!hasSubjects && !hasCourses && !hasInstructors && !isGeneralServer) {
+  if (!hasSubjects && !hasCourses && !hasInstructors && !isGeneralServer && !hasMemberCount) {
     return null;
   }
 
@@ -24,6 +25,17 @@ export function DiscordServerInfo({ server, className }: Props) {
       <Card.Body className="p-3">
         <Card.Title className="h6 text-muted mb-3">Server Information</Card.Title>
         <Row className="g-2">
+          {hasMemberCount && (
+            <Col xs={12} className="mt-0">
+              <div className="mb-1">
+                <small className="text-muted fw-bold">Members: </small>
+                <Badge bg="info" className="text-dark">
+                  {server.member_count.toLocaleString()}
+                </Badge>
+              </div>
+            </Col>
+          )}
+
           {hasSubjects && (
             <Col xs={12} className="mt-0">
               <div className="mb-1">

@@ -118,12 +118,13 @@ class DiscordServer(CommonModel):
 
     class PrivacyLevel(models.TextChoices):
         PUBLIC = ("public", "Public - visible to all users")
-        PRIVATE = ("private", "Private - logged in users only")
+        PRIVATE = ("private", "Private - Authenticated users only")
 
     server_id = models.CharField(max_length=64, unique=True, db_index=True)
 
     name = models.CharField(max_length=255)  # Current server name from Discord API
     icon_url = models.URLField(blank=True)  # Server icon
+    member_count = models.PositiveIntegerField(default=0)
 
     privacy_level = models.CharField(
         max_length=20, choices=PrivacyLevel.choices, default=PrivacyLevel.PUBLIC

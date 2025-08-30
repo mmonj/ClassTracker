@@ -51,15 +51,23 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
             </div>
             <div className="flex-grow-1">
               <h5 className="card-title mb-1">{server.display_name}</h5>
-              <div className="d-flex align-items-center">
-                <FontAwesomeIcon
-                  icon={isPrivateServer ? faLock : faUsers}
-                  className={`me-1 ${isPrivateServer ? "text-warning" : "text-primary"}`}
-                  size="sm"
-                />
-                <small className={isPrivateServer ? "text-warning" : "text-muted"}>
-                  {isPrivateServer ? "Private" : "Public"}
-                </small>
+              <div className="d-flex align-items-center gap-3">
+                <div className="d-flex align-items-center">
+                  <FontAwesomeIcon
+                    icon={isPrivateServer ? faLock : faUsers}
+                    className={`me-1 ${isPrivateServer ? "text-warning" : "text-primary"}`}
+                    size="sm"
+                  />
+                  <small className={isPrivateServer ? "text-warning" : "text-muted"}>
+                    {isPrivateServer ? "Private" : "Public"}
+                  </small>
+                </div>
+                {server.member_count > 0 && (
+                  <div className="d-flex align-items-center">
+                    <FontAwesomeIcon icon={faUsers} className="me-1 text-muted" size="sm" />
+                    <small className="text-muted">{server.member_count.toLocaleString()}</small>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -238,15 +238,43 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
         if privacy_level == "public"
         else DiscordServer.PrivacyLevel.PRIVATE
     )
+    profile = invite_info.get("profile")
+    member_count = profile["member_count"] if profile is not None else 0
+
     discord_server, _server_created = DiscordServer.objects.get_or_create(
         server_id=guild_id,
         defaults={
             "name": guild_name,
+            "description": invite_info["guild"]["description"] or "",
+            "member_count": member_count,
             "icon_url": get_guild_icon_url(guild_id, invite_info["guild"]["icon"]),
             "privacy_level": privacy_level_enum,
             "added_by": discord_user,
         },
     )
+
+    # update server info from discord API for both existing and new servers
+    updated_fields: list[str] = []
+    if discord_server.name != guild_name:
+        discord_server.name = guild_name
+        updated_fields.append("name")
+
+    guild_description = invite_info["guild"]["description"] or ""
+    if discord_server.description != guild_description:
+        discord_server.description = guild_description
+        updated_fields.append("description")
+
+    if discord_server.member_count != member_count:
+        discord_server.member_count = member_count
+        updated_fields.append("member_count")
+
+    new_icon_url = get_guild_icon_url(guild_id, invite_info["guild"]["icon"])
+    if discord_server.icon_url != new_icon_url:
+        discord_server.icon_url = new_icon_url
+        updated_fields.append("icon_url")
+
+    if updated_fields:
+        discord_server.save(update_fields=updated_fields)
 
     max_uses_value = invite_info.get("max_uses", 0)
 

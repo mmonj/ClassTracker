@@ -3,6 +3,7 @@ from typing import TypedDict
 from reactivated import interface
 
 TAwareDatetime = str
+UUID = str
 
 
 class TAvatarDecorationData(TypedDict):
@@ -40,6 +41,33 @@ class TGuildData(TypedDict):
     premium_subscription_count: int
 
 
+class TGameActivity(TypedDict):
+    pass
+
+
+class TGuildProfileData(TypedDict):
+    id: str
+    name: str
+    icon_hash: UUID
+    member_count: int
+    online_count: int
+    description: str | None
+    banner_hash: UUID | None
+    game_application_ids: list[str]
+    game_activity: TGameActivity | None
+    tag: str | None
+    badge: int
+    badge_color_primary: str
+    badge_color_secondary: str
+    badge_hash: UUID | None
+    traits: list[str]
+    features: list[str]
+    visibility: int
+    custom_banner_hash: UUID | None
+    premium_subscription_count: int
+    premium_tier: int
+
+
 class TChannelData(TypedDict):
     id: str
     type: int
@@ -61,3 +89,4 @@ class TDiscordInviteData(TypedDict):  # type: ignore [type-var]
     guild: TGuildData
     guild_id: str
     channel: TChannelData
+    profile: TGuildProfileData | None

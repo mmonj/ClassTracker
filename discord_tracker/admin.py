@@ -85,6 +85,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
     list_display = [
         "display_name",
         "name",
+        "member_count",
         "privacy_level",
         "is_active",
         "is_disabled",
@@ -124,6 +125,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
                     "name",
                     "custom_title",
                     "description",
+                    "member_count",
                     "icon_url",
                 ]
             },

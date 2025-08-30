@@ -49,7 +49,7 @@ export function Template(props: templates.DiscordTrackerServerListings) {
 
   return (
     <Layout title="Discord Tracker" Navbar={Navbar}>
-      <Container>
+      <Container className="px-0">
         {context.user.discord_user === null && <LoginBanner />}
 
         <div className="text-center mb-5">
