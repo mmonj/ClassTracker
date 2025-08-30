@@ -3,8 +3,9 @@ import React from "react";
 import { templates } from "@reactivated";
 import { Button, Card, Col } from "react-bootstrap";
 
-import { faLock, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faLockOpen, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 
 import { DiscordServerInfo } from "./DiscordServerInfo";
 
@@ -37,9 +38,10 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               />
             ) : null}
             <div
-              className={`rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3 text-white fw-bold ${
-                server.icon_url ? "d-none" : ""
-              }`}
+              className={classNames(
+                "rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3 text-white fw-bold",
+                { "d-none": server.icon_url },
+              )}
               style={{
                 width: 40,
                 height: 40,
@@ -54,8 +56,11 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               <div className="d-flex align-items-center gap-3">
                 <div className="d-flex align-items-center">
                   <FontAwesomeIcon
-                    icon={isPrivateServer ? faLock : faUsers}
-                    className={`me-1 ${isPrivateServer ? "text-warning" : "text-primary"}`}
+                    icon={isPrivateServer ? faLock : faLockOpen}
+                    className={classNames("me-1", {
+                      "text-warning": isPrivateServer,
+                      "text-success": !isPrivateServer,
+                    })}
                     size="sm"
                   />
                   <small className={isPrivateServer ? "text-warning" : "text-muted"}>

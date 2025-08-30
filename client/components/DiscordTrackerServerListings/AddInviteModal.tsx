@@ -118,7 +118,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     if (result.ok) {
       setTimeout(() => {
         handleClose();
-      }, 800);
+      }, 100);
     }
   }
 
@@ -231,7 +231,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     setTimeout(() => {
       handleClose();
       window.location.reload(); // refresh page
-    }, 800);
+    }, 100);
   }
 
   async function handleSchoolChange(option: SchoolOption | null) {

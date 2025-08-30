@@ -14,7 +14,6 @@ export function DiscordServerInfo({ server, className }: Props) {
   const hasInstructors = server.instructors.length > 0;
   const isGeneralServer = server.is_general_server;
   const hasMemberCount = server.member_count > 0;
-  console.log("isGeneralServer:", isGeneralServer);
 
   if (!hasSubjects && !hasCourses && !hasInstructors && !isGeneralServer && !hasMemberCount) {
     return null;

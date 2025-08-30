@@ -48,7 +48,7 @@ _DiscordInvitePick = Pick[
         "submitter.role_info",
         "discord_server.display_name",
         "discord_server.icon_url",
-        "discord_server.privacy_level",
+        "discord_server.privacy_level_info",
     ],
 ]
 
@@ -91,6 +91,11 @@ _UserReferralPick = Pick[
 class DiscordTrackerServerListings(NamedTuple):
     public_servers: list[_DiscordServerPick]
     private_servers: list[_DiscordServerPick]
+    servers: list[_DiscordServerPick]
+    pagination: TPaginationData | None
+    subject_id: int | None
+    course_id: int | None
+    is_search_active: bool
 
 
 @template

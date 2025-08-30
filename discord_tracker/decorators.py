@@ -17,25 +17,34 @@ logger = logging.getLogger("main")
 
 
 def school_required(
-    view_fn: TViewCallable,
-) -> TViewCallable:
-    @wraps(view_fn)
-    def wrapper(request: HttpRequest) -> HttpResponse:
-        if not request.user.is_authenticated:
-            return view_fn(request)
+    *,
+    is_api: bool,
+) -> Callable[[TViewCallable], TViewCallable]:
+    def decorator(func: TViewCallable) -> TViewCallable:
+        @wraps(func)
+        def wrapper(request: HttpRequest) -> HttpResponse:
+            if not request.user.is_authenticated:
+                if is_api:
+                    return error_json_response(["Authentication required"], status=401)
+                return func(request)
 
-        discord_user = DiscordUser.objects.filter(user__id=request.user.id).first()
-        if discord_user is not None and discord_user.school is None:
-            return redirect(reverse("discord_tracker:profile"))
+            discord_user = DiscordUser.objects.filter(user__id=request.user.id).first()
+            if discord_user is not None and discord_user.school is None:
+                if is_api:
+                    return error_json_response(["School selection required"], status=400)
+                return redirect(reverse("discord_tracker:profile"))
 
-        return view_fn(request)
+            return func(request)
 
-    return wrapper
+        return wrapper
+
+    return decorator
 
 
 def roles_required(
     *,
     required_roles: List[TUserRoleValue],
+    is_api: bool,
 ) -> Callable[[TViewCallable], TViewCallable]:
     if not required_roles:
         raise ValueError("roles_required decorator requires a non-empty list of roles")
@@ -44,10 +53,15 @@ def roles_required(
         @wraps(view_fn)
         def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
             # can replace @login_required
+            if is_api and not request.user.is_authenticated:
+                return error_json_response(["Authentication required"], status=401)
             if not request.user.is_authenticated:
                 return redirect("discord_tracker:login")
 
             discord_user = DiscordUser.objects.filter(user__id=request.user.id).first()
+
+            if is_api and discord_user is None:
+                return error_json_response(["User not found"], status=404)
             if discord_user is None:
                 return redirect("discord_tracker:login")
 

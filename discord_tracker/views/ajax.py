@@ -75,7 +75,7 @@ def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpRespons
     ).render(request)
 
 
-@roles_required(required_roles=["regular", "manager"])
+@roles_required(required_roles=["regular", "manager"], is_api=True)
 @require_http_methods(["POST"])
 def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     """Validate Discord invite and return server info (including existing DB data if server exists)"""
@@ -136,7 +136,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     ).render(request)
 
 
-@roles_required(required_roles=["regular", "manager"])
+@roles_required(required_roles=["regular", "manager"], is_api=True)
 @require_http_methods(["POST"])
 def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR0911, PLR0912, PLR0915
     discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
@@ -293,6 +293,12 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
         max_uses=max_uses_value if isinstance(max_uses_value, int) else 0,  # 0 means unlimited
     )
 
+    if not discord_user.is_manager:
+        messages.info(
+            request,
+            "Invite submitted! It will need to be approved by a site admin before it is visible",
+        )
+
     discord_server.schools.add(school)
 
     if subject is not None:
@@ -386,7 +392,7 @@ def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpRes
     return interfaces_response.BlankResponse().render(request)
 
 
-@roles_required(required_roles=["manager"])
+@roles_required(required_roles=["manager"], is_api=True)
 @require_http_methods(["POST"])
 def approve_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
@@ -412,7 +418,7 @@ def approve_invite(request: AuthenticatedRequest, invite_id: int) -> HttpRespons
     return interfaces_response.BlankResponse().render(request)
 
 
-@roles_required(required_roles=["manager"])
+@roles_required(required_roles=["manager"], is_api=True)
 @require_http_methods(["POST"])
 def reject_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
@@ -433,3 +439,40 @@ def reject_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse
     )
 
     return interfaces_response.BlankResponse().render(request)
+
+
+@roles_required(required_roles=["regular", "manager"], is_api=True)
+@require_http_methods(["GET"])
+def get_all_subjects(request: AuthenticatedRequest) -> HttpResponse:
+    """Get subjects for server listing search filter"""
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+
+    if discord_user.school is None:
+        return error_json_response(["User has no associated school"], status=400)
+
+    subjects = list(discord_user.school.subjects.all().order_by("name"))
+
+    return interfaces_response.GetSubjectsResponse(
+        subjects=subjects,
+        message="Subjects fetched successfully.",
+    ).render(request)
+
+
+@roles_required(required_roles=["regular", "manager"], is_api=True)
+@require_http_methods(["GET"])
+def get_all_courses(request: AuthenticatedRequest, subject_id: int) -> HttpResponse:
+    """Get courses for server listing search filter"""
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+
+    if discord_user.school is None:
+        return error_json_response(["User has no associated school"], status=400)
+
+    subject = get_object_or_404(Subject, id=subject_id)
+    courses = list(
+        Course.objects.filter(school=discord_user.school, subject=subject).order_by("code", "level")
+    )
+
+    return interfaces_response.GetCoursesResponse(
+        courses=courses,
+        message="Courses fetched successfully.",
+    ).render(request)

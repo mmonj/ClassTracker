@@ -13,37 +13,70 @@ from discord_tracker.decorators import roles_required, school_required
 from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, UserReferral
 from discord_tracker.views import templates
 from discord_tracker.views.forms import ReferralCreationForm, SchoolSelectionForm
+from server.util import get_pagination_data
 from server.util.typedefs import AuthenticatedRequest, TPaginationData
 
 logger = logging.getLogger("main")
 
 
-@school_required
+@school_required(is_api=False)
 def server_listings(request: HttpRequest) -> HttpResponse:
     prefetches = ("subjects", "courses", "instructors", "schools")
 
-    public_servers = (
-        DiscordServer.objects.filter(
-            privacy_level=DiscordServer.PrivacyLevel.PUBLIC, invites__approved_by__isnull=False
-        )
+    subject_id = request.GET.get("subject_id")
+    course_id = request.GET.get("course_id")
+    page = int(request.GET.get("page", 1))
+    page_size = 10
+
+    base_queryset = (
+        DiscordServer.objects.filter(invites__approved_by__isnull=False)
         .distinct()
         .prefetch_related(*prefetches)
-        .order_by("name")
+    )
+
+    # if search is active filter servers and return single paginated result
+    if subject_id or course_id:
+        search_queryset = base_queryset.order_by("name")
+
+        if subject_id:
+            search_queryset = search_queryset.filter(subjects__id=subject_id)
+
+        if course_id:
+            search_queryset = search_queryset.filter(courses__id=course_id)
+
+        page_obj, pagination_data = get_pagination_data(
+            search_queryset, page=page, page_size=page_size
+        )
+
+        return templates.DiscordTrackerServerListings(
+            public_servers=[],
+            private_servers=[],
+            servers=list(page_obj.object_list),
+            pagination=pagination_data,
+            subject_id=int(subject_id) if subject_id else None,
+            course_id=int(course_id) if course_id else None,
+            is_search_active=True,
+        ).render(request)
+
+    # default view:show recent public and private servers
+    public_servers = list(
+        base_queryset.filter(privacy_level=DiscordServer.PrivacyLevel.PUBLIC)[:page_size]
     )
 
     private_servers = list(
-        DiscordServer.objects.filter(
-            privacy_level=DiscordServer.PrivacyLevel.PRIVATE,
-            invites__approved_by__isnull=False,
-        )
-        .distinct()
-        .prefetch_related(*prefetches)
-        .order_by("name")
+        base_queryset.filter(privacy_level=DiscordServer.PrivacyLevel.PRIVATE).order_by("-id")[
+            :page_size
+        ]
     )
 
     return templates.DiscordTrackerServerListings(
-        public_servers=list(public_servers),
+        public_servers=public_servers,
         private_servers=private_servers,
+        servers=[],
+        pagination=None,
+        subject_id=None,
+        course_id=None,
+        is_search_active=False,
     ).render(request)
 
 
@@ -103,8 +136,8 @@ def profile(request: AuthenticatedRequest) -> HttpResponse:
     ).render(request)
 
 
-@school_required
-@roles_required(required_roles=["manager"])
+@school_required(is_api=False)
+@roles_required(required_roles=["manager"], is_api=False)
 def unapproved_invites(request: AuthenticatedRequest) -> HttpResponse:
     unapproved_invites = (
         DiscordInvite.objects.filter(approved_by__isnull=True, rejected_by__isnull=True)
@@ -117,8 +150,8 @@ def unapproved_invites(request: AuthenticatedRequest) -> HttpResponse:
     ).render(request)
 
 
-@school_required
-@roles_required(required_roles=["regular", "manager"])
+@school_required(is_api=False)
+@roles_required(required_roles=["regular", "manager"], is_api=False)
 def referral_management(request: AuthenticatedRequest) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 

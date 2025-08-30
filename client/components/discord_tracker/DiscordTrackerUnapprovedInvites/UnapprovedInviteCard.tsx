@@ -75,17 +75,13 @@ export function UnapprovedInviteCard({
     }, 300);
   }
 
-  function getPrivacyLevelBadge(privacyLevel: string) {
-    if (privacyLevel === "public") {
-      return (
-        <Badge bg="success" className="ms-2">
-          Public
-        </Badge>
-      );
-    }
+  function getPrivacyLevelBadge(
+    inviteInfo: templates.DiscordTrackerUnapprovedInvites["unapproved_invites"][number]["discord_server"]["privacy_level_info"],
+  ) {
+    const badgeColor = inviteInfo.value === "public" ? "success" : "warning";
     return (
-      <Badge bg="warning" className="ms-2">
-        Privileged Server
+      <Badge bg={badgeColor} className="ms-2">
+        {inviteInfo.label}
       </Badge>
     );
   }
@@ -160,7 +156,7 @@ export function UnapprovedInviteCard({
                 <div className="flex-grow-1">
                   <h5 className="mb-1">
                     {invite.discord_server.display_name}
-                    {getPrivacyLevelBadge(invite.discord_server.privacy_level)}
+                    {getPrivacyLevelBadge(invite.discord_server.privacy_level_info)}
                   </h5>
                   <div className="text-muted small mb-2">
                     Submitted by {invite.submitter.display_name}

@@ -49,6 +49,8 @@ ajax_patterns = [
         ajax.reject_invite,
         name="reject_invite",
     ),
+    path("ajax/subjects/", ajax.get_all_subjects, name="get_all_subjects"),
+    path("ajax/subjects/<int:subject_id>/courses/", ajax.get_all_courses, name="get_all_courses"),
 ]
 
 urlpatterns = ssr_patterns + ajax_patterns

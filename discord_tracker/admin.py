@@ -54,10 +54,6 @@ class DiscordUserAdmin(admin.ModelAdmin[DiscordUser]):
                 ]
             },
         ),
-        (
-            "Login Tracking",
-            {"fields": ["first_login", "last_login", "login_count"], "classes": ["collapse"]},
-        ),
     ]
 
     def get_user_username(self, obj: DiscordUser) -> str:
@@ -155,7 +151,6 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
             {
                 "fields": [
                     "added_by",
-                    "datetime_last_synced",
                 ]
             },
         ),

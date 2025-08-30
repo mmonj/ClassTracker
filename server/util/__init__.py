@@ -1,12 +1,15 @@
 from typing import Any, Type, TypeVar
 
 import requests
+from django.core.paginator import Page, Paginator
 from django.db import IntegrityError, models, transaction
 from django.http import JsonResponse
 from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 
-T = TypeVar("T", bound=models.Model)
+from .typedefs import TPaginationData
+
+TModelSubclass = TypeVar("TModelSubclass", bound=models.Model)
 TIsNewRecord = bool
 
 
@@ -28,17 +31,34 @@ def init_http_retrier(
     return session
 
 
+def get_pagination_data(
+    referrals_queryset: models.QuerySet[TModelSubclass], *, page: int, page_size: int
+) -> tuple[Page[TModelSubclass], TPaginationData]:
+    paginator = Paginator(referrals_queryset, page_size)
+    page_number = page
+    page_obj = paginator.get_page(page_number)
+
+    return page_obj, TPaginationData(
+        current_page=page_obj.number,
+        total_pages=paginator.num_pages,
+        has_previous=page_obj.has_previous(),
+        has_next=page_obj.has_next(),
+        previous_page_number=page_obj.previous_page_number() if page_obj.has_previous() else 0,
+        next_page_number=page_obj.next_page_number() if page_obj.has_next() else 0,
+    )
+
+
 def error_json_response(errors: list[str], *, status: int, **kwargs: Any) -> JsonResponse:
     return JsonResponse(errors, status=status, safe=False, **kwargs)
 
 
 def bulk_create_and_get(
-    model_class: Type[T],
-    items: list[T],
+    model_class: Type[TModelSubclass],
+    items: list[TModelSubclass],
     *,
     fields: list[str],
     batch_size: int | None = None,
-) -> models.QuerySet[T]:
+) -> models.QuerySet[TModelSubclass]:
     """
     Bulk creates items in the database with ignore_conflicts=True and
     returns the full queryset of records with their primary keys populated.
@@ -59,8 +79,10 @@ def bulk_create_and_get(
     return model_class.objects.filter(**filter_criteria)  # type: ignore [no-any-return, attr-defined]
 
 
-def atomic_get_or_create(instance: T, *, fields: list[str]) -> tuple[T, TIsNewRecord]:
-    model_class: Type[T] = type(instance)
+def atomic_get_or_create(
+    instance: TModelSubclass, *, fields: list[str]
+) -> tuple[TModelSubclass, TIsNewRecord]:
+    model_class: Type[TModelSubclass] = type(instance)
 
     try:
         with transaction.atomic():
@@ -71,7 +93,9 @@ def atomic_get_or_create(instance: T, *, fields: list[str]) -> tuple[T, TIsNewRe
         return model_class.objects.get(**filter_criteria), False  # type: ignore [attr-defined]
 
 
-def _get_filter_criteria(items: list[T], unique_fieldnames: list[str]) -> dict[str, Any]:
+def _get_filter_criteria(
+    items: list[TModelSubclass], unique_fieldnames: list[str]
+) -> dict[str, Any]:
     filter_criteria = {}
     for field in unique_fieldnames:
         if "__" in field:

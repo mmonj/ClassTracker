@@ -117,8 +117,8 @@ class DiscordServer(CommonModel):
         label: str
 
     class PrivacyLevel(models.TextChoices):
-        PUBLIC = ("public", "Public - visible to all users")
-        PRIVATE = ("private", "Private - Authenticated users only")
+        PUBLIC = ("public", "Public Server")
+        PRIVATE = ("private", "Private Server")
 
     server_id = models.CharField(max_length=64, unique=True, db_index=True)
 
