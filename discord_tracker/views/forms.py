@@ -100,7 +100,9 @@ class ReferralCreationForm(forms.ModelForm[UserReferral]):
                 raise forms.ValidationError("Only manager users can create permanent referrals.")
 
         if self.discord_user is not None and not self.discord_user.user.is_superuser:
-            max_uses_choice = cleaned_data.get("max_uses_choice") or UserReferral.MaxUsesChoices.TEN
+            max_uses_choice = (
+                cleaned_data.get("max_uses_choice") or UserReferral.MaxUsesChoices.TWENTY
+            )
             max_uses = int(max_uses_choice)
             max_total_active_uses = 100
 

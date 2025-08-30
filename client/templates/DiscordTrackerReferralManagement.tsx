@@ -23,11 +23,7 @@ export function Template({
       return <Badge bg="success">Fully Redeemed</Badge>;
     }
     if (referral.num_uses > 0) {
-      return (
-        <Badge bg="warning">
-          Partially Redeemed ({referral.num_uses}/{referral.max_uses})
-        </Badge>
-      );
+      return <Badge bg="warning">Partially Redeemed</Badge>;
     }
     if (referral.is_expired === true) {
       return <Badge bg="danger">Expired</Badge>;

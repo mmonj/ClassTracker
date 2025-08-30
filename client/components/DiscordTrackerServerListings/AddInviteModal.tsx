@@ -199,7 +199,7 @@ export function AddInviteModal({ show, onHide }: Props) {
       guild_name: guildInfo.name,
       guild_id: guildInfo.id,
       school_id: selectedSchool.value.toString(),
-      privacy_level: isPublic ? "public" : "privileged",
+      privacy_level: isPublic ? "public" : "private",
     });
 
     if (selectedSubject) {
@@ -473,8 +473,8 @@ export function AddInviteModal({ show, onHide }: Props) {
               />
               <Form.Text className="text-muted">
                 {isManager
-                  ? "If unchecked, only trusted users and site managers can see your invite. Your invites are automatically approved"
-                  : "If unchecked, only trusted users and site managers can see your invite. Note: All of your invites require manager approval before becoming visible to anyone"}
+                  ? "If unchecked, only registered users can see your invite. Your invites are automatically approved"
+                  : "If unchecked, only registered users can see your invite. Note: All of your invites require manager approval before becoming visible to anyone"}
               </Form.Text>
             </Form.Group>
 

@@ -32,7 +32,7 @@ export function Template(props: templates.DiscordTrackerUnapprovedInvites) {
               <div>
                 <h1 className="mb-1">Unapproved Discord Invites</h1>
                 <p className="text-muted mb-0">
-                  Review and approve Discord server invites submitted by trusted users
+                  Review and approve Discord server invites submitted by other users
                 </p>
               </div>
             </div>

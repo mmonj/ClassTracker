@@ -24,16 +24,13 @@ export function Template(props: templates.DiscordTrackerServerListings) {
   const [showInvitesModal, setShowInvitesModal] = useState(false);
   const [showAddInviteModal, setShowAddInviteModal] = useState(false);
 
-  const discordUser = context.user.discord_user;
-
   const publicServers = props.public_servers;
-  const privilegedServers = props.privileged_servers;
+  const privateServers = props.private_servers;
 
-  const canUserAddInvites =
-    discordUser !== null && (discordUser.is_trusted === true || discordUser.is_manager === true);
+  const canUserAddInvites = context.user.discord_user !== null;
 
   function handleShowInvites(serverId: number) {
-    const allServers = [...publicServers, ...privilegedServers];
+    const allServers = [...publicServers, ...privateServers];
     const server = allServers.find((s) => s.id === serverId);
     if (server !== undefined) {
       setSelectedServer(server);
@@ -53,7 +50,7 @@ export function Template(props: templates.DiscordTrackerServerListings) {
   return (
     <Layout title="Discord Tracker" Navbar={Navbar}>
       <Container>
-        {!discordUser && <LoginBanner />}
+        {context.user.discord_user === null && <LoginBanner />}
 
         <div className="text-center mb-5">
           <div className="d-flex align-items-center justify-content-center mb-3">
@@ -94,14 +91,14 @@ export function Template(props: templates.DiscordTrackerServerListings) {
         )}
 
         {/* private servers section */}
-        {privilegedServers.length > 0 && (
+        {privateServers.length > 0 && (
           <section className="mb-5">
             <h2 className="h3 mb-4">Private Servers</h2>
             <Alert variant="info" className="mb-3">
-              <b>Note:</b> These servers' invites are only visible to trusted authenticated users
+              <b>Note:</b> These servers' invites are only visible to authenticated users
             </Alert>
             <Row>
-              {privilegedServers.map((server) => (
+              {privateServers.map((server) => (
                 <DiscordServerCard
                   key={server.id}
                   server={server}
@@ -113,7 +110,7 @@ export function Template(props: templates.DiscordTrackerServerListings) {
         )}
 
         {/* no servers msg */}
-        {publicServers.length === 0 && privilegedServers.length === 0 && (
+        {publicServers.length === 0 && privateServers.length === 0 && (
           <div className="text-center py-5">
             <Card className="border-0">
               <Card.Body>

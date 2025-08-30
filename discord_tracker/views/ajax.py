@@ -61,31 +61,21 @@ def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpRespons
         datetime_approved__isnull=False,
     ).order_by("-datetime_created")
 
-    # unauthenticated users can view public invites
-    if not request.user.is_authenticated and server.privacy_level_info.value == "public":
+    # anyone can view public invites
+    if server.privacy_level_info.value == "public":
         return interfaces_response.ServerInvitesResponse(
             invites=list(invites),
         ).render(request)
 
     if not request.user.is_authenticated:
-        return error_json_response(
-            ["Authentication/trusted state required to view server invites."], status=401
-        )
-
-    discord_user = get_object_or_404(DiscordUser, user=request.user)
-
-    # check if user can access server
-    if not discord_user.can_access_server(server):
-        return error_json_response(
-            ["You don't have permission to view invites for this server."], status=403
-        )
+        return error_json_response(["Authentication required to view server invites."], status=401)
 
     return interfaces_response.ServerInvitesResponse(
         invites=list(invites),
     ).render(request)
 
 
-@roles_required(required_roles=["trusted", "manager"])
+@roles_required(required_roles=["regular", "manager"])
 @require_http_methods(["POST"])
 def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     """Validate Discord invite and return server info (including existing DB data if server exists)"""
@@ -146,7 +136,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     ).render(request)
 
 
-@roles_required(required_roles=["trusted", "manager"])
+@roles_required(required_roles=["regular", "manager"])
 @require_http_methods(["POST"])
 def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR0911, PLR0912, PLR0915
     discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
@@ -158,8 +148,8 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     school_id = request.POST.get("school_id")
     subject_id = request.POST.get("subject_id")
     course_id = request.POST.get("course_id")
-    instructor_ids = request.POST.getlist("instructor_ids")  # Can be multiple instructors
-    privacy_level = request.POST.get("privacy_level", "privileged").strip()
+    instructor_ids = request.POST.getlist("instructor_ids")  # can be multiple instructors
+    privacy_level = request.POST.get("privacy_level", "private").strip()
 
     if not all([invite_url, guild_name, guild_id, school_id]):
         return error_json_response(
@@ -170,13 +160,13 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
         )
 
     # validate privacy_level
-    if privacy_level not in ["public", "privileged"]:
+    if privacy_level not in ["public", "private"]:
         return error_json_response(
-            ["Invalid privacy level. Must be 'public' or 'privileged'"], status=400
+            ["Invalid privacy level. Must be 'public' or 'private'"], status=400
         )
 
-    # both managers and trusted users can create any type of invite
-    # managers' invites are auto approved, trusted users' invites need to be manually approved
+    # both managers and regular users can create any type of invite
+    # managers' invites are auto approved, regular users' invites need to be manually approved
 
     if DiscordInvite.objects.filter(invite_url=invite_url).exists():
         return error_json_response(["This Discord invite has already been submitted"], status=400)
@@ -246,7 +236,7 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     privacy_level_enum = (
         DiscordServer.PrivacyLevel.PUBLIC
         if privacy_level == "public"
-        else DiscordServer.PrivacyLevel.PRIVILEGED
+        else DiscordServer.PrivacyLevel.PRIVATE
     )
     discord_server, _server_created = DiscordServer.objects.get_or_create(
         server_id=guild_id,
@@ -344,14 +334,12 @@ def get_instructors(request: AuthenticatedRequest, school_id: int, subject_id: i
 @login_required
 @require_http_methods(["PUT"])
 def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
-    discord_user = get_object_or_404(DiscordUser, user=request.user)
     invite = get_object_or_404(DiscordInvite, id=invite_id)
 
-    # check if user can access this server
-    if not discord_user.can_access_server(invite.discord_server):
-        return error_json_response(
-            ["You don't have permission to use invites for this server"], status=403
-        )
+    if not request.user.is_authenticated:
+        return error_json_response(["Authentication required to track invite usage"], status=401)
+
+    discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
 
     # check if invite is valid
     if not invite.is_valid or not invite.is_approved:

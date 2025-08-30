@@ -31,9 +31,9 @@ def server_listings(request: HttpRequest) -> HttpResponse:
         .order_by("name")
     )
 
-    privileged_servers = list(
+    private_servers = list(
         DiscordServer.objects.filter(
-            privacy_level=DiscordServer.PrivacyLevel.PRIVILEGED,
+            privacy_level=DiscordServer.PrivacyLevel.PRIVATE,
             invites__approved_by__isnull=False,
         )
         .distinct()
@@ -43,7 +43,7 @@ def server_listings(request: HttpRequest) -> HttpResponse:
 
     return templates.DiscordTrackerServerListings(
         public_servers=list(public_servers),
-        privileged_servers=privileged_servers,
+        private_servers=private_servers,
     ).render(request)
 
 
@@ -118,7 +118,7 @@ def unapproved_invites(request: AuthenticatedRequest) -> HttpResponse:
 
 
 @school_required
-@roles_required(required_roles=["trusted", "manager"])
+@roles_required(required_roles=["regular", "manager"])
 def referral_management(request: AuthenticatedRequest) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 

@@ -32,7 +32,7 @@ class AllDiscordServerManager(models.Manager["DiscordServer"]):
         return DiscordServerQuerySet(self.model, using=self._db)
 
 
-TUserRoleValue = Literal["regular", "trusted", "manager"]
+TUserRoleValue = Literal["regular", "manager"]
 
 
 class DiscordUser(CommonModel):
@@ -40,12 +40,10 @@ class DiscordUser(CommonModel):
         value: TUserRoleValue
         label: str
 
-    # trusted or manager DiscordUsers can vouch for users (trust them), allowing them to see the invites of servers without needing to also be apart of other required server(s)
-    # 'trusted' role is set as soon as another trusted/manager DiscordUser vouches for them, or if that user is already a member of the required server(s) upon authenticating
+    # users can refer others, allowing them to login so they can see the invites of servers without needing to also be apart of other required server(s)
     class UserRole(models.TextChoices):
-        REGULAR = "regular", "Regular User"
-        TRUSTED = "trusted", "Trusted User"
-        MANAGER = "manager", "Discord Manager"
+        REGULAR = ("regular", "Regular User")
+        MANAGER = ("manager", "Discord Manager")
 
     role = models.CharField(max_length=20, choices=UserRole.choices, default=UserRole.REGULAR)
     discord_id = models.CharField(max_length=64, unique=True, db_index=True)
@@ -105,22 +103,12 @@ class DiscordUser(CommonModel):
         """Check if we have a refresh token available."""
         return bool(self.refresh_token)
 
-    # keep for now, test later if client side can accept UserRole textchoices
-    @property
-    def is_trusted(self) -> bool:
-        return self.role == self.UserRole.TRUSTED
-
     @property
     def is_manager(self) -> bool:
         return self.role == self.UserRole.MANAGER
 
-    def can_access_server(self, server: "DiscordServer") -> bool:
-        if server.privacy_level == DiscordServer.PrivacyLevel.PUBLIC:
-            return True
-        return self.role_info.value == "trusted" or self.role_info.value == "manager"  # noqa: PLR1714
 
-
-TServerPrivacyLevelValue = Literal["public", "privileged"]
+TServerPrivacyLevelValue = Literal["public", "private"]
 
 
 class DiscordServer(CommonModel):
@@ -129,8 +117,8 @@ class DiscordServer(CommonModel):
         label: str
 
     class PrivacyLevel(models.TextChoices):
-        PUBLIC = "public", "Public - visible to all users"
-        PRIVILEGED = "privileged", "Privileged - trusted/manager users only"
+        PUBLIC = ("public", "Public - visible to all users")
+        PRIVATE = ("private", "Private - logged in users only")
 
     server_id = models.CharField(max_length=64, unique=True, db_index=True)
 
@@ -221,8 +209,8 @@ class DiscordInvite(CommonModel):
     is_valid = models.BooleanField(default=True)
 
     # DiscordUsers with the `Manager` role can submit invites without the need for approval and approve other invites
-    # other 'trusted' users can submit invites as suggestions, but they won't
-    # be visible in the discord index page until a `Manager` approves it.
+    # other users can submit invites as suggestions, but they won't
+    # be visible in the discord index page until a manager approves it.
     approved_by = models.ForeignKey(
         DiscordUser,
         on_delete=models.SET_NULL,
@@ -294,43 +282,16 @@ class InviteUsage(CommonModel):
         return f"Invite {self.invite.invite_url} used by {user_name}"
 
 
-class RequiredDiscordServer(CommonModel):
-    discord_server = models.ForeignKey(
-        DiscordServer, on_delete=models.CASCADE, related_name="required_for_access"
-    )
-
-    def __str__(self) -> str:
-        return f"Required server: {self.discord_server.display_name}"
-
-
-class UserVouch(CommonModel):
-    """Track when trusted/manager users vouch for regular users"""
-
-    voucher = models.ForeignKey(
-        DiscordUser,
-        on_delete=models.CASCADE,
-        related_name="vouches_given",
-        limit_choices_to={"role__in": [DiscordUser.UserRole.TRUSTED, DiscordUser.UserRole.MANAGER]},
-    )
-    vouched_for = models.ForeignKey(
-        DiscordUser, on_delete=models.CASCADE, related_name="vouches_received"
-    )
-
-    class Meta:
-        unique_together = ("voucher", "vouched_for")
-
-
 class UserReferral(CommonModel):
     class ExpiryTimeframe(models.TextChoices):
-        ONE_WEEK = "1w", "1 Week"
-        TWO_WEEKS = "2w", "2 Weeks"
-        PERMANENT = "permanent", "Never Expires"
+        ONE_WEEK = ("1w", "1 Week")
+        TWO_WEEKS = ("2w", "2 Weeks")
+        PERMANENT = ("permanent", "Never Expires")
 
     class MaxUsesChoices(models.TextChoices):
-        TEN = "10", "10 Uses"
-        TWENTY = "20", "20 Uses"
-        FIFTY = "50", "50 Uses"
-        HUNDRED = "100", "100 Uses"
+        TWENTY = ("20", "20 Uses")
+        FIFTY = ("50", "50 Uses")
+        HUNDRED = ("100", "100 Uses")
 
     _max_uses = 100
 
@@ -348,7 +309,7 @@ class UserReferral(CommonModel):
     max_uses_choice = models.CharField(
         max_length=10,
         choices=MaxUsesChoices.choices,
-        default=MaxUsesChoices.TEN,
+        default=MaxUsesChoices.TWENTY,
         help_text="Preset options for maximum uses",
     )
 
@@ -373,12 +334,6 @@ class UserReferral(CommonModel):
         return f"Referral {self.code} ({status}) by {self.created_by.display_name}"
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        if self.created_by is not None and self.created_by.role not in [
-            DiscordUser.UserRole.TRUSTED,
-            DiscordUser.UserRole.MANAGER,
-        ]:
-            raise ValueError("Only trusted or manager users can create referral codes")
-
         # set max_uses based on max_uses_choice
         if self.max_uses_choice:
             self.max_uses = int(self.max_uses_choice)

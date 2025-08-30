@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function DiscordServerCard({ server, onShowInvites }: Props) {
-  const isPrivileged = server.privacy_level_info.value === "privileged";
+  const isPrivateServer = server.privacy_level_info.value === "private";
 
   return (
     <Col xs={12} md={6} lg={4} className="mb-4">
@@ -53,12 +53,12 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               <h5 className="card-title mb-1">{server.display_name}</h5>
               <div className="d-flex align-items-center">
                 <FontAwesomeIcon
-                  icon={isPrivileged ? faLock : faUsers}
-                  className={`me-1 ${isPrivileged ? "text-warning" : "text-primary"}`}
+                  icon={isPrivateServer ? faLock : faUsers}
+                  className={`me-1 ${isPrivateServer ? "text-warning" : "text-primary"}`}
                   size="sm"
                 />
-                <small className={isPrivileged ? "text-warning" : "text-muted"}>
-                  {isPrivileged ? "Private" : "Public"}
+                <small className={isPrivateServer ? "text-warning" : "text-muted"}>
+                  {isPrivateServer ? "Private" : "Public"}
                 </small>
               </div>
             </div>
@@ -71,7 +71,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
 
           <div className="mt-auto">
             <Button
-              variant={isPrivileged ? "outline-warning" : "outline-primary"}
+              variant={isPrivateServer ? "outline-warning" : "outline-primary"}
               className="w-100"
               onClick={() => onShowInvites(server.id)}
             >

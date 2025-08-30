@@ -89,7 +89,7 @@ _UserReferralPick = Pick[
 @template
 class DiscordTrackerServerListings(NamedTuple):
     public_servers: list[_DiscordServerPick]
-    privileged_servers: list[_DiscordServerPick]
+    private_servers: list[_DiscordServerPick]
 
 
 @template

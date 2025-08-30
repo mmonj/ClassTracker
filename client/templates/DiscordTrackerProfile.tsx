@@ -58,11 +58,9 @@ export function Template(props: templates.DiscordTrackerProfile) {
     });
   }
 
-  function getRoleBadgeVariant(role: string) {
+  function getRoleBadgeVariant(role: typeof props.discord_user.role_info.value) {
     switch (role) {
-      case "discord_manager":
-        return "danger";
-      case "trusted":
+      case "manager":
         return "success";
       default:
         return "secondary";
