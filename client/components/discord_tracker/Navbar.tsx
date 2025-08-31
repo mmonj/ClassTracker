@@ -18,9 +18,8 @@ export function Navbar() {
 
   const publicRoutes = [] as TRoute[];
 
-  function getTrustedAndAboveRoutes() {
+  function getAuthenticatedRoutes() {
     if (djangoContext.user.discord_user === null) return [];
-    if (djangoContext.user.discord_user.role_info.value === "regular") return [];
 
     return [
       {
@@ -52,7 +51,7 @@ export function Navbar() {
                   {route.name}
                 </NavLink>
               ))}
-              {getTrustedAndAboveRoutes().map((route) => (
+              {getAuthenticatedRoutes().map((route) => (
                 <NavLink key={route.name} href={route.href}>
                   {route.name}
                 </NavLink>
@@ -101,7 +100,7 @@ export function Navbar() {
                 </NavDropdown>
               )}
               {!djangoContext.user.is_authenticated && (
-                <NavLink href={reverse("discord_tracker:login")}>Log In</NavLink>
+                <NavLink href={reverse("discord_tracker:login")}>Sign In</NavLink>
               )}
             </Nav>
           </BSNavbar.Collapse>
