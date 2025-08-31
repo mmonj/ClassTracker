@@ -10,7 +10,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from discord_tracker.decorators import roles_required, school_required
+from discord_tracker.decorators import require_roles, school_required
 from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, UserReferral
 from discord_tracker.views import templates
 from discord_tracker.views.forms import ReferralCreationForm, SchoolSelectionForm
@@ -161,6 +161,7 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
 
 
 @login_required(login_url=reverse_lazy("discord_tracker:login"))
+@require_http_methods(["GET"])
 def profile(request: AuthenticatedRequest) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 
@@ -177,7 +178,7 @@ def profile(request: AuthenticatedRequest) -> HttpResponse:
 
 
 @school_required(is_api=False)
-@roles_required(required_roles=["manager"], is_api=False)
+@require_roles(required_roles=["manager"], is_api=False)
 def unapproved_invites(request: AuthenticatedRequest) -> HttpResponse:
     unapproved_invites = (
         DiscordInvite.objects.filter(approved_by__isnull=True, rejected_by__isnull=True)
@@ -191,7 +192,7 @@ def unapproved_invites(request: AuthenticatedRequest) -> HttpResponse:
 
 
 @school_required(is_api=False)
-@roles_required(required_roles=["regular", "manager"], is_api=False)
+@require_roles(required_roles=None, is_api=False)
 def referral_management(request: AuthenticatedRequest) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 

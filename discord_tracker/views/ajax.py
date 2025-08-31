@@ -10,7 +10,7 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_http_methods
 
 from class_tracker.models import Course, Instructor, School, Subject
-from discord_tracker.decorators import roles_required
+from discord_tracker.decorators import require_roles
 from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, InviteUsage
 from discord_tracker.views import interfaces_response
 from discord_tracker.views.forms import SchoolSelectionForm
@@ -75,7 +75,7 @@ def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpRespons
     ).render(request)
 
 
-@roles_required(required_roles=["regular", "manager"], is_api=True)
+@require_roles(required_roles=None, is_api=True)
 @require_http_methods(["POST"])
 def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     """Validate Discord invite and return server info (including existing DB data if server exists)"""
@@ -136,7 +136,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     ).render(request)
 
 
-@roles_required(required_roles=["regular", "manager"], is_api=True)
+@require_roles(required_roles=None, is_api=True)
 @require_http_methods(["POST"])
 def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR0911, PLR0912, PLR0915
     discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
@@ -320,7 +320,7 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     ).render(request)
 
 
-@login_required
+@require_roles(required_roles=None, is_api=True)
 @require_http_methods(["GET"])
 def get_subjects(request: AuthenticatedRequest, school_id: int) -> HttpResponse:
     school = get_object_or_404(School, id=school_id)
@@ -332,7 +332,7 @@ def get_subjects(request: AuthenticatedRequest, school_id: int) -> HttpResponse:
     ).render(request)
 
 
-@login_required
+@require_roles(required_roles=None, is_api=True)
 @require_http_methods(["GET"])
 def get_courses(request: AuthenticatedRequest, school_id: int, subject_id: int) -> HttpResponse:
     school = get_object_or_404(School, id=school_id)
@@ -346,7 +346,7 @@ def get_courses(request: AuthenticatedRequest, school_id: int, subject_id: int) 
     ).render(request)
 
 
-@login_required
+@require_roles(required_roles=None, is_api=True)
 @require_http_methods(["GET"])
 def get_instructors(request: AuthenticatedRequest, school_id: int, subject_id: int) -> HttpResponse:
     school = get_object_or_404(School, id=school_id)
@@ -365,7 +365,7 @@ def get_instructors(request: AuthenticatedRequest, school_id: int, subject_id: i
     ).render(request)
 
 
-@roles_required(required_roles=["regular", "manager"], is_api=True)
+@require_roles(required_roles=None, is_api=True)
 @require_http_methods(["PUT"])
 def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
     invite = get_object_or_404(DiscordInvite, id=invite_id)
@@ -394,7 +394,7 @@ def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpRes
     return interfaces_response.BlankResponse().render(request)
 
 
-@roles_required(required_roles=["manager"], is_api=True)
+@require_roles(required_roles=["manager"], is_api=True)
 @require_http_methods(["POST"])
 def approve_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
@@ -420,7 +420,7 @@ def approve_invite(request: AuthenticatedRequest, invite_id: int) -> HttpRespons
     return interfaces_response.BlankResponse().render(request)
 
 
-@roles_required(required_roles=["manager"], is_api=True)
+@require_roles(required_roles=["manager"], is_api=True)
 @require_http_methods(["POST"])
 def reject_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
@@ -443,7 +443,7 @@ def reject_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse
     return interfaces_response.BlankResponse().render(request)
 
 
-@roles_required(required_roles=["regular", "manager"], is_api=True)
+@require_roles(required_roles=None, is_api=True)
 @require_http_methods(["GET"])
 def get_all_subjects(request: AuthenticatedRequest) -> HttpResponse:
     """Get subjects for server listing search filter"""
@@ -460,7 +460,7 @@ def get_all_subjects(request: AuthenticatedRequest) -> HttpResponse:
     ).render(request)
 
 
-@roles_required(required_roles=["regular", "manager"], is_api=True)
+@require_roles(required_roles=None, is_api=True)
 @require_http_methods(["GET"])
 def get_all_courses(request: AuthenticatedRequest, subject_id: int) -> HttpResponse:
     """Get courses for server listing search filter"""

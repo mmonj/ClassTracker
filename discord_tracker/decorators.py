@@ -22,7 +22,7 @@ def school_required(
 ) -> Callable[[TViewCallable], TViewCallable]:
     def decorator(func: TViewCallable) -> TViewCallable:
         @wraps(func)
-        def wrapper(request: HttpRequest) -> HttpResponse:
+        def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
             if not request.user.is_authenticated:
                 if is_api:
                     return error_json_response(["Authentication required"], status=401)
@@ -34,19 +34,19 @@ def school_required(
                     return error_json_response(["School selection required"], status=400)
                 return redirect(reverse("discord_tracker:profile"))
 
-            return func(request)
+            return func(request, *args, **kwargs)
 
         return wrapper
 
     return decorator
 
 
-def roles_required(
+def require_roles(
     *,
-    required_roles: List[TUserRoleValue],
+    required_roles: List[TUserRoleValue] | None,
     is_api: bool,
 ) -> Callable[[TViewCallable], TViewCallable]:
-    if not required_roles:
+    if required_roles is not None and len(required_roles) == 0:
         raise ValueError("roles_required decorator requires a non-empty list of roles")
 
     def decorator(view_fn: TViewCallable) -> TViewCallable:
@@ -64,6 +64,9 @@ def roles_required(
                 return error_json_response(["User not found"], status=404)
             if discord_user is None:
                 return redirect("discord_tracker:login")
+
+            if required_roles is None:
+                return view_fn(request, *args, **kwargs)
 
             if discord_user.role not in required_roles:
                 role_names = ", ".join(required_roles)
