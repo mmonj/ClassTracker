@@ -3,7 +3,7 @@ import React from "react";
 import { templates } from "@reactivated";
 import { Button, Card, Col } from "react-bootstrap";
 
-import { faLock, faLockOpen, faUsers } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faLockOpen, faShieldAlt, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 
@@ -52,7 +52,15 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               {server.display_name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-grow-1">
-              <h5 className="card-title mb-1">{server.display_name}</h5>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <h5 className="card-title mb-0">{server.display_name}</h5>
+                {server.is_required_for_trust && (
+                  <span className="badge bg-success d-inline-flex align-items-center">
+                    <FontAwesomeIcon icon={faShieldAlt} className="me-1" size="xs" />
+                    Special
+                  </span>
+                )}
+              </div>
               <div className="d-flex align-items-center gap-3">
                 <div className="d-flex align-items-center">
                   <FontAwesomeIcon
@@ -77,10 +85,12 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
             </div>
           </div>
 
-          {server.description && <p className="text-muted small mb-3">{server.description}</p>}
-
           {/* relevant academic info */}
-          <DiscordServerInfo server={server} className="mb-0 border-0" />
+          <DiscordServerInfo
+            server={server}
+            truncate_description={true}
+            className="mb-0 border-0"
+          />
 
           <div className="mt-auto">
             <Button

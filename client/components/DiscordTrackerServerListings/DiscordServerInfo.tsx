@@ -5,25 +5,56 @@ import { Badge, Card, Col, Row } from "react-bootstrap";
 
 interface Props {
   server: templates.DiscordTrackerServerListings["public_servers"][number];
+  truncate_description?: boolean;
   className?: string;
 }
 
-export function DiscordServerInfo({ server, className }: Props) {
+export function DiscordServerInfo({ server, className, truncate_description = false }: Props) {
   const hasSubjects = server.subjects.length > 0;
   const hasCourses = server.courses.length > 0;
   const hasInstructors = server.instructors.length > 0;
   const isGeneralServer = server.is_general_server;
   const hasMemberCount = server.member_count > 0;
+  const hasDescription = server.description.trim().length > 0;
 
-  if (!hasSubjects && !hasCourses && !hasInstructors && !isGeneralServer && !hasMemberCount) {
+  if (
+    !hasSubjects &&
+    !hasCourses &&
+    !hasInstructors &&
+    !isGeneralServer &&
+    !hasMemberCount &&
+    !hasDescription
+  ) {
     return null;
+  }
+
+  function getFormattedDescription(description: string) {
+    const maxLength = 100;
+    description = description.trim();
+
+    if (truncate_description && description.length > maxLength) {
+      return description.slice(0, maxLength) + "...";
+    }
+    return description;
   }
 
   return (
     <Card className={className}>
       <Card.Body className="p-3">
-        <Card.Title className="h6 text-muted mb-3">Server Information</Card.Title>
+        <Card.Title className="mb-3">
+          <span className="h6 text-bold border-bottom">Server Information</span>
+        </Card.Title>
         <Row className="g-2">
+          {hasDescription && (
+            <Col xs={12} className="mt-0">
+              <div className="mb-1">
+                <p className="mb-0 small text-break">
+                  {getFormattedDescription(server.description)}
+                </p>
+              </div>
+            </Col>
+          )}
+
           {hasMemberCount && (
             <Col xs={12} className="mt-0">
               <div className="mb-1">

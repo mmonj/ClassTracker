@@ -1,4 +1,5 @@
 import logging
+from typing import TYPE_CHECKING, cast
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -16,6 +17,9 @@ from discord_tracker.views.forms import ReferralCreationForm, SchoolSelectionFor
 from server.util import get_pagination_data
 from server.util.typedefs import AuthenticatedRequest, TPaginationData
 
+if TYPE_CHECKING:
+    from class_tracker.models import School
+
 logger = logging.getLogger("main")
 
 
@@ -28,15 +32,18 @@ def server_listings(request: HttpRequest) -> HttpResponse:
     page = int(request.GET.get("page", 1))
     page_size = 10
 
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+    user_school = cast("School", discord_user.school)
+
     base_queryset = (
-        DiscordServer.objects.filter(invites__approved_by__isnull=False)
+        DiscordServer.objects.filter(invites__approved_by__isnull=False, schools=user_school)
         .distinct()
         .prefetch_related(*prefetches)
     )
 
     # if search is active filter servers and return single paginated result
     if subject_id or course_id:
-        search_queryset = base_queryset.order_by("name")
+        search_queryset = base_queryset.order_by("-is_required_for_trust", "name")
 
         if subject_id:
             search_queryset = search_queryset.filter(subjects__id=subject_id)
@@ -58,16 +65,33 @@ def server_listings(request: HttpRequest) -> HttpResponse:
             is_search_active=True,
         ).render(request)
 
-    # default view:show recent public and private servers
-    public_servers = list(
-        base_queryset.filter(privacy_level=DiscordServer.PrivacyLevel.PUBLIC)[:page_size]
+    # default view:show recent public and private servers, prioritizing required servers
+    public_regular_servers = list(
+        base_queryset.filter(
+            privacy_level=DiscordServer.PrivacyLevel.PUBLIC, is_required_for_trust=False
+        ).order_by("name")[:page_size]
     )
 
-    private_servers = list(
-        base_queryset.filter(privacy_level=DiscordServer.PrivacyLevel.PRIVATE).order_by("-id")[
-            :page_size
-        ]
+    private_regular_servers = list(
+        base_queryset.filter(
+            privacy_level=DiscordServer.PrivacyLevel.PRIVATE, is_required_for_trust=False
+        ).order_by("-id")[:page_size]
     )
+
+    public_required_servers = list(
+        base_queryset.filter(
+            privacy_level=DiscordServer.PrivacyLevel.PUBLIC, is_required_for_trust=True
+        ).order_by("name")
+    )
+
+    private_required_servers = list(
+        base_queryset.filter(
+            privacy_level=DiscordServer.PrivacyLevel.PRIVATE, is_required_for_trust=True
+        ).order_by("-id")
+    )
+
+    public_servers = public_required_servers + public_regular_servers
+    private_servers = private_required_servers + private_regular_servers
 
     return templates.DiscordTrackerServerListings(
         public_servers=public_servers,
