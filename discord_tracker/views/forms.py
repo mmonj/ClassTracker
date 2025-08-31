@@ -21,7 +21,9 @@ class SchoolSelectionForm(forms.ModelForm[DiscordUser]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         school_field = self.fields["school"]
-        school_field.queryset = School.objects.all().order_by("name")  # type: ignore [attr-defined]
+        school_field.queryset = (  # type: ignore [attr-defined]
+            School.objects.filter(subjects__isnull=False).distinct().order_by("name")
+        )
 
         school_field.empty_label = "Select your school..."  # type: ignore [attr-defined]
         school_field.required = True

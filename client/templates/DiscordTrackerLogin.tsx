@@ -12,7 +12,7 @@ import { Layout } from "@client/layouts/Layout";
 export function Template(_props: templates.DiscordTrackerLogin) {
   return (
     <Layout title="Discord Login" Navbar={Navbar}>
-      <Container className="d-flex align-items-center justify-content-center min-vh-100">
+      <Container className="d-flex align-items-center justify-content-center min-vh-100 px-0">
         <Row className="w-100">
           <Col xs={12} md={6} lg={4} className="mx-auto">
             <Card className="shadow-lg border-0">
@@ -34,7 +34,10 @@ export function Template(_props: templates.DiscordTrackerLogin) {
                 </form>
                 <div className="text-center">
                   <small className="text-muted">
-                    We only request minimal permissions to verify your identity.
+                    We request access to your Discord profile, email, and server memberships to
+                    verify your eligibility for account creation. We temporarily retrieve your
+                    server memberships from Discord's API for verification purposes, but we do not
+                    store this data.
                   </small>
                 </div>
               </Card.Body>

@@ -122,7 +122,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     if not discord_user.is_manager and discord_user.school is not None:
         available_schools = [discord_user.school]
     elif discord_user.is_manager:
-        available_schools = list(School.objects.all())
+        available_schools = list(School.objects.filter(subjects__isnull=False).distinct())
 
     return interfaces_response.ValidateDiscordInviteResponse(
         guild_info={

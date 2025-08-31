@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { CSRFToken, reverse } from "@reactivated";
+import { reverse } from "@reactivated";
 import { Alert, Button } from "react-bootstrap";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
@@ -28,13 +28,15 @@ export function LoginBanner({ className = "" }: LoginBannerProps) {
         <FontAwesomeIcon icon={faDiscord} className="me-2" />
         <span>Sign in with Discord to access further invites.</span>
       </div>
-      <form method="POST" action={reverse("discord_login")}>
-        <CSRFToken />
-        <Button type="submit" variant="outline-primary" size="sm" className="ms-3 flex-shrink-0">
-          <FontAwesomeIcon icon={faDiscord} className="me-1" />
-          Sign in
-        </Button>
-      </form>
+      <Button
+        href={reverse("discord_tracker:login")}
+        variant="outline-primary"
+        size="sm"
+        className="ms-3 flex-shrink-0"
+      >
+        <FontAwesomeIcon icon={faDiscord} className="me-1" />
+        Sign in
+      </Button>
     </Alert>
   );
 }
