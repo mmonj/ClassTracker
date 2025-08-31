@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import timedelta
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import cattrs
 import requests
@@ -169,9 +169,16 @@ def get_guild_icon_url(guild_id: str, icon_hash: str | None, file_extension: str
     if not icon_hash:
         return ""
 
-    return GUILD_ICON_URL_TEMPLATE.format(
+    base_url = GUILD_ICON_URL_TEMPLATE.format(
         guild_id=guild_id, icon_hash=icon_hash, file_extension=file_extension
     )
+
+    parsed_url = urlparse(base_url)
+    query = parse_qs(parsed_url.query)
+    query["size"] = ["256"]  # icon size
+    new_query = urlencode(query, doseq=True)
+
+    return urlunparse(parsed_url._replace(query=new_query))
 
 
 def get_guild_banner_url(
