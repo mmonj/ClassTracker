@@ -365,7 +365,7 @@ def get_instructors(request: AuthenticatedRequest, school_id: int, subject_id: i
     ).render(request)
 
 
-@login_required
+@roles_required(required_roles=["regular", "manager"], is_api=True)
 @require_http_methods(["PUT"])
 def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
     invite = get_object_or_404(DiscordInvite, id=invite_id)
@@ -379,11 +379,13 @@ def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpRes
     if not invite.is_valid or not invite.is_approved:
         return error_json_response(["This invite is no longer valid"], status=400)
 
+    user_ip = request.META.get("HTTP_CF_CONNECTING_IP") or request.META.get("HTTP_USER_AGENT", "")
+
     InviteUsage.objects.create(
         invite=invite,
         used_by=discord_user,
         ip_address=request.META.get("REMOTE_ADDR"),
-        user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        user_agent=user_ip,
     )
 
     invite.uses_count += 1
