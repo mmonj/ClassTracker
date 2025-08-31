@@ -28,7 +28,7 @@
     "framer-motion": "^12.23.12",
     "react-bootstrap": "^2.10.10",
     "react-select": "^5.10.2",
-    "reactivated": "^0.47.3"
+    "reactivated": "^0.47.4"
   },
   "devDependencies": {
     "sass": "^1.89.1"
