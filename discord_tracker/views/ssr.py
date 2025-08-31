@@ -33,6 +33,7 @@ def server_listings(request: HttpRequest) -> HttpResponse:
     page_size = 10
 
     queryset_school_args = {}
+    discord_user: DiscordUser | None = None
 
     if (
         request.user.is_authenticated
@@ -47,6 +48,12 @@ def server_listings(request: HttpRequest) -> HttpResponse:
         .distinct()
         .prefetch_related(*prefetches)
     )
+
+    pending_invites_count = 0
+    if discord_user is not None and discord_user.is_manager:
+        pending_invites_count = DiscordInvite.objects.filter(
+            approved_by__isnull=True, rejected_by__isnull=True
+        ).count()
 
     # if search is active filter servers and return single paginated result
     if subject_id or course_id:
@@ -70,6 +77,7 @@ def server_listings(request: HttpRequest) -> HttpResponse:
             subject_id=int(subject_id) if subject_id else None,
             course_id=int(course_id) if course_id else None,
             is_search_active=True,
+            pending_invites_count=pending_invites_count,
         ).render(request)
 
     # default view:show recent public and private servers, prioritizing required servers
@@ -108,6 +116,7 @@ def server_listings(request: HttpRequest) -> HttpResponse:
         subject_id=None,
         course_id=None,
         is_search_active=False,
+        pending_invites_count=pending_invites_count,
     ).render(request)
 
 

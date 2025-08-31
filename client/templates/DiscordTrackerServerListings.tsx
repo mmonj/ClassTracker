@@ -54,6 +54,7 @@ export function Template(props: templates.DiscordTrackerServerListings) {
 
   const canUserAddInvites = context.user.discord_user !== null;
   const isAuthenticated = context.user.discord_user !== null;
+  const isManager = context.user.discord_user?.role_info.value === "manager";
 
   const subjectsFetcher = useFetch<interfaces.GetSubjectsResponse>();
   const coursesFetcher = useFetch<interfaces.GetCoursesResponse>();
@@ -206,6 +207,25 @@ export function Template(props: templates.DiscordTrackerServerListings) {
     <Layout title="Discord Tracker" Navbar={Navbar}>
       <Container className="px-0">
         {context.user.discord_user === null && <LoginBanner />}
+
+        {/* pending invites banner (managers only) */}
+        {isManager && props.pending_invites_count > 0 && (
+          <Alert variant="warning" className="mb-4">
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{props.pending_invites_count}</strong> pending invite submission(s) awaiting
+                approval
+              </div>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                href={reverse("discord_tracker:unapproved_invites")}
+              >
+                Review Invites
+              </Button>
+            </div>
+          </Alert>
+        )}
 
         <div className="text-center mb-5">
           <div className="d-flex align-items-center justify-content-center mb-3">

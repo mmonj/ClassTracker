@@ -197,7 +197,7 @@ class DiscordInviteAdmin(admin.ModelAdmin[DiscordInvite]):
         "submitter__global_name",
         "notes_md",
     ]
-    readonly_fields = []
+    readonly_fields = ["datetime_approved", "datetime_rejected", "uses_count"]
     list_editable = ["is_valid"]
 
     fieldsets = [
@@ -218,7 +218,6 @@ class DiscordInviteAdmin(admin.ModelAdmin[DiscordInvite]):
                     "is_valid",
                     "expires_at",
                     "max_uses",
-                    "uses_count",
                 ]
             },
         ),

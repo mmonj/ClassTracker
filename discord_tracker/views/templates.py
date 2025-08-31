@@ -96,6 +96,7 @@ class DiscordTrackerServerListings(NamedTuple):
     subject_id: int | None
     course_id: int | None
     is_search_active: bool
+    pending_invites_count: int
 
 
 @template
