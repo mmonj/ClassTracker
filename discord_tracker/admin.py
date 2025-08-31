@@ -176,6 +176,7 @@ class DiscordInviteAdmin(admin.ModelAdmin[DiscordInvite]):
         "discord_server",
         "submitter",
         "is_approved",
+        "is_rejected",
         "approved_by",
         "is_valid",
         "expires_at",
@@ -235,12 +236,17 @@ class DiscordInviteAdmin(admin.ModelAdmin[DiscordInvite]):
         ),
     ]
 
-    def is_approved(self, obj: DiscordInvite) -> bool:
-        """Check if the invite is approved."""
-        return obj.is_approved
+    def is_approved(self, invite: DiscordInvite) -> bool:
+        return invite.is_approved
 
     is_approved.short_description = "Approved"  # type: ignore[attr-defined]
     is_approved.boolean = True  # type: ignore[attr-defined]
+
+    def is_rejected(self, invite: DiscordInvite) -> bool:
+        return invite.rejected_by is not None
+
+    is_rejected.short_description = "Rejected"  # type: ignore[attr-defined]
+    is_rejected.boolean = True  # type: ignore[attr-defined]
 
 
 @admin.register(InviteUsage)
