@@ -176,6 +176,8 @@ def fetch_new_semester_course_sections(
 
                 time.sleep(2)
 
+    logger.info("Completed fetching new semester course sections")
+
     return interfaces_response.RespRefreshCourseSections(
         courses=natsorted(courses, key=lambda c: (c.code, c.level))
     ).render(request)

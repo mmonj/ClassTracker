@@ -42,3 +42,4 @@ log_files/*
 class_tracker/tests/html
 static/styles/bs-dark/**/*.css
 static-collected/
+run-docker-compose.sh

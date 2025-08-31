@@ -24,6 +24,7 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_LOGIN_ON_GET = False
 SOCIALACCOUNT_ADAPTER = "discord_tracker.util.auth_adapters.DiscordSocialAccountAdapter"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if os.environ["ENV_TYPE"] != "prod" else "https"
 
 SOCIALACCOUNT_PROVIDERS = {
     "discord": {

@@ -5,7 +5,7 @@ services:
     build:
       context: .
       args:
-        ENV_TYPE: dev
+        ENV_TYPE: ${ENV_TYPE}
         UID: "${UID}"
     command: >
       bash -c "
@@ -19,11 +19,11 @@ services:
     ports:
       - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
-      - node_modules:/app/node_modules
-      - python_venv_class_tracker:/app/.venv
+      - class_tracker_node_modules:/app/node_modules
+      - class_tracker_python_venv:/app/.venv
       - ./:/app
     env_file:
-      - .env.dev
+      - ${ENV_FILE}
     restart: unless-stopped
     depends_on:
       class_tracker_redis:
@@ -46,7 +46,7 @@ services:
     container_name: redis-class-tracker
     command: sh -c "redis-server --port ${REDIS_PORT} --requirepass ${REDIS_PASSWORD}"
     env_file:
-      - .env.dev
+      - ${ENV_FILE}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "-h", "localhost", "-p", "${REDIS_PORT}", "-a", "${REDIS_PASSWORD}", "ping"]
@@ -62,10 +62,10 @@ services:
     command: uv run python manage.py scheduler_worker
     user: "${UID}"
     volumes:
-      - python_venv_class_tracker:/app/.venv
+      - class_tracker_python_venv:/app/.venv
       - ./:/app
     env_file:
-      - .env.dev
+      - ${ENV_FILE}
     restart: unless-stopped
     depends_on:
       class_tracker_redis:
@@ -74,8 +74,9 @@ services:
       - class_tracker_dev
 
 volumes:
-  node_modules:
-  python_venv_class_tracker:
+  class_tracker_node_modules:
+    external: true
+  class_tracker_python_venv:
     external: true
 
 networks:

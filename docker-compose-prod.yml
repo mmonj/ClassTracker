@@ -1,36 +1,36 @@
 services:
   class_tracker:
-    image: mm-class-tracker-image-prod
+    image: mm-class-tracker-image
     container_name: mm-class-tracker-prod
     build:
       context: .
       args:
-        ENV_TYPE: dev
+        ENV_TYPE: ${ENV_TYPE}
         UID: "${UID}"
-    command: >
-      uv run bash -c "python manage.py migrate
-      && python manage.py generate_client_assets
-      && python manage.py build
-      && python manage.py collectstatic --clear --noinput
-      && uvicorn server.asgi:application --host 0.0.0.0 --port ${DJANGO_PORT}"
+    command: |
+      uv run bash -c '
+        python manage.py migrate &&
+        python manage.py elevate_owner_status &&
+        python manage.py generate_client_assets &&
+        python manage.py build &&
+        python manage.py collectstatic --clear --noinput &&
+        npm run sass:build &&
+        uvicorn server.asgi:application --host 0.0.0.0 --port ${DJANGO_PORT}
+      '
     tty: true
     user: "${UID}"
-    ports:
-      - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
-      - node_modules_prod:/app/node_modules
-      - python_venv_class_tracker_prod:/app/.venv
+      - class_tracker_node_modules_prod:/app/node_modules
+      - class_tracker_python_venv_prod:/app/.venv
       - ./:/app
     env_file:
-      - .env.prod
+      - ${ENV_FILE}
     restart: unless-stopped
     networks:
       - caddy_net
     depends_on:
       class_tracker_redis:
         condition: service_healthy
-
-
 
   # redis-overcommit-on-host
   class_tracker_redis_overcommit:
@@ -47,10 +47,21 @@ services:
     container_name: redis-class-tracker-prod
     command: sh -c "redis-server --port ${REDIS_PORT} --requirepass ${REDIS_PASSWORD}"
     env_file:
-      - .env.prod
+      - ${ENV_FILE}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "-h", "localhost", "-p", "${REDIS_PORT}", "-a", "${REDIS_PASSWORD}", "ping"]
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "-h",
+          "localhost",
+          "-p",
+          "${REDIS_PORT}",
+          "-a",
+          "${REDIS_PASSWORD}",
+          "ping",
+        ]
       interval: 5s
       timeout: 3s
       retries: 3
@@ -58,15 +69,15 @@ services:
       - caddy_net
 
   class_tracker_scheduler_worker_default:
-    image: mm-class-tracker-image-prod
+    image: mm-class-tracker-image
     container_name: class-tracker-scheduler-worker-default-prod
     command: uv run python manage.py scheduler_worker
     user: "${UID}"
     volumes:
-      - python_venv_class_tracker_prod:/app/.venv
+      - class_tracker_python_venv_prod:/app/.venv
       - ./:/app
     env_file:
-      - .env.prod
+      - ${ENV_FILE}
     restart: unless-stopped
     depends_on:
       class_tracker_redis:
@@ -75,8 +86,9 @@ services:
       - caddy_net
 
 volumes:
-  node_modules_prod:
-  python_venv_class_tracker_prod:
+  class_tracker_node_modules_prod:
+    external: true
+  class_tracker_python_venv_prod:
     external: true
 
 networks:

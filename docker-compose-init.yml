@@ -5,30 +5,23 @@ services:
     build:
       context: .
       args:
-        ENV_TYPE: dev
+        ENV_TYPE: ${ENV_TYPE}
         UID: "${UID}"
     command: bash -c "uv run python manage.py migrate"
-    # command: >
-    #   bash -c "
-    #   trap 'echo SIGTERM received, shutting down...; exit' SIGTERM;
-    #   while true; do
-    #     sleep 1;
-    #   done
-    #   "
     tty: true
     user: "${UID}"
     ports:
       - ${DJANGO_PORT}:${DJANGO_PORT}
     volumes:
-      - python_venv_class_tracker:/app/.venv
+      - class_tracker_python_venv:/app/.venv
       - ./:/app
     env_file:
-      - .env.dev
+      - ${ENV_FILE}
     networks:
       - class_tracker_dev
 
 volumes:
-  python_venv_class_tracker:
+  class_tracker_python_venv:
     external: true
 
 networks:

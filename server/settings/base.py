@@ -28,9 +28,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ["DJANGO_DEBUG"] == "1"
+DEBUG = os.environ["ENV_TYPE"] != "prod"
 
-ALLOWED_HOSTS: list[str] = os.environ["DJANGO_ALLOWED_HOSTS"].split()
+ALLOWED_HOSTS = os.environ["DJANGO_ALLOWED_HOSTS"].split()
 
 
 # Application definition
@@ -113,7 +113,7 @@ DATABASES = {
         "USER": os.environ["POSTGRES_USER"],
         "PASSWORD": os.environ["POSTGRES_PASSWORD"],
         "HOST": os.environ["POSTGRES_HOST"],
-        "PORT": 5432, # internal psql port
+        "PORT": 5432,  # internal psql port
         "ATOMIC_REQUESTS": True,
     }
 }
@@ -157,7 +157,7 @@ STATIC_URL = os.environ["DJANGO_STATIC_URL"]
 STATIC_ROOT = BASE_DIR / os.environ["DJANGO_COLLECTED_PATH"].strip("/")
 STATICFILES_DIRS = (BASE_DIR / os.environ["DJANGO_STATIC_DIR"].strip("/"),)
 
-# MEDIA_URL = os.environ["DJANGO_MEDIA_URL"]
+MEDIA_URL = os.environ["DJANGO_MEDIA_URL"]
 MEDIA_ROOT = BASE_DIR / os.environ["DJANGO_MEDIA_DIR"].strip("/")
 MEDIA_ROOT.mkdir(exist_ok=True)
 

@@ -43,5 +43,5 @@ RUN if [ "$ENV_TYPE" = "dev" ]; then \
         && npm ci \
     ;elif [ "$ENV_TYPE" = "prod" ]; then \
         uv sync --no-dev \
-        && npm ci --omit=dev \
+        && npm ci \
     ;fi
