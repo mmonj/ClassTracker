@@ -52,12 +52,12 @@ export function Template(props: templates.DiscordTrackerServerListings) {
   const [subjects, setSubjects] = useState<SubjectOption[]>([]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
 
+  const subjectsFetcher = useFetch<interfaces.GetSubjectsResponse>();
+  const coursesFetcher = useFetch<interfaces.GetCoursesResponse>();
+
   const canUserAddInvites = context.user.discord_user !== null;
   const isAuthenticated = context.user.discord_user !== null;
   const isManager = context.user.discord_user?.role_info.value === "manager";
-
-  const subjectsFetcher = useFetch<interfaces.GetSubjectsResponse>();
-  const coursesFetcher = useFetch<interfaces.GetCoursesResponse>();
 
   useEffect(() => {
     async function fetchSubjects() {
@@ -118,7 +118,7 @@ export function Template(props: templates.DiscordTrackerServerListings) {
 
   // restore course selection when courses are loaded and course_id prop exists
   useEffect(() => {
-    if (courses.length > 0 && props.course_id !== null && !selectedCourse) {
+    if (courses.length > 0 && props.course_id !== null && selectedCourse?.label === "Loading...") {
       const foundCourse = courses.find((c: CourseOption) => c.value === props.course_id);
       if (foundCourse) {
         setSelectedCourse(foundCourse);

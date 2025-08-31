@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { getErrorList } from "@client/utils";
 
@@ -16,7 +16,7 @@ export function useFetch<T>() {
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
   const [identifier, setIdentifier] = useState<number | undefined>(undefined);
 
-  async function fetchData(
+  const fetchData = useCallback(async function (
     fetchCallback: () => ApiPromise<T>,
     identifier?: number,
     onSuccess?: () => void,
@@ -54,14 +54,17 @@ export function useFetch<T>() {
       .finally(() => {
         setIsLoading(() => false);
       });
-  }
+  }, []);
 
-  function reset() {
+  const reset = useCallback(() => {
     setData(() => null);
     setIsLoading(() => false);
     setErrorMessages(() => []);
     setIdentifier(() => undefined);
-  }
+  }, []);
 
-  return { data, isLoading, errorMessages, identifier, reset, fetchData };
+  return useMemo(
+    () => ({ data, isLoading, errorMessages, identifier, reset, fetchData }),
+    [data, isLoading, errorMessages, identifier, reset, fetchData],
+  );
 }
