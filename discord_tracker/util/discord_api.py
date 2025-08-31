@@ -9,11 +9,12 @@ import requests
 from django.conf import settings
 from django.utils import timezone
 
-from discord_tracker.models import DiscordUser
+from discord_tracker.models import DiscordServer, DiscordUser
 from server.util import init_http_retrier
 from server.util.typedefs import Failure, Success, TResult
 
 from .typedefs import (
+    TBaseGuildData,
     TChannelData,
     TDiscordInviteData,
     TGuildAssetUrls,
@@ -303,3 +304,54 @@ def _is_valid_invite_code(code: str) -> bool:
         logger.error("Invalid invite code format: %s", code)
 
     return bool(match)
+
+
+def fetch_user_guilds(access_token: str) -> TResult[list[TBaseGuildData], str]:
+    """
+    Fetch the user's Discord guilds using their access token.
+    Returns a list of guild objects or an error message.
+    """
+    url = "https://discord.com/api/users/@me/guilds"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        session = init_http_retrier()
+        response = session.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        guilds = response.json()
+
+        return Success(cattrs.structure(guilds, list[TBaseGuildData]))
+
+    except requests.RequestException:
+        logger.exception("Failed to fetch user guilds")
+        return Failure("Failed to fetch Discord guilds")
+
+
+def check_user_in_trusted_servers(access_token: str) -> TResult[bool, str]:
+    """
+    Check if the user is a member of any Discord servers that are marked as required for trust.
+    Returns True if user is in any trusted server, False otherwise.
+    """
+    guilds_result = fetch_user_guilds(access_token)
+    if not guilds_result.ok:
+        return Failure(guilds_result.err)
+
+    user_guild_ids = {guild["id"] for guild in guilds_result.val}
+
+    trusted_server_ids = set(
+        DiscordServer.objects.filter(is_required_for_trust=True).values_list("server_id", flat=True)
+    )
+
+    has_trusted_membership = bool(user_guild_ids.intersection(trusted_server_ids))
+
+    logger.info(
+        "User guild info: %d user guilds, %d trusted servers, is in trusted guilds: %s",
+        len(user_guild_ids),
+        len(trusted_server_ids),
+        has_trusted_membership,
+    )
+
+    return Success(has_trusted_membership)

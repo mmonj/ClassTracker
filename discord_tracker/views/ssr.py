@@ -32,11 +32,18 @@ def server_listings(request: HttpRequest) -> HttpResponse:
     page = int(request.GET.get("page", 1))
     page_size = 10
 
-    discord_user = get_object_or_404(DiscordUser, user=request.user)
-    user_school = cast("School", discord_user.school)
+    queryset_school_args = {}
+
+    if (
+        request.user.is_authenticated
+        and (discord_user := DiscordUser.objects.filter(user=request.user).first()) is not None
+    ):
+        user_school = cast("School", discord_user.school)
+        if user_school is not None:
+            queryset_school_args["schools"] = user_school
 
     base_queryset = (
-        DiscordServer.objects.filter(invites__approved_by__isnull=False, schools=user_school)
+        DiscordServer.objects.filter(invites__approved_by__isnull=False, **queryset_school_args)
         .distinct()
         .prefetch_related(*prefetches)
     )

@@ -26,6 +26,19 @@ class TInviterData(TypedDict):
     banner_color: str | None
 
 
+# base guild data retrieved via access token (after authenticating via allauth)
+class TBaseGuildData(TypedDict):
+    id: str
+    name: str
+    icon: str | None
+    banner: str | None
+    owner: bool
+    permissions: int
+    permissions_new: str
+    features: list[str]
+
+
+# guild data returned after retrieving invite data via discord API
 class TGuildData(TypedDict):
     id: str
     name: str
