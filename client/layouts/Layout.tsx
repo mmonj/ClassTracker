@@ -50,6 +50,15 @@ export const Layout = ({
           href={`${djangoContext.STATIC_URL}public/favicon.svg`}
         />
 
+        {/* meta tags */}
+        <meta property="og:title" content="Class Cords" />
+        <meta
+          property="og:description"
+          content="Find and join Discord servers for your college classes"
+        />
+        <meta property="og:image" content={`${djangoContext.STATIC_URL}public/logo-500x471.png`} />
+        <meta property="og:type" content="website" />
+
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
           rel="stylesheet"
