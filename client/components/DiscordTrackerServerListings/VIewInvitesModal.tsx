@@ -110,7 +110,7 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
           )}
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body>
+      <Modal.Body style={{ maxHeight: "55vh", overflowY: "auto" }}>
         {server && server.description && (
           <div className="mb-4 text-center">
             <p className="text-muted mb-0">{server.description}</p>
