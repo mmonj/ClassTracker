@@ -1,214 +1,119 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 
-import { Context, interfaces, reverse, templates } from "@reactivated";
-import { Alert, Button, Card, Collapse, Container, Form, Row } from "react-bootstrap";
-import Select, { SingleValue } from "react-select";
+import { Context, reverse, templates } from "@reactivated";
+import { Alert, Button, Col, Collapse, Container, Row } from "react-bootstrap";
 
-import { faDiscord } from "@fortawesome/free-brands-svg-icons";
-import { faChevronDown, faChevronUp, faPlus, faSearch } from "@fortawesome/free-solid-svg-icons";
+import {
+  faChevronDown,
+  faChevronUp,
+  faEye,
+  faEyeSlash,
+  faLayerGroup,
+  faList,
+  faPlus,
+  faSearch,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
-
-import { fetchByReactivated } from "@client/utils";
 
 import {
   AddInviteModal,
   DiscordServerCard,
   LoginBanner,
+  ServerSearchFilters,
   ViewInvitesModal,
 } from "@client/components/DiscordTrackerServerListings";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
-import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 
-interface SubjectOption {
-  value: number;
-  label: string;
-}
-
-interface CourseOption {
-  value: number;
-  label: string;
-}
+type TServer = templates.DiscordTrackerServerListings["servers"][number];
 
 export function Template(props: templates.DiscordTrackerServerListings) {
   const context = useContext(Context);
-
-  const [selectedServer, setSelectedServer] = useState<(typeof props.public_servers)[0] | null>(
-    null,
-  );
   const [showInvitesModal, setShowInvitesModal] = useState(false);
+  const [selectedServer, setSelectedServer] = useState<TServer | null>(null);
+  const [publicSectionOpen, setPublicSectionOpen] = useState(true);
+  const [privateSectionOpen, setPrivateSectionOpen] = useState(true);
   const [showAddInviteModal, setShowAddInviteModal] = useState(false);
 
-  const [publicCollapsed, setPublicCollapsed] = useState(false);
-  const [privateCollapsed, setPrivateCollapsed] = useState(false);
-
-  const [selectedSubject, setSelectedSubject] = useState<SubjectOption | null>(
-    props.subject_id !== null ? { value: props.subject_id, label: "Loading..." } : null,
-  );
-  const [selectedCourse, setSelectedCourse] = useState<CourseOption | null>(
-    props.course_id !== null ? { value: props.course_id, label: "Loading..." } : null,
-  );
-  const [subjects, setSubjects] = useState<SubjectOption[]>([]);
-  const [courses, setCourses] = useState<CourseOption[]>([]);
-
-  const subjectsFetcher = useFetch<interfaces.GetSubjectsResponse>();
-  const coursesFetcher = useFetch<interfaces.GetCoursesResponse>();
+  const isBasePage = !props.is_search_active && !props.pagination;
+  const [isGrouped, setIsGrouped] = useState(isBasePage); // default to grouped on base page, ungrouped on pagination
 
   const canUserAddInvites = context.user.discord_user !== null;
   const isAuthenticated = context.user.discord_user !== null;
   const isManager = context.user.discord_user?.role_info.value === "manager";
 
-  useEffect(() => {
-    async function fetchSubjects() {
-      if (!isAuthenticated) return;
+  // group servers by privacy level and 'required' status
+  const { publicServers, privateServers, requiredServers } = useMemo(() => {
+    const required: TServer[] = [];
+    const publicNormal: TServer[] = [];
+    const privateNormal: TServer[] = [];
 
-      const result = await subjectsFetcher.fetchData(() =>
-        fetchByReactivated(reverse("discord_tracker:get_all_subjects"), context.csrf_token, "GET"),
-      );
-
-      if (!result.ok) return;
-
-      const subjectOptions = result.data.subjects.map((subject) => ({
-        value: subject.id,
-        label: subject.name,
-      }));
-      setSubjects(subjectOptions);
-
-      // update selected subject label if it was pre-selected
-      if (props.subject_id !== null) {
-        const foundSubject = subjectOptions.find((subject) => subject.value === props.subject_id);
-        if (foundSubject) {
-          setSelectedSubject(foundSubject);
-        }
-      }
-    }
-
-    void fetchSubjects();
-  }, [isAuthenticated]);
-
-  // fetch courses when subject changes
-  useEffect(() => {
-    async function fetchCourses() {
-      if (!selectedSubject) {
-        setCourses([]);
-        setSelectedCourse(null);
-        return;
-      }
-
-      const result = await coursesFetcher.fetchData(() =>
-        fetchByReactivated(
-          reverse("discord_tracker:get_all_courses", { subject_id: selectedSubject.value }),
-          context.csrf_token,
-          "GET",
-        ),
-      );
-
-      if (!result.ok) return;
-
-      const courseOptions = result.data.courses.map((course) => ({
-        value: course.id,
-        label: `${course.code} ${course.level} - ${course.title}`,
-      }));
-      setCourses(courseOptions);
-    }
-
-    void fetchCourses();
-  }, [selectedSubject]);
-
-  // restore course selection when courses are loaded and course_id prop exists
-  useEffect(() => {
-    if (courses.length > 0 && props.course_id !== null && selectedCourse?.label === "Loading...") {
-      const foundCourse = courses.find((c: CourseOption) => c.value === props.course_id);
-      if (foundCourse) {
-        setSelectedCourse(foundCourse);
-      }
-    }
-  }, [courses, props.course_id, selectedCourse]);
-
-  function handleSubjectChange(option: SingleValue<SubjectOption>) {
-    setSelectedSubject(option);
-    setSelectedCourse(null);
-  }
-
-  function handleCourseChange(option: SingleValue<CourseOption>) {
-    setSelectedCourse(option);
-  }
-
-  function executeSearch() {
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-
-      if (selectedSubject) {
-        url.searchParams.set("subject_id", selectedSubject.value.toString());
+    props.servers.forEach((server) => {
+      if (server.is_required_for_trust) {
+        required.push(server);
+      } else if (server.privacy_level_info.value === "public") {
+        publicNormal.push(server);
       } else {
-        url.searchParams.delete("subject_id");
+        privateNormal.push(server);
       }
+    });
 
-      if (selectedCourse) {
-        url.searchParams.set("course_id", selectedCourse.value.toString());
-      } else {
-        url.searchParams.delete("course_id");
-      }
-
-      url.searchParams.delete("page");
-      window.location.href = url.toString();
-    }
-  }
-
-  function handleSearchSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    executeSearch();
-  }
-
-  function clearSearch() {
-    setSelectedSubject(null);
-    setSelectedCourse(null);
-
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      window.location.href = url.pathname;
-    }
-  }
+    return {
+      requiredServers: required,
+      publicServers: publicNormal,
+      privateServers: privateNormal,
+    };
+  }, [props.servers]);
 
   function handleShowInvites(serverId: number) {
-    const allServers = [...props.public_servers, ...props.private_servers, ...props.servers];
-    const server = allServers.find((s) => s.id === serverId);
-    if (server !== undefined) {
+    const server = props.servers.find((s) => s.id === serverId);
+    if (server) {
       setSelectedServer(server);
       setShowInvitesModal(true);
     }
   }
 
-  function handleCloseModal() {
+  function handleCloseInvitesModal() {
     setShowInvitesModal(false);
     setSelectedServer(null);
+  }
+
+  function handleToggleCollapseAll() {
+    const shouldCollapseAll = publicSectionOpen || privateSectionOpen;
+    setPublicSectionOpen(!shouldCollapseAll);
+    setPrivateSectionOpen(!shouldCollapseAll);
+  }
+
+  function handleShowAddInviteModal() {
+    setShowAddInviteModal(true);
   }
 
   function handleCloseAddInviteModal() {
     setShowAddInviteModal(false);
   }
 
-  function handleCollapseAll() {
-    const shouldCollapse = !publicCollapsed || !privateCollapsed;
-    setPublicCollapsed(shouldCollapse);
-    setPrivateCollapsed(shouldCollapse);
+  function handleToggleGrouping() {
+    setIsGrouped(!isGrouped);
   }
 
-  function handlePageChange(page: number) {
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.set("page", page.toString());
-      window.location.href = url.toString();
+  function buildPageUrl(page: number) {
+    const params = new URLSearchParams();
+    params.set("page", page.toString());
+    if (props.subject_id !== null) {
+      params.set("subject_id", props.subject_id.toString());
     }
+    if (props.course_id !== null) {
+      params.set("course_id", props.course_id.toString());
+    }
+    return `${reverse("discord_tracker:listings")}?${params.toString()}`;
   }
 
   return (
-    <Layout title="Discord Tracker" Navbar={Navbar}>
-      <Container className="px-0">
-        {context.user.discord_user === null && <LoginBanner />}
+    <Layout title="Class Cords" Navbar={Navbar}>
+      <Container className="py-4">
+        {!context.user.is_authenticated && <LoginBanner />}
 
-        {/* pending invites banner (managers only) */}
         {isManager && props.pending_invites_count > 0 && (
           <Alert variant="warning" className="mb-4">
             <div className="d-flex justify-content-between align-items-center">
@@ -227,269 +132,266 @@ export function Template(props: templates.DiscordTrackerServerListings) {
           </Alert>
         )}
 
-        <div className="text-center mb-5">
-          <div className="d-flex align-items-center justify-content-center mb-3">
-            <FontAwesomeIcon icon={faDiscord} size="3x" className="text-primary me-3" />
-            <h1 className="h2 mb-0">Discord Servers</h1>
+        <div className="text-center mb-4">
+          <div className="mb-3">
+            <h1 className="mb-1">Discord Servers</h1>
+            <p className="text-muted mb-0">
+              {props.is_search_active
+                ? `Search results for class servers`
+                : isBasePage
+                  ? "Recently added Discord servers for your classes"
+                  : "All Discord servers"}
+            </p>
           </div>
-          <p className="text-muted lead">Discover and join Discord servers for your classes</p>
 
-          {/* search filters */}
-          {isAuthenticated && (
-            <Card className="mb-4 p-2">
-              <Card.Header>
-                <div className="d-flex align-items-center">
-                  <FontAwesomeIcon icon={faSearch} className="me-2" />
-                  <h5 className="mb-0">Search Servers</h5>
-                </div>
-              </Card.Header>
-              <Card.Body>
-                <Form onSubmit={handleSearchSubmit}>
-                  <Row className="g-3">
-                    <div className="col-md-4">
-                      <Form.Label>Subject</Form.Label>
-                      <Select
-                        value={selectedSubject}
-                        onChange={handleSubjectChange}
-                        options={subjects}
-                        isClearable
-                        placeholder="Select a subject..."
-                        classNamePrefix="react-select"
-                        isLoading={subjectsFetcher.isLoading}
-                        isDisabled={subjectsFetcher.isLoading}
-                      />
-                    </div>
-                    <div className="col-md-4">
-                      <Form.Label>Course</Form.Label>
-                      <Select
-                        value={selectedCourse}
-                        onChange={handleCourseChange}
-                        options={courses}
-                        isClearable
-                        placeholder="Select a course..."
-                        isDisabled={selectedSubject === null || coursesFetcher.isLoading}
-                        classNamePrefix="react-select"
-                        isLoading={coursesFetcher.isLoading}
-                      />
-                    </div>
-                    <div className="col-md-4 d-flex align-items-end gap-2">
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        className="flex-grow-1"
-                        disabled={
-                          (!selectedSubject && !selectedCourse) ||
-                          subjectsFetcher.isLoading ||
-                          coursesFetcher.isLoading
-                        }
-                      >
-                        <FontAwesomeIcon icon={faSearch} className="me-2" />
-                        Search
-                      </Button>
-                      {/* clear search filters */}
-                      <Button type="button" variant="outline-secondary" onClick={clearSearch}>
-                        Clear
-                      </Button>
-                    </div>
-                  </Row>
-                </Form>
-              </Card.Body>
-            </Card>
-          )}
-
-          {/* 'add invite' button */}
-          {canUserAddInvites && (
-            <div className="mt-3">
+          <div className="d-flex flex-column flex-sm-row justify-content-center gap-2">
+            {/* add new discord invite */}
+            {canUserAddInvites && (
               <Button
                 variant="success"
-                onClick={() => setShowAddInviteModal((prev) => !prev)}
-                className="d-flex align-items-center mx-auto"
+                size="sm"
+                onClick={handleShowAddInviteModal}
+                className="d-flex align-items-center justify-content-center"
               >
                 <FontAwesomeIcon icon={faPlus} className="me-2" />
                 Add Discord Invite
               </Button>
-            </div>
-          )}
-        </div>
-
-        {/* search results */}
-        {props.is_search_active && (
-          <section className="mb-5">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h2 className="h3 mb-0">Search Results</h2>
-            </div>
-
-            {props.servers.length > 0 ? (
-              <Row>
-                {props.servers.map((server) => (
-                  <DiscordServerCard
-                    key={server.id}
-                    server={server}
-                    onShowInvites={handleShowInvites}
-                  />
-                ))}
-              </Row>
-            ) : (
-              <Alert variant="info">No servers found matching your search criteria.</Alert>
             )}
 
-            {/* pagination for search results */}
-            {props.pagination && props.pagination.total_pages > 1 && (
-              <nav className="mt-4">
-                <ul className="pagination justify-content-center">
-                  {props.pagination.has_previous && (
-                    <li className="page-item">
-                      <button
-                        className="page-link"
-                        onClick={() => handlePageChange(props.pagination!.previous_page_number)}
-                      >
-                        Previous
-                      </button>
-                    </li>
-                  )}
+            {/* grouping toggle button */}
+            <Button
+              variant={isGrouped ? "primary" : "outline-primary"}
+              size="sm"
+              onClick={handleToggleGrouping}
+              className="d-flex align-items-center justify-content-center"
+            >
+              <FontAwesomeIcon icon={isGrouped ? faLayerGroup : faList} className="me-2" />
+              {isGrouped ? "Grouped" : "List View"}
+            </Button>
 
-                  {Array.from({ length: props.pagination.total_pages || 0 }, (_, i) => i + 1).map(
-                    (pageNum) => (
-                      <li
-                        key={pageNum}
-                        className={classNames("page-item", {
-                          active: pageNum === props.pagination?.current_page,
-                        })}
-                      >
-                        <button className="page-link" onClick={() => handlePageChange(pageNum)}>
-                          {pageNum}
-                        </button>
-                      </li>
-                    ),
-                  )}
-
-                  {props.pagination.has_next && (
-                    <li className="page-item">
-                      <button
-                        className="page-link"
-                        onClick={() => handlePageChange(props.pagination!.next_page_number)}
-                      >
-                        Next
-                      </button>
-                    </li>
-                  )}
-                </ul>
-              </nav>
-            )}
-          </section>
-        )}
-
-        {/* Normal view when no filters are set */}
-        {!props.is_search_active && (
-          <>
-            {/* 'toggle all' button (for collapsible sections) */}
-            {(props.public_servers.length > 0 || props.private_servers.length > 0) && (
-              <div className="text-center mb-4">
+            {/* 'collapse/uncollapse all' */}
+            {isGrouped &&
+              !props.is_search_active &&
+              !props.pagination &&
+              (publicServers.length > 0 || privateServers.length > 0) && (
                 <Button
                   variant="outline-secondary"
                   size="sm"
-                  onClick={handleCollapseAll}
-                  className="d-flex align-items-center mx-auto"
+                  onClick={handleToggleCollapseAll}
+                  className="d-flex align-items-center justify-content-center"
                 >
                   <FontAwesomeIcon
-                    icon={publicCollapsed && privateCollapsed ? faChevronDown : faChevronUp}
+                    icon={publicSectionOpen || privateSectionOpen ? faEyeSlash : faEye}
                     className="me-2"
                   />
-                  {publicCollapsed && privateCollapsed ? "Expand All" : "Collapse All"}
+                  {publicSectionOpen || privateSectionOpen ? "Collapse All" : "Expand All"}
                 </Button>
-              </div>
-            )}
+              )}
 
-            {/* public servers */}
-            {props.public_servers.length > 0 && (
-              <section className="mb-5">
-                <div
-                  className={classNames(
-                    "d-flex justify-content-between align-items-center mb-3 p-3 rounded cursor-pointer user-select-none border-bottom",
-                    {
-                      "bg-light": publicCollapsed,
-                    },
-                  )}
-                  onClick={() => setPublicCollapsed(!publicCollapsed)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <h2 className="h3 mb-0">Public Servers</h2>
-                  <FontAwesomeIcon icon={publicCollapsed ? faChevronDown : faChevronUp} />
-                </div>
-                <Collapse in={!publicCollapsed}>
-                  <div>
-                    <Row>
-                      {props.public_servers.map((server) => (
-                        <DiscordServerCard
-                          key={server.id}
-                          server={server}
-                          onShowInvites={handleShowInvites}
-                        />
-                      ))}
-                    </Row>
-                  </div>
-                </Collapse>
-              </section>
+            {/* 'explore all' button */}
+            {isBasePage && (
+              <Button
+                href={buildPageUrl(1)}
+                variant="outline-primary"
+                size="sm"
+                className="d-flex align-items-center justify-content-center"
+              >
+                <FontAwesomeIcon icon={faSearch} className="me-2" />
+                Explore All Class Servers
+              </Button>
             )}
+          </div>
+        </div>
 
-            {/* private servers section */}
-            {props.private_servers.length > 0 && (
-              <section className="mb-5">
-                <div
-                  className={classNames(
-                    "d-flex justify-content-between align-items-center mb-3 p-3 rounded cursor-pointer user-select-none border-bottom",
-                    {
-                      "bg-light": privateCollapsed,
-                    },
-                  )}
-                  onClick={() => setPrivateCollapsed(!privateCollapsed)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <h2 className="h3 mb-0">Private Servers</h2>
-                  <FontAwesomeIcon icon={privateCollapsed ? faChevronDown : faChevronUp} />
-                </div>
-                <Collapse in={!privateCollapsed}>
-                  <div>
-                    <Alert variant="info" className="mb-3">
-                      <b>Note:</b> These servers' invites are only visible to authenticated users
-                    </Alert>
-                    <Row>
-                      {props.private_servers.map((server) => (
-                        <DiscordServerCard
-                          key={server.id}
-                          server={server}
-                          onShowInvites={handleShowInvites}
-                        />
-                      ))}
-                    </Row>
-                  </div>
-                </Collapse>
-              </section>
-            )}
-          </>
+        {isAuthenticated && props.pagination && (
+          <ServerSearchFilters subjectId={props.subject_id} courseId={props.course_id} />
         )}
 
-        {/* 'no servers' msg */}
-        {!props.is_search_active &&
-          props.public_servers.length === 0 &&
-          props.private_servers.length === 0 && (
-            <div className="text-center py-5">
-              <Card className="border-0">
-                <Card.Body>
-                  <FontAwesomeIcon icon={faDiscord} size="4x" className="text-muted mb-3" />
-                  <h3 className="text-muted">No Discord Servers Available</h3>
-                  <p className="text-muted">No Discord servers have been added yet</p>
-                </Card.Body>
-              </Card>
+        {/* featured servers section */}
+        {isGrouped && requiredServers.length > 0 && (
+          <div className="mb-5">
+            <div className="d-flex align-items-center mb-3">
+              <h3 className="mb-0 text-success">Featured Servers</h3>
+              <span className="badge bg-success ms-2">{requiredServers.length}</span>
             </div>
-          )}
+            <Row>
+              {requiredServers.map((server) => (
+                <DiscordServerCard
+                  key={server.id}
+                  server={server}
+                  onShowInvites={handleShowInvites}
+                />
+              ))}
+            </Row>
+          </div>
+        )}
+
+        {/* public servers */}
+        {isGrouped && publicServers.length > 0 && (
+          <div className="mb-5">
+            <div
+              className={classNames(
+                "d-flex align-items-center justify-content-between mb-3 p-3 rounded",
+                "bg-primary bg-opacity-10 border border-primary border-opacity-25",
+              )}
+              onClick={() => setPublicSectionOpen(!publicSectionOpen)}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="d-flex align-items-center">
+                <h3 className="mb-0 text-primary">Public Servers</h3>
+                <span className="badge bg-primary ms-2 text-dark">{publicServers.length}</span>
+              </div>
+              <FontAwesomeIcon
+                icon={publicSectionOpen ? faChevronUp : faChevronDown}
+                className="text-primary"
+              />
+            </div>
+            <Collapse in={publicSectionOpen}>
+              <div>
+                <Row>
+                  {publicServers.map((server) => (
+                    <DiscordServerCard
+                      key={server.id}
+                      server={server}
+                      onShowInvites={handleShowInvites}
+                    />
+                  ))}
+                </Row>
+              </div>
+            </Collapse>
+          </div>
+        )}
+
+        {/* private servers secton */}
+        {isGrouped && privateServers.length > 0 && (
+          <div className="mb-5">
+            <div
+              className={classNames(
+                "d-flex align-items-center justify-content-between mb-3 p-3 rounded",
+                "bg-warning bg-opacity-10 border border-warning border-opacity-25",
+              )}
+              onClick={() => setPrivateSectionOpen(!privateSectionOpen)}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="d-flex align-items-center">
+                <h3 className="mb-0 text-warning">Private Servers</h3>
+                <span className="badge bg-warning text-light ms-2">{privateServers.length}</span>
+              </div>
+              <FontAwesomeIcon
+                icon={privateSectionOpen ? faChevronUp : faChevronDown}
+                className="text-warning"
+              />
+            </div>
+            <Collapse in={privateSectionOpen}>
+              <div>
+                <Row>
+                  {privateServers.map((server) => (
+                    <DiscordServerCard
+                      key={server.id}
+                      server={server}
+                      onShowInvites={handleShowInvites}
+                    />
+                  ))}
+                </Row>
+              </div>
+            </Collapse>
+          </div>
+        )}
+
+        {/* Ungrouped/List View */}
+        {!isGrouped && (
+          <div className="mb-5">
+            <Row>
+              {props.servers.map((server) => (
+                <DiscordServerCard
+                  key={server.id}
+                  server={server}
+                  onShowInvites={handleShowInvites}
+                />
+              ))}
+            </Row>
+          </div>
+        )}
+
+        {/* no servers msg */}
+        {props.servers.length === 0 && (
+          <Alert variant="info" className="text-center">
+            <h4>No Discord servers found</h4>
+            <p className="mb-0">
+              {props.is_search_active
+                ? "Try adjusting your search criteria."
+                : "Check back later for new servers or contact an administrator."}
+            </p>
+          </Alert>
+        )}
+
+        {/* pagination */}
+        {props.pagination && props.pagination.total_pages > 1 && (
+          <nav aria-label="Discord servers pagination">
+            <Row className="justify-content-between align-items-center mt-4">
+              <Col md="auto">
+                <span className="text-muted">
+                  Page {props.pagination.current_page} of {props.pagination.total_pages}
+                </span>
+              </Col>
+              <Col md="auto">
+                <div className="btn-group" role="group">
+                  {props.pagination.has_previous && (
+                    <>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        href={buildPageUrl(1)}
+                        disabled={props.pagination.current_page === 1}
+                      >
+                        First
+                      </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        href={buildPageUrl(props.pagination.previous_page_number)}
+                      >
+                        Previous
+                      </Button>
+                    </>
+                  )}
+
+                  <Button variant="primary" size="sm" disabled>
+                    {props.pagination.current_page}
+                  </Button>
+
+                  {props.pagination.has_next && (
+                    <>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        href={buildPageUrl(props.pagination.next_page_number)}
+                      >
+                        Next
+                      </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        href={buildPageUrl(props.pagination.total_pages)}
+                        disabled={props.pagination.current_page === props.pagination.total_pages}
+                      >
+                        Last
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </Col>
+            </Row>
+          </nav>
+        )}
 
         <ViewInvitesModal
           show={showInvitesModal}
-          onHide={handleCloseModal}
+          onHide={handleCloseInvitesModal}
           server={selectedServer}
         />
 
+        {/* Add Invite Modal */}
         <AddInviteModal show={showAddInviteModal} onHide={handleCloseAddInviteModal} />
       </Container>
     </Layout>

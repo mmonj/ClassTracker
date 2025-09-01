@@ -89,8 +89,6 @@ _UserReferralPick = Pick[
 
 @template
 class DiscordTrackerServerListings(NamedTuple):
-    public_servers: list[_DiscordServerPick]
-    private_servers: list[_DiscordServerPick]
     servers: list[_DiscordServerPick]
     pagination: TPaginationData | None
     subject_id: int | None

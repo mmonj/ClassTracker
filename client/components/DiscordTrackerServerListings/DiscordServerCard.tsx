@@ -10,7 +10,7 @@ import classNames from "classnames";
 import { DiscordServerInfo } from "./DiscordServerInfo";
 
 interface Props {
-  server: templates.DiscordTrackerServerListings["public_servers"][number];
+  server: templates.DiscordTrackerServerListings["servers"][number];
   onShowInvites: (serverId: number) => void;
 }
 
@@ -57,7 +57,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
                 {server.is_required_for_trust && (
                   <span className="badge bg-success d-inline-flex align-items-center">
                     <FontAwesomeIcon icon={faShieldAlt} className="me-1" size="xs" />
-                    Special
+                    Featured
                   </span>
                 )}
               </div>

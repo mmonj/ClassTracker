@@ -118,6 +118,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     if (result.ok) {
       setTimeout(() => {
         handleClose();
+        window.location.reload();
       }, 100);
     }
   }
@@ -314,7 +315,7 @@ export function AddInviteModal({ show, onHide }: Props) {
   }
 
   return (
-    <Modal show={show} onHide={handleClose} centered size="lg">
+    <Modal show={show} onHide={handleClose} centered size="lg" backdrop="static">
       <Modal.Header closeButton>
         <Modal.Title>
           {showSchoolSelection
@@ -393,8 +394,8 @@ export function AddInviteModal({ show, onHide }: Props) {
           // step 2: school/subject/course selection form
           <div>
             <Alert variant="info" className="mb-3">
-              <strong>Discord Server Validated!</strong> Please associate this server with your
-              academic information.
+              <strong>Discord Server Validated!</strong> Please associate this server with the
+              appropriate academic information.
             </Alert>
 
             {submitInviteFetcher.data && submitInviteFetcher.errorMessages.length === 0 && (
@@ -425,6 +426,7 @@ export function AddInviteModal({ show, onHide }: Props) {
                 options={subjectOptions}
                 placeholder="Select a subject..."
                 isSearchable
+                isClearable
                 isDisabled={!selectedSchool}
                 isLoading={subjectsFetcher.isLoading}
                 classNamePrefix="react-select"
@@ -439,6 +441,7 @@ export function AddInviteModal({ show, onHide }: Props) {
                 options={courseOptions}
                 placeholder="Select a course..."
                 isSearchable
+                isClearable
                 isDisabled={!selectedSubject}
                 isLoading={coursesFetcher.isLoading}
                 classNamePrefix="react-select"

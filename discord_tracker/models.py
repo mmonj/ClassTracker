@@ -196,7 +196,7 @@ class DiscordInvite(CommonModel):
     invite_url = models.URLField(max_length=200, unique=True, db_index=True)
 
     # submitter's notes (markdown) about the server
-    notes_md = models.CharField(max_length=511, blank=True)
+    notes_md = models.CharField(max_length=255, blank=True)
 
     # invite status. discord API returns null if invite was created as `unlimited` invite
     expires_at = models.DateTimeField(null=True, blank=True)  # When invite expires
