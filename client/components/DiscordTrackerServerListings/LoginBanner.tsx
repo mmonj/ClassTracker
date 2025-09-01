@@ -26,7 +26,7 @@ export function LoginBanner({ className = "" }: LoginBannerProps) {
     >
       <div className="d-flex align-items-center">
         <FontAwesomeIcon icon={faDiscord} className="me-2" />
-        <span>Sign in with Discord to access further invites.</span>
+        <span>Sign in with Discord to access private invites.</span>
       </div>
       <Button
         href={reverse("discord_tracker:login")}

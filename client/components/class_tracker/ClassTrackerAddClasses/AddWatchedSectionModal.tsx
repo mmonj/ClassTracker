@@ -8,22 +8,7 @@ import { fetchByReactivated } from "@client/utils";
 
 import { useFetch } from "@client/hooks/useFetch";
 
-interface SchoolOption {
-  value: number;
-  label: string;
-}
-
-interface TermOption {
-  value: number;
-  label: string;
-}
-
-interface SubjectOption {
-  value: number;
-  label: string;
-}
-
-interface SectionOption {
+interface SelectOption {
   value: number;
   label: string;
 }
@@ -47,14 +32,14 @@ export function AddWatchedSectionModal({
   setRecipients,
   onHide,
 }: Props) {
-  const [selectedSchool, setSelectedSchool] = useState<SchoolOption | null>(null);
-  const [selectedTerm, setSelectedTerm] = useState<TermOption | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<SubjectOption | null>(null);
-  const [selectedSection, setSelectedSection] = useState<SectionOption | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<SelectOption | null>(null);
+  const [selectedTerm, setSelectedTerm] = useState<SelectOption | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<SelectOption | null>(null);
+  const [selectedSection, setSelectedSection] = useState<SelectOption | null>(null);
 
-  const [schools, setSchools] = useState<SchoolOption[]>([]);
-  const [subjects, setSubjects] = useState<SubjectOption[]>([]);
-  const [sections, setSections] = useState<SectionOption[]>([]);
+  const [schools, setSchools] = useState<SelectOption[]>([]);
+  const [subjects, setSubjects] = useState<SelectOption[]>([]);
+  const [sections, setSections] = useState<SelectOption[]>([]);
 
   const schoolsFetcher = useFetch<interfaces.RespGetSchools>();
   const subjectsFetcher = useFetch<interfaces.RespGetSubjects>();
@@ -72,7 +57,7 @@ export function AddWatchedSectionModal({
       );
 
       if (result.ok) {
-        const schoolOptions: SchoolOption[] = result.data.schools.map((school) => ({
+        const schoolOptions: SelectOption[] = result.data.schools.map((school) => ({
           value: school.id,
           label: school.name,
         }));
@@ -86,9 +71,9 @@ export function AddWatchedSectionModal({
   const termOptions = termsAvailable.map((term) => ({
     value: term.id,
     label: term.full_term_name,
-  })) satisfies TermOption[];
+  })) satisfies SelectOption[];
 
-  function handleSchoolChange(option: SingleValue<SchoolOption>) {
+  function handleSchoolChange(option: SingleValue<SelectOption>) {
     setSelectedSchool(option);
     setSelectedTerm(null);
     setSelectedSubject(null);
@@ -97,7 +82,7 @@ export function AddWatchedSectionModal({
     setSections([]);
   }
 
-  async function handleTermChange(option: SingleValue<TermOption>) {
+  async function handleTermChange(option: SingleValue<SelectOption>) {
     setSelectedTerm(option);
     setSelectedSubject(null);
     setSelectedSection(null);
@@ -120,7 +105,7 @@ export function AddWatchedSectionModal({
 
     if (result.ok) {
       const responseData = result.data;
-      const subjectOptions: SubjectOption[] = responseData.subjects.map((subject) => ({
+      const subjectOptions: SelectOption[] = responseData.subjects.map((subject) => ({
         value: subject.id,
         label: subject.name,
       }));
@@ -128,7 +113,7 @@ export function AddWatchedSectionModal({
     }
   }
 
-  async function handleSubjectChange(option: SingleValue<SubjectOption>) {
+  async function handleSubjectChange(option: SingleValue<SelectOption>) {
     setSelectedSubject(option);
     setSelectedSection(null);
     setSections([]);
@@ -159,7 +144,7 @@ export function AddWatchedSectionModal({
             value: section.id,
             label: `${section.course.code} ${section.course.level} (${section.number}) - ${section.topic} - ${instructionEntriesText}`,
           };
-        }) satisfies SectionOption[];
+        }) satisfies SelectOption[];
 
         setSections(sectionOptions);
       } catch (error) {
@@ -168,7 +153,7 @@ export function AddWatchedSectionModal({
     }
   }
 
-  function handleSectionChange(option: SingleValue<SectionOption>) {
+  function handleSectionChange(option: SingleValue<SelectOption>) {
     setSelectedSection(option);
   }
 
@@ -221,7 +206,7 @@ export function AddWatchedSectionModal({
                 <span>Loading schools...</span>
               </div>
             ) : (
-              <Select<SchoolOption>
+              <Select<SelectOption>
                 value={selectedSchool}
                 onChange={handleSchoolChange}
                 options={schools}
@@ -235,7 +220,7 @@ export function AddWatchedSectionModal({
           {selectedSchool && (
             <Form.Group className="mb-3">
               <Form.Label>Select Term</Form.Label>
-              <Select<TermOption>
+              <Select<SelectOption>
                 value={selectedTerm}
                 onChange={handleTermChange}
                 options={termOptions}
@@ -255,7 +240,7 @@ export function AddWatchedSectionModal({
                   <span>Loading subjects...</span>
                 </div>
               ) : (
-                <Select<SubjectOption>
+                <Select<SelectOption>
                   value={selectedSubject}
                   onChange={handleSubjectChange}
                   options={subjects}
@@ -276,7 +261,7 @@ export function AddWatchedSectionModal({
                   <span>Loading course sections...</span>
                 </div>
               ) : (
-                <Select<SectionOption>
+                <Select<SelectOption>
                   value={selectedSection}
                   onChange={handleSectionChange}
                   options={sections}

@@ -4,7 +4,7 @@ import { templates } from "@reactivated";
 import { Badge, Card, Col, Row } from "react-bootstrap";
 
 interface Props {
-  server: templates.DiscordTrackerServerListings["servers"][number];
+  server: templates.DiscordTrackerExploreAll["servers"][number];
   truncate_description?: boolean;
   className?: string;
 }
@@ -110,7 +110,7 @@ export function DiscordServerInfo({ server, className, truncate_description = fa
           {hasInstructors && (
             <Col xs={12} className="mt-0">
               <div className="mb-1">
-                <small className="text-muted fw-bold">Instructors: </small>
+                <small className="text-muted fw-bold">Instructor(s): </small>
                 <div className="mt-1">
                   {server.instructors.map((instructor) => (
                     <Badge key={instructor.id} bg="warning" className="me-1 mb-1">

@@ -10,7 +10,7 @@ import classNames from "classnames";
 import { DiscordServerInfo } from "./DiscordServerInfo";
 
 interface Props {
-  server: templates.DiscordTrackerServerListings["servers"][number];
+  server: templates.DiscordTrackerExploreAll["servers"][number];
   onShowInvites: (serverId: number) => void;
 }
 

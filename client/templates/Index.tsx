@@ -81,7 +81,7 @@ export function Template(_props: templates.Index) {
                 <div className="mt-3 mt-md-0 ms-md-4 flex-shrink-0">
                   <Button
                     variant="info"
-                    href={reverse("discord_tracker:listings")}
+                    href={reverse("discord_tracker:welcome")}
                     size="lg"
                     className="w-100 w-md-auto"
                   >

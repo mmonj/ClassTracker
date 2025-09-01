@@ -10,27 +10,14 @@ import { fetchByReactivated } from "@client/utils";
 
 import { useFetch } from "@client/hooks/useFetch";
 
+import { ButtonWithSpinner } from "../ButtonWithSpinner";
+
 interface Props {
   show: boolean;
   onHide: () => void;
 }
 
-interface SchoolOption {
-  value: number;
-  label: string;
-}
-
-interface SubjectOption {
-  value: number;
-  label: string;
-}
-
-interface CourseOption {
-  value: number;
-  label: string;
-}
-
-interface InstructorOption {
+interface SelectOption {
   value: number;
   label: string;
 }
@@ -39,14 +26,14 @@ export function AddInviteModal({ show, onHide }: Props) {
   const context = React.useContext(Context);
   const [inviteUrl, setInviteUrl] = useState("");
   const [notes, setNotes] = useState("");
-  const [selectedSchool, setSelectedSchool] = useState<SchoolOption | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<SubjectOption | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<CourseOption | null>(null);
-  const [selectedInstructors, setSelectedInstructors] = useState<InstructorOption[]>([]);
+  const [selectedSchool, setSelectedSchool] = useState<SelectOption | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<SelectOption | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<SelectOption | null>(null);
+  const [selectedInstructors, setSelectedInstructors] = useState<SelectOption[]>([]);
   const [showSchoolSelection, setShowSchoolSelection] = useState(false);
   const [guildInfo, setGuildInfo] = useState<{ name: string; id: string } | null>(null);
   const [isPublic, setIsPublic] = useState(false);
-  const [availableSchools, setAvailableSchools] = useState<SchoolOption[]>([]);
+  const [availableSchools, setAvailableSchools] = useState<SelectOption[]>([]);
 
   // client side validation state
   const [isValidating, setIsValidating] = useState(false);
@@ -60,21 +47,21 @@ export function AddInviteModal({ show, onHide }: Props) {
   const coursesFetcher = useFetch<interfaces.GetCoursesResponse>();
   const instructorsFetcher = useFetch<interfaces.GetInstructorsResponse>();
 
-  const schoolOptions: SchoolOption[] = availableSchools;
+  const schoolOptions: SelectOption[] = availableSchools;
 
-  const subjectOptions: SubjectOption[] =
+  const subjectOptions: SelectOption[] =
     subjectsFetcher.data?.subjects.map((subject) => ({
       value: subject.id,
       label: subject.name,
     })) ?? [];
 
-  const courseOptions: CourseOption[] =
+  const courseOptions: SelectOption[] =
     coursesFetcher.data?.courses.map((course) => ({
       value: course.id,
       label: `${course.code} ${course.level} - ${course.title}`,
     })) ?? [];
 
-  const instructorOptions: InstructorOption[] =
+  const instructorOptions: SelectOption[] =
     instructorsFetcher.data?.instructors.map((instructor) => ({
       value: instructor.id,
       label: instructor.name,
@@ -237,7 +224,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     }, 100);
   }
 
-  async function handleSchoolChange(option: SchoolOption | null) {
+  async function handleSchoolChange(option: SelectOption | null) {
     setSelectedSchool(option);
     setSelectedSubject(null);
     setSelectedCourse(null);
@@ -253,7 +240,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     );
   }
 
-  async function handleSubjectChange(option: SubjectOption | null) {
+  async function handleSubjectChange(option: SelectOption | null) {
     setSelectedSubject(option);
     setSelectedCourse(null);
     setSelectedInstructors([]);
@@ -285,11 +272,11 @@ export function AddInviteModal({ show, onHide }: Props) {
     ]);
   }
 
-  function handleCourseChange(option: CourseOption | null) {
+  function handleCourseChange(option: SelectOption | null) {
     setSelectedCourse(option);
   }
 
-  function handleInstructorsChange(options: readonly InstructorOption[]) {
+  function handleInstructorsChange(options: readonly SelectOption[]) {
     setSelectedInstructors([...options]);
   }
 
@@ -397,9 +384,16 @@ export function AddInviteModal({ show, onHide }: Props) {
               >
                 Cancel
               </Button>
-              <Button variant="primary" type="submit" disabled={!inviteUrl.trim() || isValidating}>
+              <ButtonWithSpinner
+                className="btn btn-primary"
+                spinnerVariant="dark"
+                type="submit"
+                disabled={!inviteUrl.trim() || isValidating}
+                isLoadingState={isValidating}
+                spinnerSize="sm"
+              >
                 {isValidating ? "Validating..." : "Next: Select Academic Info"}
-              </Button>
+              </ButtonWithSpinner>
             </div>
           </Form>
         ) : (

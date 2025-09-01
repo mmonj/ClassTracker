@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { Context, reverse } from "@reactivated";
+import { Context, interfaces, reverse } from "@reactivated";
 import { Button, Card, Col, Form, Row } from "react-bootstrap";
 import Select, { SingleValue } from "react-select";
 
@@ -11,32 +11,9 @@ import { fetchByReactivated } from "@client/utils";
 
 import { useFetch } from "@client/hooks/useFetch";
 
-interface SubjectOption {
+interface SelectOption {
   value: number;
   label: string;
-}
-
-interface CourseOption {
-  value: number;
-  label: string;
-}
-
-interface GetSubjectsResponse {
-  subjects: Array<{
-    id: number;
-    name: string;
-  }>;
-  message: string;
-}
-
-interface GetCoursesResponse {
-  courses: Array<{
-    id: number;
-    code: string;
-    level: string;
-    title: string;
-  }>;
-  message: string;
 }
 
 interface ServerSearchFiltersProps {
@@ -47,19 +24,19 @@ interface ServerSearchFiltersProps {
 export function ServerSearchFilters({ subjectId, courseId }: ServerSearchFiltersProps) {
   const context = useContext(Context);
 
-  const [selectedSubject, setSelectedSubject] = useState<SubjectOption | null>(
+  const [selectedSubject, setSelectedSubject] = useState<SelectOption | null>(
     subjectId !== null && subjectId !== undefined
       ? { value: subjectId, label: "Loading..." }
       : null,
   );
-  const [selectedCourse, setSelectedCourse] = useState<CourseOption | null>(
+  const [selectedCourse, setSelectedCourse] = useState<SelectOption | null>(
     courseId !== null && courseId !== undefined ? { value: courseId, label: "Loading..." } : null,
   );
-  const [subjects, setSubjects] = useState<SubjectOption[]>([]);
-  const [courses, setCourses] = useState<CourseOption[]>([]);
+  const [subjects, setSubjects] = useState<SelectOption[]>([]);
+  const [courses, setCourses] = useState<SelectOption[]>([]);
 
-  const subjectsFetcher = useFetch<GetSubjectsResponse>();
-  const coursesFetcher = useFetch<GetCoursesResponse>();
+  const subjectsFetcher = useFetch<interfaces.GetSubjectsResponse>();
+  const coursesFetcher = useFetch<interfaces.GetCoursesResponse>();
 
   // fetch subjects when component mounts
   useEffect(() => {
@@ -125,19 +102,19 @@ export function ServerSearchFilters({ subjectId, courseId }: ServerSearchFilters
       courseId !== undefined &&
       selectedCourse?.label === "Loading..."
     ) {
-      const foundCourse = courses.find((c: CourseOption) => c.value === courseId);
+      const foundCourse = courses.find((c: SelectOption) => c.value === courseId);
       if (foundCourse) {
         setSelectedCourse(foundCourse);
       }
     }
   }, [courses, courseId, selectedCourse]);
 
-  function handleSubjectChange(option: SingleValue<SubjectOption>) {
+  function handleSubjectChange(option: SingleValue<SelectOption>) {
     setSelectedSubject(option);
     setSelectedCourse(null);
   }
 
-  function handleCourseChange(option: SingleValue<CourseOption>) {
+  function handleCourseChange(option: SingleValue<SelectOption>) {
     setSelectedCourse(option);
   }
 

@@ -24,13 +24,65 @@ logger = logging.getLogger("main")
 
 
 @school_required(is_api=False)
-def server_listings(request: HttpRequest) -> HttpResponse:
+def welcome(request: HttpRequest) -> HttpResponse:
+    prefetches = ("subjects", "courses", "instructors", "schools")
+    page_size = 10
+
+    queryset_school_args = {}
+    discord_user: DiscordUser | None = None
+
+    if (
+        request.user.is_authenticated
+        and (discord_user := DiscordUser.objects.filter(user=request.user).first()) is not None
+    ):
+        user_school = cast("School", discord_user.school)
+        if user_school is not None:
+            queryset_school_args["schools"] = user_school
+
+    base_queryset = (
+        DiscordServer.objects.filter(invites__approved_by__isnull=False, **queryset_school_args)
+        .distinct()
+        .prefetch_related(*prefetches)
+    )
+
+    pending_invites_count = 0
+    if discord_user is not None and discord_user.is_manager:
+        pending_invites_count = DiscordInvite.objects.filter(
+            approved_by__isnull=True, rejected_by__isnull=True
+        ).count()
+
+    # recent servers
+    required_servers = list(base_queryset.filter(is_required_for_trust=True).order_by("-id"))
+
+    public_servers = list(
+        base_queryset.filter(
+            privacy_level=DiscordServer.PrivacyLevel.PUBLIC, is_required_for_trust=False
+        ).order_by("-id")[:page_size]
+    )
+
+    private_servers = list(
+        base_queryset.filter(
+            privacy_level=DiscordServer.PrivacyLevel.PRIVATE, is_required_for_trust=False
+        ).order_by("-id")[:page_size]
+    )
+
+    servers = [*required_servers, *public_servers, *private_servers]
+
+    return templates.DiscordTrackerWelcome(
+        servers=servers,
+        pending_invites_count=pending_invites_count,
+    ).render(request)
+
+
+@school_required(is_api=False)
+@require_roles(required_roles=None, is_api=False)
+def explore_all_listings(request: HttpRequest) -> HttpResponse:
     prefetches = ("subjects", "courses", "instructors", "schools")
 
     subject_id = request.GET.get("subject_id")
     course_id = request.GET.get("course_id")
     page_number = request.GET.get("page")
-    page = int(page_number) if page_number else None
+    page = int(page_number) if page_number else 1
     page_size = 15
 
     queryset_school_args = {}
@@ -56,59 +108,29 @@ def server_listings(request: HttpRequest) -> HttpResponse:
             approved_by__isnull=True, rejected_by__isnull=True
         ).count()
 
-    # if search is active or pagination is active, filter servers and return paginated result
-    if subject_id or course_id or page is not None:
-        search_queryset = base_queryset.order_by(
-            "-is_required_for_trust",
-            "courses__code",
-            "courses__level",
-            "name",
-        )
-
-        if subject_id:
-            search_queryset = search_queryset.filter(subjects__id=subject_id)
-
-        if course_id:
-            search_queryset = search_queryset.filter(courses__id=course_id)
-
-        page_obj, pagination_data = get_pagination_data(
-            search_queryset, page=page or 1, page_size=page_size
-        )
-
-        is_search_active = bool(subject_id or course_id)
-
-        return templates.DiscordTrackerServerListings(
-            servers=list(page_obj.object_list),
-            pagination=pagination_data,
-            subject_id=int(subject_id) if subject_id else None,
-            course_id=int(course_id) if course_id else None,
-            is_search_active=is_search_active,
-            pending_invites_count=pending_invites_count,
-        ).render(request)
-
-    # base page
-    required_servers = list(base_queryset.filter(is_required_for_trust=True).order_by("-id"))
-
-    public_servers = list(
-        base_queryset.filter(
-            privacy_level=DiscordServer.PrivacyLevel.PUBLIC, is_required_for_trust=False
-        ).order_by("-id")[:page_size]
+    search_queryset = base_queryset.order_by(
+        "-is_required_for_trust",
+        "courses__code",
+        "courses__level",
+        "name",
     )
 
-    private_servers = list(
-        base_queryset.filter(
-            privacy_level=DiscordServer.PrivacyLevel.PRIVATE, is_required_for_trust=False
-        ).order_by("-id")[:page_size]
-    )
+    if subject_id:
+        search_queryset = search_queryset.filter(subjects__id=subject_id)
 
-    servers = [*required_servers, *public_servers, *private_servers]
+    if course_id:
+        search_queryset = search_queryset.filter(courses__id=course_id)
 
-    return templates.DiscordTrackerServerListings(
-        servers=servers,
-        pagination=None,
-        subject_id=None,
-        course_id=None,
-        is_search_active=False,
+    page_obj, pagination_data = get_pagination_data(search_queryset, page=page, page_size=page_size)
+
+    is_search_active = bool(subject_id or course_id)
+
+    return templates.DiscordTrackerExploreAll(
+        servers=list(page_obj.object_list),
+        pagination=pagination_data,
+        subject_id=int(subject_id) if subject_id else None,
+        course_id=int(course_id) if course_id else None,
+        is_search_active=is_search_active,
         pending_invites_count=pending_invites_count,
     ).render(request)
 
@@ -116,7 +138,7 @@ def server_listings(request: HttpRequest) -> HttpResponse:
 @require_http_methods(["GET"])
 def login(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
-        return redirect("discord_tracker:listings")
+        return redirect("discord_tracker:welcome")
 
     return templates.DiscordTrackerLogin().render(request)
 
@@ -129,7 +151,7 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
         messages.warning(
             request, "Discord account not properly linked. Please contact an administrator."
         )
-        return redirect("discord_tracker:listings")
+        return redirect("discord_tracker:welcome")
 
     discord_user.last_login = timezone.now()
     discord_user.save(update_fields=["last_login"])

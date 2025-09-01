@@ -88,7 +88,13 @@ _UserReferralPick = Pick[
 
 
 @template
-class DiscordTrackerServerListings(NamedTuple):
+class DiscordTrackerWelcome(NamedTuple):
+    servers: list[_DiscordServerPick]
+    pending_invites_count: int
+
+
+@template
+class DiscordTrackerExploreAll(NamedTuple):
     servers: list[_DiscordServerPick]
     pagination: TPaginationData | None
     subject_id: int | None

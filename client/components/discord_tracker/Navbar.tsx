@@ -23,6 +23,10 @@ export function Navbar() {
 
     return [
       {
+        name: "Explore All Servers",
+        href: reverse("discord_tracker:explore_all_listings"),
+      },
+      {
         name: "Referrals",
         href: reverse("discord_tracker:referral_management"),
       },
@@ -40,9 +44,7 @@ export function Navbar() {
     <>
       <BSNavbar expand="lg">
         <Container fluid>
-          <BSNavbar.Brand href={reverse("discord_tracker:listings")}>
-            Discord Tracker
-          </BSNavbar.Brand>
+          <BSNavbar.Brand href={reverse("discord_tracker:welcome")}>Discord Tracker</BSNavbar.Brand>
           <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
           <BSNavbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto mb-2 mb-lg-0">

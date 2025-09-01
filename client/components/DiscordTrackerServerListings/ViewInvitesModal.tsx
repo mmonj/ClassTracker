@@ -16,7 +16,7 @@ import { DiscordServerInfo } from "./DiscordServerInfo";
 interface Props {
   show: boolean;
   onHide: () => void;
-  server: templates.DiscordTrackerServerListings["servers"][number] | null;
+  server: templates.DiscordTrackerExploreAll["servers"][number] | null;
 }
 
 const ICON_VERTICAL_OFFSET = 45;
