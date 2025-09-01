@@ -4,6 +4,8 @@ import { Context, interfaces, reverse } from "@reactivated";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import Select from "react-select";
 
+import classNames from "classnames";
+
 import { fetchByReactivated } from "@client/utils";
 
 import { useFetch } from "@client/hooks/useFetch";
@@ -352,12 +354,22 @@ export function AddInviteModal({ show, onHide }: Props) {
                 placeholder="Add any notes about this server (optional)"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                maxLength={511}
+                maxLength={255}
                 disabled={isValidating}
               />
-              <Form.Text className="text-muted">
-                Optional notes about the server to give extra context
-              </Form.Text>
+              <div className="d-flex justify-content-between">
+                <Form.Text className="text-muted">
+                  Optional notes about the server to give extra context
+                </Form.Text>
+                <Form.Text
+                  className={classNames({
+                    "text-warning": notes.length > 255 * 0.9,
+                    "text-muted": notes.length <= 255 * 0.9,
+                  })}
+                >
+                  {notes.length}/255
+                </Form.Text>
+              </div>
             </Form.Group>
 
             {inviteValidationFetcher.errorMessages.length > 0 && (
