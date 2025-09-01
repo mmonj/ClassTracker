@@ -43,4 +43,4 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 LOGIN_REDIRECT_URL = reverse_lazy("discord_tracker:login_success")
-LOGOUT_REDIRECT_URL = reverse_lazy("discord_tracker:listings")
+LOGOUT_REDIRECT_URL = reverse_lazy("discord_tracker:welcome")

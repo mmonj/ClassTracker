@@ -1,15 +1,52 @@
-import React from "react";
+import React, { useContext } from "react";
 
-import { CSRFToken, reverse, templates } from "@reactivated";
-import { Button, Card, Col, Container, Row } from "react-bootstrap";
+import { CSRFToken, Context, interfaces, reverse, templates } from "@reactivated";
+import { Card, Col, Container, Row } from "react-bootstrap";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { fetchByReactivated } from "@client/utils";
+
+import { ButtonWithSpinner } from "@client/components/ButtonWithSpinner";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
+import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 
 export function Template(_props: templates.DiscordTrackerLogin) {
+  const context = useContext(Context);
+  const referralFetcher = useFetch<interfaces.BlankResponse>();
+
+  async function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralCode = urlParams.get("referral");
+
+    if (referralCode === null || referralCode.trim() === "") {
+      // go on with normal form submission
+      form.submit();
+      return;
+    }
+
+    const result = await referralFetcher.fetchData(() =>
+      fetchByReactivated(
+        reverse("discord_tracker:ajax_referral_redeem") +
+          `?referral=${encodeURIComponent(referralCode)}`,
+        context.csrf_token,
+        "GET",
+      ),
+    );
+
+    if (!result.ok) {
+      console.error("Failed to redeem referral code:", result.errors);
+    }
+
+    // referral code applied - go on with normal form submission
+    form.submit();
+  }
+
   return (
     <Layout
       title="Discord Login"
@@ -29,12 +66,18 @@ export function Template(_props: templates.DiscordTrackerLogin) {
                   Sign in with your Discord account to access the Discord tracking features.
                 </p>
 
-                <form method="POST" action={reverse("discord_login")}>
+                <form method="POST" action={reverse("discord_login")} onSubmit={handleFormSubmit}>
                   <CSRFToken />
-                  <Button variant="primary" size="lg" className="w-100 mb-3" type="submit">
+                  <ButtonWithSpinner
+                    className="btn btn-primary btn-lg w-100 mb-3"
+                    type="submit"
+                    spinnerVariant="dark"
+                    isLoadingState={referralFetcher.isLoading}
+                    spinnerSize="sm"
+                  >
                     <FontAwesomeIcon icon={faDiscord} className="me-2" />
                     Sign in with Discord
-                  </Button>
+                  </ButtonWithSpinner>
                 </form>
                 <div className="text-center">
                   <small className="text-muted">

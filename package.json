@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "uv run python manage.py runserver 0.0.0.0:${DJANGO_PORT:?}",
-    "app:generate_types": "uv run python manage.py generate_client_assets",
     "client:typecheck": "tsc --noEmit",
     "client:format": "prettier --write 'client/**/*.ts' 'client/**/*.tsx'",
+    "app:generate_types": "uv run python manage.py generate_client_assets",
+    "app:check": "uv run python manage.py check",
     "python:typecheck": "uv run mypy .",
     "python:format": "uv run ruff format .",
     "python:lint": "uv run ruff check .",

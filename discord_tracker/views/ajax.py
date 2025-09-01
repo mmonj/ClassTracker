@@ -478,3 +478,15 @@ def get_all_courses(request: AuthenticatedRequest, subject_id: int) -> HttpRespo
         courses=courses,
         message="Courses fetched successfully.",
     ).render(request)
+
+
+@require_http_methods(["GET"])
+def referral_redeem(request: AuthenticatedRequest) -> HttpResponse:
+    """Store referral code in session for later use during login"""
+    referral_code = request.GET.get("referral")
+
+    if referral_code:
+        request.session["referral_code"] = referral_code
+        return interfaces_response.BlankResponse().render(request)
+
+    return error_json_response(["No referral code provided."], status=400)

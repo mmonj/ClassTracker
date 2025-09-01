@@ -172,7 +172,7 @@ def login_success(request: AuthenticatedRequest) -> HttpResponse:
     if discord_user.school is None:
         return redirect(reverse("discord_tracker:profile"))
 
-    return redirect("discord_tracker:listings")
+    return redirect("discord_tracker:welcome")
 
 
 @login_required(login_url=reverse_lazy("discord_tracker:login"))
@@ -271,4 +271,4 @@ def referral_redeem(request: HttpRequest, referral_code: str) -> HttpResponse:
         return redirect("discord_tracker:login")
 
     messages.error(request, "You are already logged in")
-    return redirect("discord_tracker:listings")
+    return redirect("discord_tracker:welcome")

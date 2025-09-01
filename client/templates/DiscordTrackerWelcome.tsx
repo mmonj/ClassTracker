@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import { Context, reverse, templates } from "@reactivated";
 import type { OverlayTriggerProps } from "react-bootstrap";
@@ -28,10 +28,20 @@ export function Template(props: templates.DiscordTrackerWelcome) {
   const [showInvitesModal, setShowInvitesModal] = useState(false);
   const [selectedServer, setSelectedServer] = useState<TServer | null>(null);
   const [showAddInviteModal, setShowAddInviteModal] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
 
   const canUserAddInvites = context.user.discord_user !== null;
   const isAuthenticated = context.user.discord_user !== null;
   const isManager = context.user.discord_user?.role_info.value === "manager";
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("referral");
+
+    if (code !== null && code.trim() !== "") {
+      setReferralCode(code);
+    }
+  }, []);
 
   function handleShowInvites(serverId: number) {
     const server = props.servers.find((s) => s.id === serverId);
@@ -61,7 +71,7 @@ export function Template(props: templates.DiscordTrackerWelcome) {
       Navbar={Navbar}
     >
       <Container className="py-4">
-        {!context.user.is_authenticated && <LoginBanner />}
+        {!context.user.is_authenticated && <LoginBanner referralCode={referralCode ?? undefined} />}
 
         {isManager && props.pending_invites_count > 0 && (
           <Alert variant="warning" className="mb-4">
