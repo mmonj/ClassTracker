@@ -14,7 +14,7 @@ export function Template(props: templates.ClassTrackerLogin) {
   const nextValue = params.get("next");
 
   return (
-    <Layout title="Log In" Navbar={Navbar}>
+    <Layout title="Log In" description="Log in to your account - Class Tracker" Navbar={Navbar}>
       <Card className="border-light-shadow p-4 py-3">
         <form action={reverse("class_tracker:login_view")} method="POST">
           <CSRFToken />

@@ -15,6 +15,7 @@ interface IExternalStyles {
 
 interface Props {
   title: string;
+  description: string;
   children: React.ReactNode;
   baseClassName?: string;
   className?: string;
@@ -51,11 +52,8 @@ export const Layout = ({
         />
 
         {/* meta tags */}
-        <meta property="og:title" content="Class Cords" />
-        <meta
-          property="og:description"
-          content="Find and join Discord servers for your college classes"
-        />
+        <meta property="og:title" content={props.title} />
+        {props.description.trim() && <meta property="og:description" content={props.description} />}
         <meta property="og:image" content={`${djangoContext.STATIC_URL}public/logo-500x471.png`} />
         <meta property="og:type" content="website" />
 

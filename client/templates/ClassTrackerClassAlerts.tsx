@@ -131,7 +131,7 @@ export function Template(props: templates.ClassTrackerClassAlerts) {
   }
 
   return (
-    <Layout title={props.title} Navbar={Navbar}>
+    <Layout title="Open Class Alerts" description="View and manage class alerts" Navbar={Navbar}>
       <Card className="mb-4">
         <Card.Header>
           <Card.Title className="mb-0">Class Alerts</Card.Title>

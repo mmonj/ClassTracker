@@ -11,7 +11,11 @@ import { Layout } from "@client/layouts/Layout";
 
 export function Template(_props: templates.DiscordTrackerLogin) {
   return (
-    <Layout title="Discord Login" Navbar={Navbar}>
+    <Layout
+      title="Discord Login"
+      description="Log in to your Discord account - Class Cords"
+      Navbar={Navbar}
+    >
       <Container className="d-flex align-items-center justify-content-center min-vh-100 px-0">
         <Row className="w-100">
           <Col xs={12} md={6} lg={4} className="mx-auto">

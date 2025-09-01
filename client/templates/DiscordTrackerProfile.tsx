@@ -68,7 +68,7 @@ export function Template(props: templates.DiscordTrackerProfile) {
   }
 
   return (
-    <Layout title="Discord Profile" Navbar={Navbar}>
+    <Layout title="Discord Profile" description="" Navbar={Navbar}>
       {/* school selection modal */}
       <Modal show={showModal === true} onHide={() => {}} backdrop="static" keyboard={false}>
         <Modal.Header>

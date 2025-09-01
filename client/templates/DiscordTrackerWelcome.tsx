@@ -55,7 +55,11 @@ export function Template(props: templates.DiscordTrackerWelcome) {
   }
 
   return (
-    <Layout title="Welcome - Class Cords" Navbar={Navbar}>
+    <Layout
+      title="Class Cords"
+      description="Find and join Discord servers for your college classes"
+      Navbar={Navbar}
+    >
       <Container className="py-4">
         {!context.user.is_authenticated && <LoginBanner />}
 

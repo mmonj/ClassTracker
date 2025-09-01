@@ -52,7 +52,7 @@ export function Template({
   }
 
   return (
-    <Layout title="Referral Management" Navbar={Navbar}>
+    <Layout title="Referral Management" description="" Navbar={Navbar}>
       <Container className="py-4 px-0">
         <Row>
           <Col>

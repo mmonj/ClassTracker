@@ -201,7 +201,7 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
   // =======================================================================================================================
 
   return (
-    <Layout title="Manage Courselist" Navbar={Navbar}>
+    <Layout title="Manage Courselist" description="" Navbar={Navbar}>
       {/* error messages */}
       {refreshTermsFetcher.errorMessages.length > 0 && (
         <Alert variant="danger" className="mb-3">

@@ -83,7 +83,7 @@ export function Template(props: templates.ClassTrackerAddClasses) {
   }
 
   return (
-    <Layout title="Watched Sections" Navbar={Navbar}>
+    <Layout title="Watched Sections" description="Manage class watchlist" Navbar={Navbar}>
       <Card>
         <Card.Title className="p-3">
           <div className="d-flex justify-content-between align-items-center">

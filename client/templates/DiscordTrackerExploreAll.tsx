@@ -62,7 +62,11 @@ export function Template(props: templates.DiscordTrackerExploreAll) {
   }
 
   return (
-    <Layout title="Explore All Discord Servers - Class Cords" Navbar={Navbar}>
+    <Layout
+      title="Explore All Discord Servers - Class Cords"
+      description="Find and join Discord servers for your college classes"
+      Navbar={Navbar}
+    >
       <Container className="py-4">
         {!context.user.is_authenticated && <LoginBanner />}
 

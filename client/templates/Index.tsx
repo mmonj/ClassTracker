@@ -12,7 +12,7 @@ export function Template(_props: templates.Index) {
   const djangoContext = React.useContext(Context);
 
   return (
-    <Layout title="Dashboard" className="bg-gradient">
+    <Layout title="Dashboard" description="Overview of all applications" className="bg-gradient">
       <Container fluid className="py-4">
         <div className="text-center mb-5">
           <h1 className="display-4 text-primary mb-3">Home</h1>

@@ -6,12 +6,12 @@ import { Alert, Button, Card, Col, Container, Row } from "react-bootstrap";
 import { Navbar } from "@client/components/class_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
 
-export function Template(props: templates.ClassTrackerIndex) {
+export function Template(_props: templates.ClassTrackerIndex) {
   const djangoContext = React.useContext(Context);
 
   if (djangoContext.user.is_authenticated === false) {
     return (
-      <Layout title={props.title} Navbar={Navbar}>
+      <Layout title="Class Tracker Index" description="" Navbar={Navbar}>
         <Container className="mt-5">
           <Row className="justify-content-center">
             <Col md={8} lg={6}>
@@ -38,7 +38,7 @@ export function Template(props: templates.ClassTrackerIndex) {
 
   if (!djangoContext.user.is_superuser) {
     return (
-      <Layout title={props.title} Navbar={Navbar}>
+      <Layout title="Class Tracker Index" description="" Navbar={Navbar}>
         <Container className="mt-5">
           <Row className="justify-content-center">
             <Col md={8} lg={6}>
@@ -92,7 +92,7 @@ export function Template(props: templates.ClassTrackerIndex) {
   ];
 
   return (
-    <Layout title={props.title} Navbar={Navbar}>
+    <Layout title="Class Tracker Index" description="" Navbar={Navbar}>
       <Container className="mt-4">
         <Row>
           <Col>

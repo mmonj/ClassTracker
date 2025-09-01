@@ -23,7 +23,7 @@ export function Template(props: templates.DiscordTrackerUnapprovedInvites) {
   }
 
   return (
-    <Layout title="Unapproved Discord Invites - Discord Tracker" Navbar={Navbar}>
+    <Layout title="Unapproved Discord Invites - Class Cords" description="" Navbar={Navbar}>
       <Container fluid className="py-4 px-0">
         <Row className="justify-content-center">
           <Col lg={10} xl={8}>
