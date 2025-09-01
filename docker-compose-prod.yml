@@ -10,7 +10,6 @@ services:
     command: |
       uv run bash -c '
         python manage.py migrate &&
-        python manage.py elevate_owner_status &&
         python manage.py generate_client_assets &&
         python manage.py build &&
         python manage.py collectstatic --clear --noinput &&
