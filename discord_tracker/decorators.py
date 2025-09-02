@@ -25,7 +25,7 @@ def school_required(
         def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
             if not request.user.is_authenticated:
                 if is_api:
-                    return error_json_response(["Authentication required"], status=401)
+                    return error_json_response(["You must be logged in"], status=401)
                 return func(request)
 
             discord_user = DiscordUser.objects.filter(user__id=request.user.id).first()
@@ -54,7 +54,7 @@ def require_roles(
         def wrapper(request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
             # can replace @login_required
             if is_api and not request.user.is_authenticated:
-                return error_json_response(["Authentication required"], status=401)
+                return error_json_response(["You must be logged in"], status=401)
             if not request.user.is_authenticated:
                 return redirect("discord_tracker:login")
 

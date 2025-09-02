@@ -68,7 +68,7 @@ def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpRespons
         ).render(request)
 
     if not request.user.is_authenticated:
-        return error_json_response(["Authentication required to view server invites."], status=401)
+        return error_json_response(["You must log in to view server invites."], status=401)
 
     return interfaces_response.ServerInvitesResponse(
         invites=list(invites),
@@ -371,7 +371,7 @@ def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpRes
     invite = get_object_or_404(DiscordInvite, id=invite_id)
 
     if not request.user.is_authenticated:
-        return error_json_response(["Authentication required to track invite usage"], status=401)
+        return error_json_response(["You must log in to track invite usage"], status=401)
 
     discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
 
