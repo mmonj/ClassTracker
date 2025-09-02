@@ -219,10 +219,12 @@ export function ServerSectionsDisplay({
               className="text-warning"
             />
           </div>
-          <Alert variant="warning" className="d-flex gap-2 align-items-center">
-            <FontAwesomeIcon icon={faLock} size="2x" className="mb-2 text-warning" />
-            <span>Login with Discord to access private class servers</span>
-          </Alert>
+          {context.user.discord_user === null && (
+            <Alert variant="warning" className="d-flex gap-2 align-items-center">
+              <FontAwesomeIcon icon={faLock} size="2x" className="mb-2 text-warning" />
+              <span>Login with Discord to access private class servers</span>
+            </Alert>
+          )}
           <Collapse in={privateSectionOpen}>
             <div>
               <Row>
