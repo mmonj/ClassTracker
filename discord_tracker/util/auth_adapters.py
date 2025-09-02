@@ -1,6 +1,5 @@
 import logging
 from datetime import UTC, datetime, timedelta
-from os import getuid
 from typing import Any, Literal
 
 from allauth.core.exceptions import ImmediateHttpResponse  # type: ignore [import-untyped]
@@ -12,6 +11,7 @@ from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.text import slugify
 
 from discord_tracker.models import DiscordUser, UserReferral
 from server.util.typedefs import Failure, Success, TResult
@@ -22,6 +22,9 @@ logger = logging.getLogger("main")
 
 TSignupMethod = Literal["trusted_server", "referral"]
 
+# django's base user `username` field has a max length of 150 chars
+MAX_USERNAME_LENGTH = 150
+
 
 class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[misc]
     def populate_user(self, request: HttpRequest, sociallogin: Any, data: dict[str, Any]) -> User:
@@ -31,9 +34,26 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         """
         user: User = super().populate_user(request, sociallogin, data)
 
-        discord_id = data.get("id", getuid())
-        display_name = data.get("global_name") or data.get("username", "")
-        user.username = f"{display_name}@{discord_id}"
+        discord_data = sociallogin.account.extra_data
+        discord_id = discord_data.get("id")
+
+        if discord_id is None:
+            logger.error("Discord ID missing from extra_data: %s", discord_data)
+            raise ValueError("Discord ID is required but not provided in social login data")
+
+        display_name = discord_data.get("global_name") or discord_data.get("username", "")
+
+        sanitized_name = slugify(display_name) or "user"
+        username = f"{sanitized_name}@{discord_id}"
+
+        # Ensure username doesn't exceed Django's max length
+        if len(username) > MAX_USERNAME_LENGTH:
+            # truncate the the name part, keeping room for the unique `@{discord_id}` part
+            max_name_length = MAX_USERNAME_LENGTH - len(f"@{discord_id}")
+            sanitized_name = sanitized_name[:max_name_length]
+            username = f"{sanitized_name}@{discord_id}"
+
+        user.username = username
 
         # make sure the base user cannot log in with a password
         user.set_unusable_password()
