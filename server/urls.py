@@ -18,13 +18,26 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.generic import RedirectView
 
 from . import views
+
+ACOUNT_PATHS_REDIRECT_EXCEPTIONS = r"(?:discord/login/|logout/)"
+
+# some allauth paths should not be exposed
+redirect_patterns = [
+    re_path(
+        rf"^accounts/(?!{ACOUNT_PATHS_REDIRECT_EXCEPTIONS}).*$",
+        RedirectView.as_view(pattern_name="discord_tracker:login"),
+        name="accounts_catch_all_redirect",
+    ),
+]
 
 urlpatterns = [
     path("", views.index, name="index"),
     path("admin/", admin.site.urls),
+    *redirect_patterns,  # goes before allauth
     path("accounts/", include("allauth.urls")),
     path("class_tracker/", include("class_tracker.urls")),
     path("scheduler/", include("scheduler.urls")),
