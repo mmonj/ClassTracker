@@ -1,3 +1,5 @@
+import { templates } from "@reactivated";
+
 import { ApiPromise, ApiResponse, IHttpError, TNotFoundErrorList } from "@client/types";
 
 type ClassListInput = {
@@ -48,6 +50,7 @@ export async function getErrorList(
     } else {
       return ["An unexpected error occurred"];
     }
+    // eslint-disable-next-line unused-imports/no-unused-vars
   } catch (jsonError) {
     return ["An unexpected error occurred"];
   }
@@ -68,4 +71,46 @@ export function formatDateTypical(dateString: string | null) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+export function createDummyDiscordServer(
+  id: number,
+): templates.DiscordTrackerWelcome["servers"][number] {
+  return {
+    id,
+    server_id: "0",
+    name: "Don't unblur me",
+    icon_url: "",
+    member_count: 0,
+    privacy_level_info: {
+      value: "private",
+      label: "Private",
+    },
+    custom_title: "",
+    description: "How could you unblur me?",
+    is_active: true,
+    is_required_for_trust: false,
+    display_name: "Don't unblur me",
+    is_general_server: false,
+    subjects: [
+      {
+        id: 1,
+        name: "Computer Science",
+      },
+    ],
+    courses: [
+      {
+        id: 1,
+        code: "CSCI",
+        level: "300",
+        title: "Comp Sci Course",
+      },
+    ],
+    instructors: [
+      {
+        id: 1,
+        name: "Login Required",
+      },
+    ],
+  };
 }

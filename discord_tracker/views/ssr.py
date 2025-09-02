@@ -60,11 +60,14 @@ def welcome(request: HttpRequest) -> HttpResponse:
         ).order_by("-id")[:page_size]
     )
 
-    private_servers = list(
-        base_queryset.filter(
-            privacy_level=DiscordServer.PrivacyLevel.PRIVATE, is_required_for_trust=False
-        ).order_by("-id")[:page_size]
-    )
+    # only query private servers if user is authenticated
+    private_servers: list[DiscordServer] = []
+    if request.user.is_authenticated:
+        private_servers = list(
+            base_queryset.filter(
+                privacy_level=DiscordServer.PrivacyLevel.PRIVATE, is_required_for_trust=False
+            ).order_by("-id")[:page_size]
+        )
 
     servers = [*required_servers, *public_servers, *private_servers]
 

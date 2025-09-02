@@ -16,10 +16,19 @@ interface Props {
 
 export function DiscordServerCard({ server, onShowInvites }: Props) {
   const isPrivateServer = server.privacy_level_info.value === "private";
+  const isDummyServer = server.id < 0; // Dummy servers have negative IDs
 
   return (
     <Col xs={12} md={6} lg={4} className="mb-4">
-      <Card className="h-100 shadow-sm">
+      <Card
+        className={classNames("h-100 shadow-sm", {
+          "opacity-50": isDummyServer,
+        })}
+        style={{
+          filter: isDummyServer ? "blur(4px)" : undefined,
+          pointerEvents: isDummyServer ? "none" : undefined,
+        }}
+      >
         <Card.Body className="d-flex flex-column">
           <div className="d-flex align-items-center mb-1">
             {server.icon_url ? (
@@ -97,8 +106,9 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               variant={isPrivateServer ? "outline-warning" : "outline-primary"}
               className="w-100"
               onClick={() => onShowInvites(server.id)}
+              disabled={isDummyServer}
             >
-              View Info
+              {isDummyServer ? "Login Required" : "View Info"}
             </Button>
           </div>
         </Card.Body>

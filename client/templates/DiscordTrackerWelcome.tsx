@@ -7,6 +7,8 @@ import { Alert, Button, Container, OverlayTrigger, Popover } from "react-bootstr
 import { faPlus, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { createDummyDiscordServer } from "@client/utils";
+
 import {
   AddInviteModal,
   LoginBanner,
@@ -25,6 +27,7 @@ type TServer = templates.DiscordTrackerWelcome["servers"][number];
 
 export function Template(props: templates.DiscordTrackerWelcome) {
   const context = useContext(Context);
+  const [servers, setServers] = useState(props.servers);
   const [showInvitesModal, setShowInvitesModal] = useState(false);
   const [selectedServer, setSelectedServer] = useState<TServer | null>(null);
   const [showAddInviteModal, setShowAddInviteModal] = useState(false);
@@ -41,10 +44,24 @@ export function Template(props: templates.DiscordTrackerWelcome) {
     if (code !== null && code.trim() !== "") {
       setReferralCode(code);
     }
+
+    // add dummy private servers
+    if (!isAuthenticated) {
+      const dummyPrivateServers = Array.from(
+        { length: 16 },
+        (_, index) => createDummyDiscordServer(-(index + 1)), // use negative ids to avoid conflicts
+      );
+      setServers((prevServers) => [...prevServers, ...dummyPrivateServers]);
+    }
   }, []);
 
   function handleShowInvites(serverId: number) {
-    const server = props.servers.find((s) => s.id === serverId);
+    // avoid interacting with dummy servers
+    if (serverId < 0) {
+      return;
+    }
+
+    const server = servers.find((s) => s.id === serverId);
     if (server) {
       setSelectedServer(server);
       setShowInvitesModal(true);
@@ -117,7 +134,7 @@ export function Template(props: templates.DiscordTrackerWelcome) {
         </div>
 
         <ServerSectionsDisplay
-          servers={props.servers}
+          servers={servers}
           onShowInvites={handleShowInvites}
           showGroupingControls={true}
           initialGrouped={true}
