@@ -168,6 +168,9 @@ CSRF_TRUSTED_ORIGINS = os.environ["DJANGO_CSRF_TRUSTED_ORIGINS"].split()
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# sessions
+SESSION_SAVE_EVERY_REQUEST = True
+
 # logging config
 
 _LOGS_DIR = BASE_DIR / "logs"
