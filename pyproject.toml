@@ -4,7 +4,9 @@ version = "0.1.0"
 description = ""
 readme = "README.md"
 requires-python = "==3.12.1"
-authors = ["mmonj <mmonj@users.noreply.github.com>"]
+authors = [
+    { name = "mmonj", email = "mmonj@users.noreply.github.com" }
+]
 
 dependencies = [
     "Django==5.0.2",
