@@ -14,6 +14,18 @@ interface Props {
   onShowInvites: (serverId: number) => void;
 }
 
+const CardOverlayStyles = {
+  position: "absolute" as const,
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0, 0, 0, 0.39)",
+  backdropFilter: "blur(4px)",
+  borderRadius: "inherit",
+  zIndex: 10,
+};
+
 export function DiscordServerCard({ server, onShowInvites }: Props) {
   const isPrivateServer = server.privacy_level_info.value === "private";
   const isDummyServer = server.id < 0; // Dummy servers have negative IDs
@@ -22,7 +34,10 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
     <Col xs={12} md={6} lg={4} className="mb-4">
       <Card className="h-100 shadow-sm position-relative">
         {isDummyServer && (
-          <div className="discord-server-card-overlay d-flex align-items-center justify-content-center">
+          <div
+            className="d-flex align-items-center justify-content-center"
+            style={CardOverlayStyles}
+          >
             <div className="text-center">
               <FontAwesomeIcon icon={faLock} size="2x" className="mb-2 text-warning" />
               <div className="fw-bold text-dark">Login Required</div>
