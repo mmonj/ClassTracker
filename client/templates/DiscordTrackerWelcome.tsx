@@ -44,14 +44,16 @@ export function Template(props: templates.DiscordTrackerWelcome) {
     if (code !== null && code.trim() !== "") {
       setReferralCode(code);
     }
+  }, []);
 
-    // add dummy private servers
+  // add dummy private servers
+  useEffect(() => {
     if (!isAuthenticated) {
       const dummyPrivateServers = Array.from(
-        { length: 16 },
+        { length: 14 },
         (_, index) => createDummyDiscordServer(-(index + 1)), // use negative ids to avoid conflicts
       );
-      setServers((prevServers) => [...prevServers, ...dummyPrivateServers]);
+      setServers([...props.servers, ...dummyPrivateServers]);
     }
   }, []);
 

@@ -1,6 +1,6 @@
-import React, { useContext, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
-import { Context, templates } from "@reactivated";
+import { templates } from "@reactivated";
 import { Alert, Button, Collapse, Row } from "react-bootstrap";
 
 import {
@@ -10,7 +10,6 @@ import {
   faEyeSlash,
   faLayerGroup,
   faList,
-  faLock,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
@@ -36,8 +35,6 @@ export function ServerSectionsDisplay({
   const [publicSectionOpen, setPublicSectionOpen] = useState(true);
   const [privateSectionOpen, setPrivateSectionOpen] = useState(true);
   const [isGrouped, setIsGrouped] = useState(initialGrouped);
-
-  const context = useContext(Context);
 
   // group servers by privacy level and 'required' status
   const { publicServers, privateServers, requiredServers } = useMemo(() => {
@@ -88,17 +85,15 @@ export function ServerSectionsDisplay({
       {showGroupingControls && (
         <div className="d-flex flex-column flex-sm-row justify-content-center gap-2 mb-4">
           {/* grouping toggle button */}
-          {context.user.discord_user !== null && (
-            <Button
-              variant={isGrouped ? "primary" : "outline-primary"}
-              size="sm"
-              onClick={handleToggleGrouping}
-              className="d-flex align-items-center justify-content-center"
-            >
-              <FontAwesomeIcon icon={isGrouped ? faLayerGroup : faList} className="me-2" />
-              {isGrouped ? "Grouped" : "List View"}
-            </Button>
-          )}
+          <Button
+            variant={isGrouped ? "primary" : "outline-primary"}
+            size="sm"
+            onClick={handleToggleGrouping}
+            className="d-flex align-items-center justify-content-center"
+          >
+            <FontAwesomeIcon icon={isGrouped ? faLayerGroup : faList} className="me-2" />
+            {isGrouped ? "Grouped" : "List View"}
+          </Button>
 
           {/* 'collapse/uncollapse all' */}
           {isGrouped &&
@@ -219,12 +214,6 @@ export function ServerSectionsDisplay({
               className="text-warning"
             />
           </div>
-          {context.user.discord_user === null && (
-            <Alert variant="warning" className="d-flex gap-2 align-items-center">
-              <FontAwesomeIcon icon={faLock} size="2x" className="mb-2 text-warning" />
-              <span>Login with Discord to access private class servers</span>
-            </Alert>
-          )}
           <Collapse in={privateSectionOpen}>
             <div>
               <Row>

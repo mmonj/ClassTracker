@@ -20,15 +20,16 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
 
   return (
     <Col xs={12} md={6} lg={4} className="mb-4">
-      <Card
-        className={classNames("h-100 shadow-sm", {
-          "opacity-50": isDummyServer,
-        })}
-        style={{
-          filter: isDummyServer ? "blur(4px)" : undefined,
-          pointerEvents: isDummyServer ? "none" : undefined,
-        }}
-      >
+      <Card className="h-100 shadow-sm position-relative">
+        {isDummyServer && (
+          <div className="discord-server-card-overlay d-flex align-items-center justify-content-center">
+            <div className="text-center">
+              <FontAwesomeIcon icon={faLock} size="2x" className="mb-2 text-warning" />
+              <div className="fw-bold text-dark">Login Required</div>
+              <small className="text-dark">Sign in via Discord to view private servers</small>
+            </div>
+          </div>
+        )}
         <Card.Body className="d-flex flex-column">
           <div className="d-flex align-items-center mb-1">
             {server.icon_url ? (
@@ -105,10 +106,10 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
             <Button
               variant={isPrivateServer ? "outline-warning" : "outline-primary"}
               className="w-100"
-              onClick={() => onShowInvites(server.id)}
+              onClick={() => !isDummyServer && onShowInvites(server.id)}
               disabled={isDummyServer}
             >
-              {isDummyServer ? "Login Required" : "View Info"}
+              View Info
             </Button>
           </div>
         </Card.Body>
