@@ -109,14 +109,14 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             self._update_tokens(existing_discord_user, sociallogin)
             sociallogin.user = existing_discord_user.user
 
-            existing_discord_user.username = discord_data.get(
-                "username", existing_discord_user.username
+            existing_discord_user.username = (
+                discord_data.get("username") or existing_discord_user.username
             )
-            existing_discord_user.discriminator = discord_data.get(
-                "discriminator", existing_discord_user.discriminator
+            existing_discord_user.discriminator = (
+                discord_data.get("discriminator") or existing_discord_user.discriminator
             )
-            existing_discord_user.global_name = discord_data.get(
-                "global_name", existing_discord_user.global_name
+            existing_discord_user.global_name = (
+                discord_data.get("global_name") or existing_discord_user.global_name
             )
             existing_discord_user.avatar = self._get_avatar_url(discord_data)
             existing_discord_user.is_verified = discord_data.get(
@@ -191,9 +191,9 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         discord_user = DiscordUser.objects.create(
             discord_id=discord_id,
             user=user,
-            username=discord_data.get("username", ""),
-            discriminator=discord_data.get("discriminator", ""),
-            global_name=discord_data.get("global_name", ""),
+            username=discord_data.get("username") or "",
+            discriminator=discord_data.get("discriminator") or "",
+            global_name=discord_data.get("global_name") or "",
             avatar=self._get_avatar_url(discord_data),
             is_verified=discord_data.get("verified", False),
             login_count=1,
