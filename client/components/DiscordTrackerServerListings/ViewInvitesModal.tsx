@@ -57,7 +57,7 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
   }
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered backdrop="static">
+    <Modal show={show} onHide={onHide} size="lg" centered>
       {/* floating server icon right above modal header */}
       {server && (
         <div

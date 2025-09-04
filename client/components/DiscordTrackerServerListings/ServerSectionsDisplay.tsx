@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 
-import { templates } from "@reactivated";
+import { Context, templates } from "@reactivated";
 import { Alert, Button, Collapse, Row } from "react-bootstrap";
 
 import {
@@ -35,6 +35,10 @@ export function ServerSectionsDisplay({
   const [publicSectionOpen, setPublicSectionOpen] = useState(true);
   const [privateSectionOpen, setPrivateSectionOpen] = useState(true);
   const [isGrouped, setIsGrouped] = useState(initialGrouped);
+
+  const context = useContext(Context);
+
+  const isAuthenticated = context.user.discord_user !== null;
 
   // group servers by privacy level and 'required' status
   const { publicServers, privateServers, requiredServers } = useMemo(() => {
@@ -207,7 +211,9 @@ export function ServerSectionsDisplay({
           >
             <div className="d-flex align-items-center">
               <h3 className="mb-0 text-warning">Private Servers</h3>
-              <span className="badge bg-warning text-light ms-2">{privateServers.length}</span>
+              {isAuthenticated && (
+                <span className="badge bg-warning text-light ms-2">{privateServers.length}</span>
+              )}
             </div>
             <FontAwesomeIcon
               icon={privateSectionOpen ? faChevronUp : faChevronDown}
