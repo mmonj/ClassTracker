@@ -41,29 +41,13 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             logger.error("Discord ID missing from extra_data: %s", discord_data)
             raise ValueError("Discord ID is required but not provided in social login data")
 
-        display_name = discord_data.get("global_name") or discord_data.get("username", "")
+        display_name: str | None = discord_data.get("global_name") or discord_data.get(
+            "username", ""
+        )
 
-        sanitized_name = slugify(display_name) or "user"
-        username = f"{sanitized_name}@{discord_id}"
-
-        # Ensure username doesn't exceed Django's max length
-        if len(username) > MAX_USERNAME_LENGTH:
-            # truncate the the name part, keeping room for the unique `@{discord_id}` part
-            max_name_length = MAX_USERNAME_LENGTH - len(f"@{discord_id}")
-            sanitized_name = sanitized_name[:max_name_length]
-            username = f"{sanitized_name}@{discord_id}"
-
-        user.username = username
-
+        user.username = self._get_username(discord_id, display_name)
         # make sure the base user cannot log in with a password
         user.set_unusable_password()
-
-        if display_name:
-            # set first_name and last_name based on display name
-            name_parts = display_name.split(" ", 1)
-            user.first_name = name_parts[0]
-            if len(name_parts) > 1:
-                user.last_name = name_parts[1]
 
         return user
 
@@ -289,3 +273,21 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             return Failure("Your referral code is invalid or has expired")
 
         return Success(referral_to_redeem)
+
+    def _get_username(self, discord_id: str, display_name: str | None) -> str:
+        if display_name is None:
+            display_name = ""
+
+        username_prefix = slugify(display_name) or "user"
+        username_postfix = f"@{discord_id}"
+
+        username = f"{username_prefix}{username_postfix}"
+
+        # make sure username doesn't exceed base User.username max length
+        if len(username) > MAX_USERNAME_LENGTH:
+            # truncate the the name part, keeping room for the unique `@{discord_id}` postfix
+            max_prefix_length = MAX_USERNAME_LENGTH - len(username_postfix)
+            username_prefix = username_prefix[:max_prefix_length]
+            username = f"{username_prefix}{username_postfix}"
+
+        return username
