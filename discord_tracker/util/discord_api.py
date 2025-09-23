@@ -349,7 +349,7 @@ def check_user_in_trusted_servers(access_token: str) -> TResult[bool, str]:
     user_guild_ids = {guild["id"] for guild in guilds_result.val}
 
     trusted_server_ids = set(
-        DiscordServer.objects.filter(is_required_for_trust=True).values_list("server_id", flat=True)
+        DiscordServer.objects.filter(is_featured=True).values_list("server_id", flat=True)
     )
 
     has_trusted_membership = bool(user_guild_ids.intersection(trusted_server_ids))

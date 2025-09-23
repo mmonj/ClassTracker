@@ -1,7 +1,8 @@
 import React, { ContextType, useContext, useState } from "react";
 
-import { Context } from "@reactivated";
 import { Alert } from "react-bootstrap";
+
+import { Context } from "@reactivated";
 
 export function ContribMessages() {
   const djangoContext = useContext(Context);

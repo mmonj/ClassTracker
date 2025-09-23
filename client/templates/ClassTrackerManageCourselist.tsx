@@ -1,17 +1,17 @@
 import React from "react";
 
-import { Context, interfaces, reverse, templates } from "@reactivated";
 import { Alert, Card, ListGroup } from "react-bootstrap";
+
+import { Context, interfaces, reverse, templates } from "@reactivated";
 
 import { faSync } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
-import { fetchByReactivated } from "@client/utils";
 
 import { ButtonWithSpinner } from "@client/components/ButtonWithSpinner";
 import { Navbar } from "@client/components/class_tracker/Navbar";
 import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
+import { fetchByReactivated } from "@client/utils";
 
 const ALL_SCHOOLS_ID = 0;
 const ALL_SUBJECTS_ID = 0;

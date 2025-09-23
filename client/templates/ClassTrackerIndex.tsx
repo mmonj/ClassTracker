@@ -1,7 +1,8 @@
 import React from "react";
 
-import { Context, reverse, templates } from "@reactivated";
 import { Alert, Button, Card, Col, Container, Row } from "react-bootstrap";
+
+import { Context, reverse, templates } from "@reactivated";
 
 import { Navbar } from "@client/components/class_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";

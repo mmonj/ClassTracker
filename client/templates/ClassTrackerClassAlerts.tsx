@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import { templates } from "@reactivated";
 import { Alert, Card } from "react-bootstrap";
 import { SingleValue } from "react-select";
+
+import { templates } from "@reactivated";
 
 import {
   AlertsFilters,
@@ -120,10 +121,6 @@ export function Template(props: templates.ClassTrackerClassAlerts) {
     return daysAndTimes.join("; ");
   }
 
-  function formatDateTime(dateTime: string): string {
-    return new Date(dateTime).toLocaleString();
-  }
-
   function generatePaginationUrl(page: number): string {
     const url = new URL(window.location.href);
     url.searchParams.set("page", page.toString());
@@ -164,7 +161,6 @@ export function Template(props: templates.ClassTrackerClassAlerts) {
 
               <AlertsList
                 alerts={filteredAlerts}
-                formatDateTime={formatDateTime}
                 getDaysAndTimesString={getDaysAndTimesString}
                 getInstructorsString={getInstructorsString}
               />

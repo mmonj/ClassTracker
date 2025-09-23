@@ -1,9 +1,9 @@
 import React from "react";
 
-import { FieldHandler, useForm } from "@reactivated";
 import { ListGroup } from "react-bootstrap";
-
 import { FieldMap, FormLike } from "reactivated/dist/forms";
+
+import { FieldHandler, useForm } from "@reactivated";
 
 import { Field } from "./Field";
 

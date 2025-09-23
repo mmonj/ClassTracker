@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 
-import { CSRFToken, templates } from "@reactivated";
 import { Badge, Button, Card, Col, Container, Row, Table } from "react-bootstrap";
+
+import { CSRFToken, reverse, templates } from "@reactivated";
 
 import { faCheck, faCopy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
-import { formatDateTypical } from "@client/utils";
 
 import { ReferralsPagination } from "@client/components/DiscordTrackerReferralManagement";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { FormFieldset } from "@client/components/forms/FormFieldset";
 import { Layout } from "@client/layouts/Layout";
+import { formatDateTypical } from "@client/utils";
 
 export function Template({
   referral_form,
@@ -110,7 +110,7 @@ export function Template({
                                 : "Never"}
                           </td>
                           <td>
-                            <CopyUrlButton url={referral.url} />
+                            <CopyUrlButton referralCode={referral.code} />
                           </td>
                         </tr>
                       ))}
@@ -131,12 +131,14 @@ export function Template({
   );
 }
 
-function CopyUrlButton({ url }: { url: string }) {
+function CopyUrlButton({ referralCode }: { referralCode: string }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
+  async function handleCopy() {
     try {
-      const fullUrl = `${window.location.origin}${url}`;
+      // get domain and protocol
+      const domain = window.location.origin;
+      const fullUrl = `${domain}${reverse("discord_tracker:referral_redeem", { referral_code: referralCode })}`;
       await navigator.clipboard.writeText(fullUrl);
       setCopied(true);
 
@@ -144,15 +146,16 @@ function CopyUrlButton({ url }: { url: string }) {
     } catch (err) {
       console.error("Failed to copy URL:", err);
     }
-  };
+  }
 
   return (
     <Button
       variant={copied ? "success" : "outline-primary"}
-      className="d-flex align-items-center gap-1"
+      className="d-flex align-items-center gap-1 referral-copy-button"
       size="sm"
       onClick={handleCopy}
       title={copied ? "Copied!" : "Copy referral URL"}
+      data-referral-code={referralCode}
     >
       <span>Copy URL</span>
       <FontAwesomeIcon icon={copied ? faCheck : faCopy} />

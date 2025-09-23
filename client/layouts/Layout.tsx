@@ -2,9 +2,9 @@ import React, { type JSX } from "react";
 
 import { Context } from "@reactivated";
 
-import classNames from "classnames";
-
 import { ContribMessages } from "@client/components/ContribMessages";
+
+import classNames from "classnames";
 
 type TDjangoBasePathStr = string;
 
@@ -24,13 +24,13 @@ interface Props {
   Navbar?: () => JSX.Element;
 }
 
-export const Layout = ({
+export function Layout({
   Navbar,
   djangoStaticStylePaths = [],
   baseClassName = "mw-80-rem mx-auto p-2 px-3",
   className = "",
   ...props
-}: Props) => {
+}: Props) {
   const djangoContext = React.useContext(Context);
   const stylePaths = [
     "styles/bs-dark/main.css",
@@ -90,7 +90,7 @@ export const Layout = ({
           />
         ))}
       </head>
-      <body>
+      <body className="px-0">
         {Navbar && (
           <header>
             <Navbar />
@@ -105,4 +105,4 @@ export const Layout = ({
       </body>
     </html>
   );
-};
+}

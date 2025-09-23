@@ -1,6 +1,6 @@
 import logging
 from datetime import UTC, datetime, timedelta
-from typing import Any, Literal
+from typing import Any
 
 from allauth.core.exceptions import ImmediateHttpResponse  # type: ignore [import-untyped]
 from allauth.socialaccount.adapter import (  # type: ignore [import-untyped]
@@ -19,8 +19,6 @@ from server.util.typedefs import Failure, Success, TResult
 from .discord_api import check_user_in_trusted_servers
 
 logger = logging.getLogger("main")
-
-TSignupMethod = Literal["trusted_server", "referral"]
 
 # django's base user `username` field has a max length of 150 chars
 MAX_USERNAME_LENGTH = 150
@@ -83,9 +81,7 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             sociallogin.user = request.user
             return
 
-        referral_code = request.session.get("referral_code")
-        if "referral_code" in request.session:
-            del request.session["referral_code"]
+        referral_code = request.session.pop("referral_code", None)
 
         # if the DiscordUser already exists, update fields
         if existing_discord_user is not None:
@@ -110,44 +106,19 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
 
             return
 
-        # try two methods for signup validation:
-        # 1. check if user has a valid referral code
-        # 2. check if user is a member of any trusted discord severs
-
-        signup_allowed = False
         referral_to_redeem: UserReferral | None = None
-        signup_method: TSignupMethod | None = None
 
-        # 1. validate referral
+        # validate referral
         referral_result = self._validate_referral(referral_code)
-        if referral_result.ok:
-            signup_allowed = True
-            referral_to_redeem = referral_result.val
-            signup_method = "referral"
-
-        # 2. validate trusted server membership
         if not referral_result.ok:
-            trusted_membership_result = self._validate_trusted_server_membership(
-                sociallogin, discord_data
-            )
-            if trusted_membership_result.ok:
-                signup_allowed = True
-                signup_method = "trusted_server"
-
-        if not signup_allowed:
-            error_message = (
-                "Account creation requires either a valid referral code or membership "
-                "in one the special discord servers"
-            )
-            if not referral_result.ok:
-                error_message = f"{referral_result.err}. {error_message}"
-
-            messages.error(request, error_message)
+            messages.error(request, referral_result.err)
             raise ImmediateHttpResponse(redirect("discord_tracker:login"))
+
+        if referral_result.ok:
+            referral_to_redeem = referral_result.val
 
         # stash this sucker for later use
         sociallogin.referral_to_redeem = referral_to_redeem
-        sociallogin.signup_method = signup_method
 
         # allauth looks up its own sociallogin records to see if it should call save_user after this function ends
         # if no sociallogin record exists, then it calls save_user
@@ -159,7 +130,6 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         """
         # signup validation has passed. create user
         referral_to_redeem: UserReferral | None = sociallogin.referral_to_redeem
-        signup_method: TSignupMethod | None = sociallogin.signup_method
 
         user: User = super().save_user(request, sociallogin, form)
 
@@ -187,16 +157,12 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         )
 
         # redeem referral or redeem via trusted server membership
-        if referral_to_redeem is not None and signup_method == "referral":
+        if referral_to_redeem is not None:
             referral_to_redeem.redeem(discord_user)
             logger.info(
                 "User %s signed up via referral code %s",
                 discord_user.display_name,
                 referral_to_redeem.code,
-            )
-        elif signup_method == "trusted_server":
-            logger.info(
-                "User %s signed up via trusted server membership", discord_user.display_name
             )
 
         return user
@@ -265,12 +231,18 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         # check if referral code is correct
 
         if referral_code is None:
-            return Failure("You need a referral code to create a new account on this website")
+            return Failure("You need a referral to create a new account on this website")
 
         referral_to_redeem = UserReferral.objects.filter(code=referral_code).first()
 
-        if referral_to_redeem is None or not referral_to_redeem.is_valid():
-            return Failure("Your referral code is invalid or has expired")
+        if referral_to_redeem is None:
+            return Failure("Your referral is invalid")
+
+        if referral_to_redeem.is_expired():
+            return Failure("Your referral has expired")
+
+        if not referral_to_redeem.is_valid():
+            return Failure("Your referral has exceeded its usage limit")
 
         return Success(referral_to_redeem)
 

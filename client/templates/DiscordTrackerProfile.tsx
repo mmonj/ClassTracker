@@ -1,18 +1,18 @@
 import React, { useRef, useState } from "react";
 
-import { CSRFToken, Context, reverse, templates } from "@reactivated";
 import { Badge, Button, Card, Col, Container, Modal, Row } from "react-bootstrap";
+
+import { CSRFToken, Context, reverse, templates } from "@reactivated";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { faCheckCircle, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { fetchByReactivated } from "@client/utils";
-
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { FormFieldset } from "@client/components/forms/FormFieldset";
 import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
+import { fetchByReactivated, formatDateTypical } from "@client/utils";
 
 type SchoolSelectionResponse = {
   success: boolean;
@@ -48,16 +48,6 @@ export function Template(props: templates.DiscordTrackerProfile) {
     }
   }
 
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
   function getRoleBadgeVariant(role: typeof props.discord_user.role_info.value) {
     switch (role) {
       case "manager":
@@ -70,12 +60,18 @@ export function Template(props: templates.DiscordTrackerProfile) {
   return (
     <Layout title="Discord Profile" description="" Navbar={Navbar}>
       {/* school selection modal */}
-      <Modal show={showModal === true} onHide={() => {}} backdrop="static" keyboard={false}>
+      <Modal
+        show={showModal === true}
+        onHide={() => {}}
+        backdrop="static"
+        keyboard={false}
+        centered
+      >
         <Modal.Header>
           <Modal.Title>Select Your School</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Please select your school to continue using the Discord Tracker.</p>
+          <p>Please select your school to continue using Class Cords.</p>
 
           {schoolSelectionFetcher.errorMessages.length > 0 && (
             <div className="alert alert-danger mb-3" role="alert">
@@ -154,7 +150,7 @@ export function Template(props: templates.DiscordTrackerProfile) {
                       </Col>
                       <Col xs={6}>
                         <div className="fw-bold fs-5">
-                          {new Date(props.discord_user.first_login).toLocaleDateString()}
+                          {formatDateTypical(props.discord_user.first_login)}
                         </div>
                         <small className="text-muted">Member Since</small>
                       </Col>
@@ -202,7 +198,7 @@ export function Template(props: templates.DiscordTrackerProfile) {
                   <Col sm={6}>
                     <strong>First Login:</strong>
                   </Col>
-                  <Col sm={6}>{formatDate(props.discord_user.first_login)}</Col>
+                  <Col sm={6}>{formatDateTypical(props.discord_user.first_login)}</Col>
                 </Row>
 
                 <hr />
@@ -211,7 +207,7 @@ export function Template(props: templates.DiscordTrackerProfile) {
                   <Col sm={6}>
                     <strong>Last Login:</strong>
                   </Col>
-                  <Col sm={6}>{formatDate(props.discord_user.last_login)}</Col>
+                  <Col sm={6}>{formatDateTypical(props.discord_user.last_login)}</Col>
                 </Row>
 
                 <hr />

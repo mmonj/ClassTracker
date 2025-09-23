@@ -1,17 +1,17 @@
 import React, { useContext } from "react";
 
-import { CSRFToken, Context, interfaces, reverse, templates } from "@reactivated";
 import { Card, Col, Container, Row } from "react-bootstrap";
+
+import { CSRFToken, Context, interfaces, reverse, templates } from "@reactivated";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
-import { fetchByReactivated } from "@client/utils";
 
 import { ButtonWithSpinner } from "@client/components/ButtonWithSpinner";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
+import { fetchByReactivated } from "@client/utils";
 
 export function Template(_props: templates.DiscordTrackerLogin) {
   const context = useContext(Context);
@@ -61,9 +61,9 @@ export function Template(_props: templates.DiscordTrackerLogin) {
                 <div className="mb-4">
                   <FontAwesomeIcon icon={faDiscord} size="4x" className="text-primary" />
                 </div>
-                <h2 className="h3 mb-3">Welcome to Discord Tracker</h2>
+                <h2 className="h3 mb-3">Welcome to Class Cords</h2>
                 <p className="text-muted mb-4">
-                  Sign in with your Discord account to access the Discord tracking features.
+                  Sign in with your Discord account to access the private class discord servers.
                 </p>
 
                 <form method="POST" action={reverse("discord_login")} onSubmit={handleFormSubmit}>
@@ -81,10 +81,7 @@ export function Template(_props: templates.DiscordTrackerLogin) {
                 </form>
                 <div className="text-center">
                   <small className="text-muted">
-                    We request access to your Discord profile, email, and server memberships to
-                    verify your eligibility for account creation. We temporarily retrieve your
-                    server memberships from Discord's API for verification purposes, but we do not
-                    store this data.
+                    In order to be able to sign up, you must get a referral from another user.
                   </small>
                 </div>
               </Card.Body>

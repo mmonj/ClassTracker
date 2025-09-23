@@ -145,7 +145,7 @@ class DiscordServer(CommonModel):
     instructors = models.ManyToManyField(Instructor, related_name="discord_servers", blank=True)
 
     datetime_last_synced = models.DateTimeField(auto_now_add=True, editable=False)  # last API sync
-    is_required_for_trust = models.BooleanField(default=False)
+    is_featured = models.BooleanField(default=False)
 
     # should be `initially_added_by`
     added_by = models.ForeignKey(
@@ -158,7 +158,7 @@ class DiscordServer(CommonModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=["server_id", "is_required_for_trust"]),
+            models.Index(fields=["server_id", "is_featured"]),
         ]
 
     def __str__(self) -> str:

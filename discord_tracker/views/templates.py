@@ -21,7 +21,7 @@ _DiscordServerPick = Pick[
         "custom_title",
         "description",
         "is_active",
-        "is_required_for_trust",
+        "is_featured",
         "display_name",
         "is_general_server",
         "subjects.id",
@@ -75,7 +75,7 @@ _UserReferralPick = Pick[
     UserReferral,
     Literal[
         "id",
-        "url",
+        "code",
         "max_uses",
         "num_uses",
         "datetime_created",

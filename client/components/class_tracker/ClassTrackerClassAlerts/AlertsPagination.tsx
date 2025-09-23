@@ -1,7 +1,8 @@
 import React from "react";
 
-import { templates } from "@reactivated";
 import { Button, Col, Row } from "react-bootstrap";
+
+import { templates } from "@reactivated";
 
 interface Props {
   pagination: templates.ClassTrackerClassAlerts["pagination"];

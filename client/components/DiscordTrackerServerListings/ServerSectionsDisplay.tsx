@@ -1,7 +1,8 @@
 import React, { useContext, useMemo, useState } from "react";
 
-import { Context, templates } from "@reactivated";
 import { Alert, Button, Collapse, Row } from "react-bootstrap";
+
+import { Context, templates } from "@reactivated";
 
 import {
   faChevronDown,
@@ -12,6 +13,7 @@ import {
   faList,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import classNames from "classnames";
 
 import { DiscordServerCard } from "./DiscordServerCard";
@@ -47,7 +49,7 @@ export function ServerSectionsDisplay({
     const privateNormal: TServer[] = [];
 
     servers.forEach((server) => {
-      if (server.is_required_for_trust) {
+      if (server.is_featured) {
         required.push(server);
       } else if (server.privacy_level_info.value === "public") {
         publicNormal.push(server);

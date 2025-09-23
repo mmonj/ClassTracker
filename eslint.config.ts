@@ -7,9 +7,10 @@ export default defineConfig([
   ...(reactivated as Config[]),
   {
     rules: {
-      'react/no-unescaped-entities': 'off',
-      'unused-imports/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-use-before-define': 'off',
+      "react/no-unescaped-entities": "off",
+      "unused-imports/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-use-before-define": "off",
+      "import/order": "off",
     },
   },
 ]);

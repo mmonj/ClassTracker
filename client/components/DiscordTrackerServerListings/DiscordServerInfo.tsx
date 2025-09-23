@@ -1,7 +1,8 @@
 import React from "react";
 
-import { templates } from "@reactivated";
 import { Badge, Card, Col, Row } from "react-bootstrap";
+
+import { templates } from "@reactivated";
 
 interface Props {
   server: templates.DiscordTrackerExploreAll["servers"][number];

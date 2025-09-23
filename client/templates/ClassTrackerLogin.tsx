@@ -1,7 +1,8 @@
 import React from "react";
 
-import { CSRFToken, Context, reverse, templates } from "@reactivated";
 import { Card } from "react-bootstrap";
+
+import { CSRFToken, Context, reverse, templates } from "@reactivated";
 
 import { Navbar } from "@client/components/class_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";

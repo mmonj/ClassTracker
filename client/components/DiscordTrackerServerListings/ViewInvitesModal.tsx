@@ -1,15 +1,15 @@
 import React, { useContext, useEffect } from "react";
 
-import { Context, interfaces, reverse, templates } from "@reactivated";
 import { Alert, Badge, Button, Card, Modal, Spinner } from "react-bootstrap";
+
+import { Context, interfaces, reverse, templates } from "@reactivated";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { fetchByReactivated } from "@client/utils";
-
 import { useFetch } from "@client/hooks/useFetch";
+import { fetchByReactivated, formatDateTypical } from "@client/utils";
 
 import { DiscordServerInfo } from "./DiscordServerInfo";
 
@@ -228,7 +228,7 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
                             <i className="bi bi-clock me-1"></i>
                             Expires:{" "}
                             <span className="fw-bold ms-1">
-                              {new Date(invite.expires_at).toLocaleDateString()}
+                              {formatDateTypical(invite.expires_at)}
                             </span>
                           </span>
                         )}

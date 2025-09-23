@@ -32,6 +32,7 @@
     "reactivated": "^0.47.4"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "sass": "^1.89.1"
   }
 }

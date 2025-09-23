@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { Context, interfaces, reverse, templates } from "@reactivated";
 import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
 import Select, { SingleValue } from "react-select";
 
-import { fetchByReactivated } from "@client/utils";
+import { Context, interfaces, reverse, templates } from "@reactivated";
 
 import { useFetch } from "@client/hooks/useFetch";
+import { fetchByReactivated } from "@client/utils";
 
 interface SelectOption {
   value: number;

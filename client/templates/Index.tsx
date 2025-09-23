@@ -1,7 +1,8 @@
 import React from "react";
 
-import { Context, reverse, templates } from "@reactivated";
 import { Button, Card, Col, Container, Row } from "react-bootstrap";
+
+import { Context, reverse, templates } from "@reactivated";
 
 import { faComments, faSchool } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -70,7 +71,7 @@ export function Template(_props: templates.Index) {
                   <FontAwesomeIcon icon={faComments} size="2x" />
                 </div>
                 <div className="flex-grow-1 text-center text-md-start">
-                  <Card.Title className="h4 mb-2">Discord Tracker</Card.Title>
+                  <Card.Title className="h4 mb-2">Class Cords</Card.Title>
                   <Card.Text className="text-muted mb-3">
                     Monitor and track Discord server activities
                   </Card.Text>
@@ -85,7 +86,7 @@ export function Template(_props: templates.Index) {
                     size="lg"
                     className="w-100 w-md-auto"
                   >
-                    Go to Discord Tracker
+                    Go to Class Cords
                   </Button>
                 </div>
               </Card.Body>

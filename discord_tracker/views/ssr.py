@@ -52,11 +52,11 @@ def welcome(request: HttpRequest) -> HttpResponse:
         ).count()
 
     # recent servers
-    required_servers = list(base_queryset.filter(is_required_for_trust=True).order_by("-id"))
+    required_servers = list(base_queryset.filter(is_featured=True).order_by("-id"))
 
     public_servers = list(
         base_queryset.filter(
-            privacy_level=DiscordServer.PrivacyLevel.PUBLIC, is_required_for_trust=False
+            privacy_level=DiscordServer.PrivacyLevel.PUBLIC, is_featured=False
         ).order_by("-id")[:page_size]
     )
 
@@ -65,7 +65,7 @@ def welcome(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated and discord_user is not None:
         private_servers = list(
             base_queryset.filter(
-                privacy_level=DiscordServer.PrivacyLevel.PRIVATE, is_required_for_trust=False
+                privacy_level=DiscordServer.PrivacyLevel.PRIVATE, is_featured=False
             ).order_by("-id")[:page_size]
         )
 
@@ -112,7 +112,7 @@ def explore_all_listings(request: HttpRequest) -> HttpResponse:
         ).count()
 
     search_queryset = base_queryset.order_by(
-        "-is_required_for_trust",
+        "-is_featured",
         "courses__code",
         "courses__level",
         "name",
@@ -270,7 +270,7 @@ def referral_redeem(request: HttpRequest, referral_code: str) -> HttpResponse:
 
     if not request.user.is_authenticated:
         request.session["referral_code"] = referral_code
-        messages.info(request, "You may now log in via Discord")
+        messages.info(request, "You've redeemed a referral code. You may now log in via Discord.")
         return redirect("discord_tracker:login")
 
     messages.error(request, "You are already logged in")

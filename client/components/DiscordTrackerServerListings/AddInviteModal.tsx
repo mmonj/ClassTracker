@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 
-import { Context, interfaces, reverse } from "@reactivated";
 import { Alert, Button, Form, Modal } from "react-bootstrap";
 import Select from "react-select";
 
-import classNames from "classnames";
-
-import { fetchByReactivated } from "@client/utils";
+import { Context, interfaces, reverse } from "@reactivated";
 
 import { useFetch } from "@client/hooks/useFetch";
+import { fetchByReactivated } from "@client/utils";
+
+import classNames from "classnames";
 
 import { ButtonWithSpinner } from "../ButtonWithSpinner";
 

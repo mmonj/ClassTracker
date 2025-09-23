@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 
-import { templates } from "@reactivated";
 import { Button, Card } from "react-bootstrap";
+
+import { templates } from "@reactivated";
 
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AnimatePresence, motion } from "framer-motion";
 
 import {
   AddWatchedSectionModal,
@@ -14,6 +14,8 @@ import {
 } from "@client/components/class_tracker/ClassTrackerAddClasses";
 import { Navbar } from "@client/components/class_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
+
+import { AnimatePresence, motion } from "framer-motion";
 
 const NEW_RECIPIENT_SENTINEL_ID = 0;
 

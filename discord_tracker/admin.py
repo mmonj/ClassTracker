@@ -133,7 +133,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
                     "privacy_level",
                     "is_active",
                     "is_disabled",
-                    "is_required_for_trust",
+                    "is_featured",
                 ]
             },
         ),

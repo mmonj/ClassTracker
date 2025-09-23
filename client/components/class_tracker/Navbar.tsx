@@ -1,7 +1,8 @@
 import React from "react";
 
-import { Context, reverse } from "@reactivated";
 import { Navbar as BSNavbar, Container, Nav } from "react-bootstrap";
+
+import { Context, reverse } from "@reactivated";
 
 import { NavLink } from "../Navlink";
 
@@ -14,7 +15,6 @@ export function Navbar() {
   const djangoContext = React.useContext(Context);
 
   const staffRoutes = [
-    { name: "Admin", href: "/admin" },
     { name: "Manage Courselist", href: reverse("class_tracker:manage_course_list") },
     { name: "Add Classes", href: reverse("class_tracker:add_classes") },
     { name: "Class Alerts", href: reverse("class_tracker:view_class_alerts") },
@@ -36,7 +36,12 @@ export function Navbar() {
           </Nav>
 
           <Nav className="mb-2 mb-lg-0">
-            {djangoContext.user.is_superuser && <NavLink href={reverse("index")}>Home</NavLink>}
+            {djangoContext.user.is_superuser && (
+              <>
+                <NavLink href="/admin">Admin</NavLink>
+                <NavLink href={reverse("index")}>Home</NavLink>
+              </>
+            )}
             {!djangoContext.user.is_authenticated && (
               <>
                 {/* <NavLink href={"#fix-me"}>Create Account</NavLink> */}

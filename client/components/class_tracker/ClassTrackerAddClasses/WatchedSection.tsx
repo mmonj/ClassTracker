@@ -1,14 +1,14 @@
 import React, { useContext } from "react";
 
-import { Context, interfaces, reverse, templates } from "@reactivated";
 import { Button, Spinner } from "react-bootstrap";
+
+import { Context, interfaces, reverse, templates } from "@reactivated";
 
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { fetchByReactivated } from "@client/utils";
-
 import { useFetch } from "@client/hooks/useFetch";
+import { fetchByReactivated } from "@client/utils";
 
 interface Props {
   section: templates.ClassTrackerAddClasses["recipients"][number]["watched_sections"][number];

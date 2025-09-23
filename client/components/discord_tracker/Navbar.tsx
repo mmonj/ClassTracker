@@ -1,7 +1,8 @@
 import React from "react";
 
-import { CSRFToken, Context, reverse } from "@reactivated";
 import { Navbar as BSNavbar, Container, Nav, NavDropdown } from "react-bootstrap";
+
+import { CSRFToken, Context, reverse } from "@reactivated";
 
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -44,7 +45,7 @@ export function Navbar() {
     <>
       <BSNavbar expand="lg">
         <Container fluid>
-          <BSNavbar.Brand href={reverse("discord_tracker:welcome")}>Discord Tracker</BSNavbar.Brand>
+          <BSNavbar.Brand href={reverse("discord_tracker:welcome")}>Class Cords</BSNavbar.Brand>
           <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
           <BSNavbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto mb-2 mb-lg-0">
@@ -102,7 +103,9 @@ export function Navbar() {
                 </NavDropdown>
               )}
               {!djangoContext.user.is_authenticated && (
-                <NavLink href={reverse("discord_tracker:login")}>Sign In</NavLink>
+                <NavLink className="sign-in" href={reverse("discord_tracker:login")}>
+                  Sign In
+                </NavLink>
               )}
             </Nav>
           </BSNavbar.Collapse>

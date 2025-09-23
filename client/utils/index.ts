@@ -89,7 +89,7 @@ export function createDummyDiscordServer(
     custom_title: "",
     description: "How could you unblur me?",
     is_active: true,
-    is_required_for_trust: false,
+    is_featured: false,
     display_name: "Don't unblur me",
     is_general_server: false,
     subjects: [

@@ -1,7 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { getErrorList } from "@client/utils";
-
 import {
   ApiPromise,
   ApiResponse,
@@ -9,6 +7,7 @@ import {
   TNotFoundErrorList,
   TUseFetchResult,
 } from "@client/types";
+import { getErrorList } from "@client/utils";
 
 export function useFetch<T>() {
   const [data, setData] = useState<T | null>(null);

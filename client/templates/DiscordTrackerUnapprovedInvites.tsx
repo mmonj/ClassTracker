@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 
-import { templates } from "@reactivated";
 import { Card, Col, Container, Row } from "react-bootstrap";
+
+import { templates } from "@reactivated";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AnimatePresence } from "framer-motion";
 
 import { UnapprovedInviteCard } from "@client/components/discord_tracker/DiscordTrackerUnapprovedInvites";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
+
+import { AnimatePresence } from "framer-motion";
 
 export function Template(props: templates.DiscordTrackerUnapprovedInvites) {
   const [unapprovedInvites, setUnapprovedInvites] = useState(props.unapproved_invites);

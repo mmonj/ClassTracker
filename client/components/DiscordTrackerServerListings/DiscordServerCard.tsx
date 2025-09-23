@@ -1,10 +1,12 @@
 import React from "react";
 
-import { templates } from "@reactivated";
 import { Button, Card, Col } from "react-bootstrap";
+
+import { templates } from "@reactivated";
 
 import { faLock, faLockOpen, faShieldAlt, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import classNames from "classnames";
 
 import { DiscordServerInfo } from "./DiscordServerInfo";
@@ -79,7 +81,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
             <div className="flex-grow-1">
               <div className="d-flex align-items-center gap-2 mb-1">
                 <h5 className="card-title mb-0">{server.display_name}</h5>
-                {server.is_required_for_trust && (
+                {server.is_featured && (
                   <span className="badge bg-success d-inline-flex align-items-center">
                     <FontAwesomeIcon icon={faShieldAlt} className="me-1" size="xs" />
                     Featured

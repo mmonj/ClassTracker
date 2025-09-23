@@ -1,15 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { Context, interfaces, reverse } from "@reactivated";
 import { Button, Card, Col, Form, Row } from "react-bootstrap";
 import Select, { SingleValue } from "react-select";
+
+import { Context, interfaces, reverse } from "@reactivated";
 
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { fetchByReactivated } from "@client/utils";
-
 import { useFetch } from "@client/hooks/useFetch";
+import { fetchByReactivated } from "@client/utils";
 
 interface SelectOption {
   value: number;

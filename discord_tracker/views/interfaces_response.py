@@ -30,7 +30,7 @@ _DiscordServerPick = Pick[
         "icon_url",
         "privacy_level_info",
         "is_active",
-        "is_required_for_trust",
+        "is_featured",
         ##
         "schools.id",
         "schools.name",

@@ -1,14 +1,16 @@
 import React from "react";
 
-import { templates } from "@reactivated";
 import { ListGroup } from "react-bootstrap";
+
+import { templates } from "@reactivated";
 
 import { faBell, faClock, faGraduationCap, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { formatDateTypical } from "@client/utils";
+
 interface Props {
   alert: templates.ClassTrackerClassAlerts["class_alerts"][0];
-  formatDateTime: (dateTime: string) => string;
   getDaysAndTimesString: (
     instructionEntries: templates.ClassTrackerClassAlerts["class_alerts"][0]["course_section"]["instruction_entries"],
   ) => string;
@@ -17,12 +19,7 @@ interface Props {
   ) => string;
 }
 
-export function AlertListItem({
-  alert,
-  formatDateTime,
-  getDaysAndTimesString,
-  getInstructorsString,
-}: Props) {
+export function AlertListItem({ alert, getDaysAndTimesString, getInstructorsString }: Props) {
   return (
     <ListGroup.Item>
       <div className="d-flex justify-content-between align-items-start mb-2 gap-5">
@@ -35,7 +32,7 @@ export function AlertListItem({
         </div>
         <small className="text-muted">
           <FontAwesomeIcon icon={faClock} className="me-1" />
-          {formatDateTime(alert.datetime_created)}
+          {formatDateTypical(alert.datetime_created)}
         </small>
       </div>
 

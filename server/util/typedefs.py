@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Generic, Literal, NamedTuple, TypeAlias, TypeVar
+from typing import Generic, Literal, NamedTuple, TypeVar
 
 from django.contrib.auth.models import User
 from django.http import HttpRequest
@@ -20,7 +20,7 @@ class Failure(Generic[E]):
     ok: Literal[False] = False
 
 
-TResult: TypeAlias = Success[E] | Failure[T]  # noqa: UP040
+type TResult[E, T] = Success[E] | Failure[T]
 
 
 class AuthenticatedRequest(HttpRequest):

@@ -1,15 +1,16 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 
-import { CSRFToken, Context, interfaces, reverse, templates } from "@reactivated";
 import { Button, Modal, Placeholder } from "react-bootstrap";
+
+import { CSRFToken, Context, interfaces, reverse, templates } from "@reactivated";
 
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AnimatePresence, motion } from "framer-motion";
-
-import { fetchByReactivated } from "@client/utils";
 
 import { useFetch } from "@client/hooks/useFetch";
+import { fetchByReactivated } from "@client/utils";
+
+import { AnimatePresence, motion } from "framer-motion";
 
 import { FormFieldset } from "../../forms/FormFieldset";
 

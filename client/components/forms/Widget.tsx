@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-
 import React from "react";
-
-import { classNames } from "@reactivated";
 
 import { FieldHandler } from "reactivated/dist/forms";
 import { DjangoFormsWidgetsTextInput } from "reactivated/dist/generated";
+
+import { classNames } from "@reactivated";
 
 import { DjangoFormsWidgetsDateTimeInput } from "@client/types";
 
@@ -17,7 +16,7 @@ interface Props {
   extraClassName?: string;
 }
 
-export const Widget = ({ field, id, extraClassName = "" }: Props) => {
+export function Widget({ field, id, extraClassName = "" }: Props) {
   if ("subwidgets" in field) {
     return (
       <>
@@ -130,4 +129,4 @@ export const Widget = ({ field, id, extraClassName = "" }: Props) => {
 
   // const exhastive: never = field;
   throw new Error("Exhausted field tag cases");
-};
+}

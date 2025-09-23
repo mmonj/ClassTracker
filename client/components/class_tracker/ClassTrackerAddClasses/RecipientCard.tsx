@@ -1,10 +1,12 @@
 import React from "react";
 
-import { templates } from "@reactivated";
 import { Button } from "react-bootstrap";
+
+import { templates } from "@reactivated";
 
 import { faEdit, faPlus, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import { AnimatePresence, motion } from "framer-motion";
 
 import { WatchedSection } from "./WatchedSection";
@@ -28,16 +30,18 @@ const noSectionsAnimation = {
 };
 
 // generate animate prop with stagger delay based on section ID
-const getWatchedSectionAnimate = (sectionId: number) => ({
-  opacity: 1,
-  height: "auto" as const,
-  x: 0,
-  transition: {
-    duration: 0.4,
-    ease: "easeOut" as const,
-    delay: (sectionId % 10) * 0.1,
-  },
-});
+function getWatchedSectionAnimate(sectionId: number) {
+  return {
+    opacity: 1,
+    height: "auto" as const,
+    x: 0,
+    transition: {
+      duration: 0.4,
+      ease: "easeOut" as const,
+      delay: (sectionId % 10) * 0.1,
+    },
+  };
+}
 
 type TRecipient = templates.ClassTrackerAddClasses["recipients"][number];
 

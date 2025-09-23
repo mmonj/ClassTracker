@@ -1,13 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { Context, reverse, templates } from "@reactivated";
 import type { OverlayTriggerProps } from "react-bootstrap";
 import { Alert, Button, Container, OverlayTrigger, Popover } from "react-bootstrap";
 
+import { Context, reverse, templates } from "@reactivated";
+
 import { faPlus, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
-import { createDummyDiscordServer } from "@client/utils";
 
 import {
   AddInviteModal,
@@ -17,6 +16,7 @@ import {
 } from "@client/components/DiscordTrackerServerListings";
 import { Navbar } from "@client/components/discord_tracker/Navbar";
 import { Layout } from "@client/layouts/Layout";
+import { createDummyDiscordServer } from "@client/utils";
 
 interface ExploreAllButtonProps {
   isAuthenticated: boolean;
@@ -31,7 +31,6 @@ export function Template(props: templates.DiscordTrackerWelcome) {
   const [showInvitesModal, setShowInvitesModal] = useState(false);
   const [selectedServer, setSelectedServer] = useState<TServer | null>(null);
   const [showAddInviteModal, setShowAddInviteModal] = useState(false);
-  const [referralCode, setReferralCode] = useState<string | null>(null);
 
   const canUserAddInvites = context.user.discord_user !== null;
   const isAuthenticated = context.user.discord_user !== null;
@@ -39,10 +38,16 @@ export function Template(props: templates.DiscordTrackerWelcome) {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("referral");
+    const referralCode = urlParams.get("referral");
 
-    if (code !== null && code.trim() !== "") {
-      setReferralCode(code);
+    if (referralCode !== null && referralCode.trim() !== "") {
+      // add referralCode as query param to all elements with class 'sign-in'
+      const signInElements = document.getElementsByClassName("sign-in");
+      for (const element of signInElements) {
+        const url = new URL(element.getAttribute("href") ?? "", window.location.origin);
+        url.searchParams.set("referral", referralCode);
+        element.setAttribute("href", url.toString());
+      }
     }
   }, []);
 
@@ -90,7 +95,7 @@ export function Template(props: templates.DiscordTrackerWelcome) {
       Navbar={Navbar}
     >
       <Container className="py-4">
-        {!context.user.is_authenticated && <LoginBanner referralCode={referralCode ?? undefined} />}
+        {!context.user.is_authenticated && <LoginBanner />}
 
         {isManager && props.pending_invites_count > 0 && (
           <Alert variant="warning" className="mb-4">

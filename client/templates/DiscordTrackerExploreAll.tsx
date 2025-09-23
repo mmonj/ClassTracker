@@ -1,7 +1,8 @@
 import React, { useContext, useState } from "react";
 
-import { Context, reverse, templates } from "@reactivated";
 import { Alert, Button, Col, Container, Row } from "react-bootstrap";
+
+import { Context, reverse, templates } from "@reactivated";
 
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
