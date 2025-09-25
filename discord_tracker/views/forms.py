@@ -68,6 +68,10 @@ class ReferralCreationForm(forms.ModelForm[UserReferral]):
         self, *args: Any, discord_user: "DiscordUser | None" = None, **kwargs: Any
     ) -> None:
         super().__init__(*args, **kwargs)
+
+        if discord_user is None:
+            raise ValueError("Referral creation form requires a valid discord_user")
+
         self.discord_user = discord_user
 
         self.fields["max_uses_choice"].required = False
@@ -78,8 +82,9 @@ class ReferralCreationForm(forms.ModelForm[UserReferral]):
         self.fields["expiry_timeframe"].label = "Expiration Timeframe"
         self.fields["expiry_timeframe"].help_text = "How long until this referral code expires"
 
-        # show permanent option to manager users only
-        if self.discord_user is not None and self.discord_user.role != DiscordUser.UserRole.MANAGER:
+        # restrict options for non-manager users
+        if self.discord_user.role != DiscordUser.UserRole.MANAGER:
+            # hide permanent lasting invite option
             expiry_choices = [
                 choice
                 for choice in UserReferral.ExpiryTimeframe.choices
@@ -87,50 +92,79 @@ class ReferralCreationForm(forms.ModelForm[UserReferral]):
             ]
             self.fields["expiry_timeframe"].widget.choices = expiry_choices
 
+            # hide unlimited uses invite option
+            max_uses_choices = [
+                choice
+                for choice in UserReferral.MaxUsesChoices.choices
+                if choice[0] != UserReferral.MaxUsesChoices.UNLIMITED
+            ]
+            self.fields["max_uses_choice"].widget.choices = max_uses_choices
+
+        # fallthrough case: if self.fields[<field_name>] is not updated, django will show all options
+        # ie. show all options for manager users
+
     def clean(self) -> dict[str, Any]:
         cleaned_data = super().clean()
         if cleaned_data is None:
             cleaned_data = {}
 
-        # only manager users can create permanent referrals
-        if self.discord_user is not None:
-            expiry_timeframe = cleaned_data.get("expiry_timeframe")
-            if (
-                expiry_timeframe == UserReferral.ExpiryTimeframe.PERMANENT
-                and self.discord_user.role != DiscordUser.UserRole.MANAGER
-            ):
-                raise forms.ValidationError("Only manager users can create permanent referrals.")
+        # Validate manager-only features
+        expiry_timeframe = cleaned_data.get("expiry_timeframe")
+        if (
+            expiry_timeframe == UserReferral.ExpiryTimeframe.PERMANENT
+            and self.discord_user.role != DiscordUser.UserRole.MANAGER
+        ):
+            raise forms.ValidationError("Only manager users can create permanent referrals.")
 
-        if self.discord_user is not None and not self.discord_user.user.is_superuser:
-            max_uses_choice = (
-                cleaned_data.get("max_uses_choice") or UserReferral.MaxUsesChoices.TWENTY
-            )
-            max_uses = int(max_uses_choice)
-            max_total_active_uses = 100
+        max_uses_choice = cleaned_data.get("max_uses_choice")
+        if (
+            max_uses_choice == UserReferral.MaxUsesChoices.UNLIMITED
+            and not self.discord_user.is_manager
+        ):
+            raise forms.ValidationError("Only manager users can create unlimited use referrals.")
 
-            # calc total max_uses for active referrals by this user
-            active_referrals_query = UserReferral.objects.filter(created_by=self.discord_user)
+        # skip validating limit on number of referral records when user is superuser
+        if self.discord_user.user.is_superuser:
+            return cleaned_data
 
-            # exclude current instance if updating
-            if self.instance.pk is not None:
-                active_referrals_query = active_referrals_query.exclude(pk=self.instance.pk)
+        max_uses_choice = cleaned_data.get("max_uses_choice") or UserReferral.MaxUsesChoices.TWENTY
 
-            active_referrals = active_referrals_query.filter(
+        # skip validation for unlimited use referrals (only managers can create them anyway)
+        if max_uses_choice == UserReferral.MaxUsesChoices.UNLIMITED:
+            return cleaned_data
+
+        max_uses = int(max_uses_choice)
+        max_total_active_uses = 100
+
+        # calc total max_uses for active referrals by this user
+        active_referrals_query = UserReferral.objects.filter(created_by=self.discord_user)
+
+        # exclude current instance if updating
+        if self.instance.pk is not None:
+            active_referrals_query = active_referrals_query.exclude(pk=self.instance.pk)
+
+        active_referrals = (
+            active_referrals_query.filter(
                 models.Q(datetime_expires__isnull=True)  # never expires
                 | models.Q(datetime_expires__gt=timezone.now())  # not yet expired
-            ).filter(
+            )
+            .filter(
                 num_uses__lt=models.F("max_uses")  # not fully redeemed
             )
-
-            current_total_max_uses = (
-                active_referrals.aggregate(total=models.Sum("max_uses"))["total"] or 0
+            .exclude(
+                max_uses_choice=UserReferral.MaxUsesChoices.UNLIMITED  # exclude unlimited from count
             )
+        )
 
-            new_total = current_total_max_uses + max_uses
+        current_total_max_uses = (
+            active_referrals.aggregate(total=models.Sum("max_uses"))["total"] or 0
+        )
 
-            if new_total > max_total_active_uses:
-                raise forms.ValidationError(
-                    "Cannot create referral. You currently have too many active referrals"
-                )
+        new_total = current_total_max_uses + max_uses
+
+        if new_total > max_total_active_uses:
+            raise forms.ValidationError(
+                "Cannot create referral. You currently have too many active referrals"
+            )
 
         return cleaned_data

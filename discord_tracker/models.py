@@ -293,11 +293,16 @@ class UserReferral(CommonModel):
         TWENTY = ("20", "20 Uses")
         FIFTY = ("50", "50 Uses")
         HUNDRED = ("100", "100 Uses")
+        UNLIMITED = ("0", "Unlimited Uses")
 
     _max_uses = 100
+    # just inflate the number a ton, works the same as unlimited
+    _unlimited_max_uses = _max_uses * 1000
 
     code = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
-    max_uses = models.PositiveIntegerField(default=1, validators=[MaxValueValidator(_max_uses)])
+    max_uses = models.PositiveIntegerField(
+        default=1, validators=[MaxValueValidator(_unlimited_max_uses)]
+    )
     num_uses = models.PositiveIntegerField(default=0, editable=False)
 
     datetime_expires = models.DateTimeField(null=True, blank=True)
@@ -337,7 +342,11 @@ class UserReferral(CommonModel):
     def save(self, *args: Any, **kwargs: Any) -> None:
         # set max_uses based on max_uses_choice
         if self.max_uses_choice:
-            self.max_uses = int(self.max_uses_choice)
+            max_uses_value = int(self.max_uses_choice)
+            if max_uses_value == 0:
+                self.max_uses = self._unlimited_max_uses
+            else:
+                self.max_uses = max_uses_value
 
         # only manager users can create permanent referrals
         if (
@@ -346,6 +355,14 @@ class UserReferral(CommonModel):
             and self.created_by.role != DiscordUser.UserRole.MANAGER
         ):
             raise ValueError("Only manager users can create permanent referrals")
+
+        # only manager users can create unlimited use referrals
+        if (
+            self.max_uses_choice == self.MaxUsesChoices.UNLIMITED
+            and self.created_by is not None
+            and self.created_by.role != DiscordUser.UserRole.MANAGER
+        ):
+            raise ValueError("Only manager users can create unlimited use referrals")
 
         # datetime_expires based on expiry_timeframe
         if self.expiry_timeframe == self.ExpiryTimeframe.PERMANENT:
@@ -365,6 +382,11 @@ class UserReferral(CommonModel):
 
     def is_valid(self) -> bool:
         return not self.is_expired() and self.num_uses < self.max_uses
+
+    @property
+    def is_unlimited(self) -> bool:
+        """Check if this referral has unlimited uses."""
+        return self.max_uses_choice == self.MaxUsesChoices.UNLIMITED
 
     def redeem(self, user_target: "DiscordUser") -> TResult[str, str]:
         if not self.is_valid():

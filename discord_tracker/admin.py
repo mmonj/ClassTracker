@@ -6,6 +6,8 @@ from .models import (
     DiscordServer,
     DiscordUser,
     InviteUsage,
+    UserReferral,
+    UserReferralRedemption,
 )
 
 
@@ -299,3 +301,136 @@ class InviteUsageAdmin(admin.ModelAdmin[InviteUsage]):
         return obj.invite.discord_server.display_name
 
     get_discord_server.short_description = "Discord Server"  # type: ignore[attr-defined]
+
+
+@admin.register(UserReferral)
+class UserReferralAdmin(admin.ModelAdmin[UserReferral]):
+    list_display = [
+        "code",
+        "created_by",
+        "max_uses_choice",
+        "expiry_timeframe",
+        "num_uses",
+        "max_uses",
+        "get_status",
+        "datetime_created",
+        "datetime_expires",
+    ]
+    list_filter = [
+        "expiry_timeframe",
+        "max_uses_choice",
+        "created_by__role",
+        "datetime_created",
+        "datetime_expires",
+    ]
+    search_fields = [
+        "code",
+        "created_by__username",
+        "created_by__global_name",
+    ]
+    readonly_fields = ["code", "num_uses", "datetime_created", "datetime_expires"]
+
+    fieldsets = [
+        (
+            "Referral Information",
+            {
+                "fields": [
+                    "code",
+                    "created_by",
+                    "datetime_created",
+                ]
+            },
+        ),
+        (
+            "Usage Settings",
+            {
+                "fields": [
+                    "max_uses_choice",
+                    "max_uses",
+                    "num_uses",
+                ]
+            },
+        ),
+        (
+            "Expiry Settings",
+            {
+                "fields": [
+                    "expiry_timeframe",
+                    "datetime_expires",
+                ]
+            },
+        ),
+    ]
+
+    def get_status(self, obj: UserReferral) -> str:
+        """Get the current status of the referral."""
+        if obj.is_expired():
+            return "Expired"
+        if obj.num_uses >= obj.max_uses:
+            return "Fully Used"
+        if obj.num_uses > 0:
+            return f"Partially Used ({obj.num_uses}/{obj.max_uses})"
+        return "Active"
+
+    get_status.short_description = "Status"  # type: ignore[attr-defined]
+
+
+@admin.register(UserReferralRedemption)
+class UserReferralRedemptionAdmin(admin.ModelAdmin[UserReferralRedemption]):
+    list_display = [
+        "get_referral_code",
+        "redeemed_by",
+        "get_created_by",
+        "datetime_redeemed",
+        "get_referral_status",
+    ]
+    list_filter = [
+        "datetime_redeemed",
+        "referral__created_by",
+        "redeemed_by__role",
+        "referral__expiry_timeframe",
+        "referral__max_uses_choice",
+    ]
+    search_fields = [
+        "referral__code",
+        "redeemed_by__username",
+        "redeemed_by__global_name",
+        "referral__created_by__username",
+        "referral__created_by__global_name",
+    ]
+    readonly_fields = ["datetime_redeemed"]
+
+    fieldsets = [
+        (
+            "Redemption Information",
+            {
+                "fields": [
+                    "referral",
+                    "redeemed_by",
+                    "datetime_redeemed",
+                ]
+            },
+        ),
+    ]
+
+    def get_referral_code(self, obj: UserReferralRedemption) -> str:
+        return str(obj.referral.code)
+
+    get_referral_code.short_description = "Referral Code"  # type: ignore[attr-defined]
+
+    def get_created_by(self, obj: UserReferralRedemption) -> str:
+        return obj.referral.created_by.display_name
+
+    get_created_by.short_description = "Created By"  # type: ignore[attr-defined]
+
+    def get_referral_status(self, obj: UserReferralRedemption) -> str:
+        referral = obj.referral
+        if referral.is_expired():
+            return "Expired"
+        if referral.num_uses >= referral.max_uses:
+            return "Fully Used"
+        if referral.num_uses > 0:
+            return f"Partially Used ({referral.num_uses}/{referral.max_uses})"
+        return "Active"
+
+    get_referral_status.short_description = "Referral Status"  # type: ignore[attr-defined]
