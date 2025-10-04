@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from discord_tracker.models import DiscordUser, UserReferral
+from discord_tracker.typedefs.discord_api import TAllauthExtraData
 from server.util.typedefs import Failure, Success, TResult
 
 from .discord_api import check_user_in_trusted_servers
@@ -32,8 +33,8 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         """
         user: User = super().populate_user(request, sociallogin, data)
 
-        discord_data = sociallogin.account.extra_data
-        discord_id = discord_data.get("id")
+        discord_data: TAllauthExtraData = sociallogin.account.extra_data
+        discord_id = discord_data["id"]
 
         if discord_id is None:
             logger.error("Discord ID missing from extra_data: %s", discord_data)
@@ -59,8 +60,8 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         if sociallogin.account.provider != "discord":
             return
 
-        discord_data = sociallogin.account.extra_data
-        discord_id = discord_data.get("id")
+        discord_data: TAllauthExtraData = sociallogin.account.extra_data
+        discord_id = discord_data["id"]
 
         if not discord_id:
             return
@@ -191,10 +192,10 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         # if we don't have explicit expiry info, calculate it
         return timezone.now() + timedelta(hours=1)
 
-    def _get_avatar_url(self, discord_data: dict[str, Any]) -> str:
+    def _get_avatar_url(self, discord_data: TAllauthExtraData) -> str:
         """Generate full Discord avatar URL from avatar hash."""
         avatar_hash = discord_data.get("avatar")
-        user_id = discord_data.get("id")
+        user_id = discord_data["id"]
 
         if not avatar_hash or not user_id:
             return ""

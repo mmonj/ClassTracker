@@ -1,3 +1,4 @@
+import datetime
 import logging
 import re
 from datetime import timedelta
@@ -10,19 +11,20 @@ from django.conf import settings
 from django.utils import timezone
 
 from discord_tracker.models import DiscordServer, DiscordUser
+from discord_tracker.typedefs.discord_api import TDiscordInviteData, TGuildData
+from discord_tracker.typedefs.discord_partials import (
+    TBaseGuildData,
+    TBaseUserData,
+    TChannelData,
+    TGuildAssetUrls,
+)
 from server.util import init_http_retrier
 from server.util.typedefs import Failure, Success, TResult
 
-from .typedefs import (
-    TBaseGuildData,
-    TChannelData,
-    TDiscordInviteData,
-    TGuildAssetUrls,
-    TGuildData,
-    TInviterData,
-)
-
 logger = logging.getLogger("main")
+
+# jan 1, 2015 00:00:00 UTC, in ms
+DISCORD_EPOCH = 1420070400000
 
 DISCORD_INVITE_URL_PREFIXES = (
     "https://discord.gg/",
@@ -221,7 +223,7 @@ def get_guild_info_from_invite(invite_code: str) -> TResult[TGuildData, DiscordA
     return Success(invite_result.val["guild"])
 
 
-def get_inviter_info_from_invite(invite_code: str) -> TResult[TInviterData, DiscordAPIError]:
+def get_inviter_info_from_invite(invite_code: str) -> TResult[TBaseUserData, DiscordAPIError]:
     invite_result = get_discord_invite_info(invite_code)
     if not invite_result.ok:
         return Failure(invite_result.err)
@@ -250,7 +252,7 @@ def format_guild_info(guild: TGuildData) -> str:
 - Features: {features}"""
 
 
-def format_inviter_info(inviter: TInviterData) -> str:
+def format_inviter_info(inviter: TBaseUserData) -> str:
     """Format inviter information into a nicely formatted string"""
     display_name = inviter["global_name"] or inviter["username"]
 
@@ -362,3 +364,9 @@ def check_user_in_trusted_servers(access_token: str) -> TResult[bool, str]:
     )
 
     return Success(has_trusted_membership)
+
+
+def get_guild_creation_date(guild_id: str) -> datetime.datetime:
+    timestamp_ms = (int(guild_id) >> 22) + DISCORD_EPOCH
+
+    return datetime.datetime.fromtimestamp(timestamp_ms / 1000, tz=datetime.UTC)

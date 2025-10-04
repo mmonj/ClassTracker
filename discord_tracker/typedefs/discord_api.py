@@ -2,43 +2,18 @@ from typing import TypedDict
 
 from reactivated import interface
 
+from discord_tracker.typedefs.discord_partials import (
+    TBaseUserData,
+    TChannelData,
+    TGameActivity,
+    TPrimaryGuildOrClan,
+)
+
 TAwareDatetime = str
 UUID = str
 
 
-class TAvatarDecorationData(TypedDict):
-    asset: str
-    sku_id: str
-    expires_at: int | None
-
-
-class TInviterData(TypedDict):
-    id: str
-    username: str
-    avatar: str
-    discriminator: str
-    public_flags: int
-    flags: int
-    banner: str | None
-    accent_color: int | None
-    global_name: str | None
-    avatar_decoration_data: TAvatarDecorationData | None
-    banner_color: str | None
-
-
-# base guild data retrieved via access token (after authenticating via allauth)
-class TBaseGuildData(TypedDict):
-    id: str
-    name: str
-    icon: str | None
-    banner: str | None
-    owner: bool
-    permissions: int
-    permissions_new: str
-    features: list[str]
-
-
-# guild data returned after retrieving invite data via discord API
+# guild data returned after retrieving invite data from invite url
 class TGuildData(TypedDict):
     id: str
     name: str
@@ -52,10 +27,6 @@ class TGuildData(TypedDict):
     nsfw_level: int
     nsfw: bool
     premium_subscription_count: int
-
-
-class TGameActivity(TypedDict):
-    pass
 
 
 class TGuildProfileData(TypedDict):
@@ -81,23 +52,23 @@ class TGuildProfileData(TypedDict):
     premium_tier: int
 
 
-class TChannelData(TypedDict):
-    id: str
-    type: int
-    name: str
-
-
-class TGuildAssetUrls(TypedDict):
-    icon: str | None
-    banner: str | None
-    splash: str | None
+class TAllauthExtraData(TBaseUserData):
+    # collectibles: None
+    # display_name_styles: None
+    clan: TPrimaryGuildOrClan
+    primary_guild: TPrimaryGuildOrClan
+    mfa_enabled: bool
+    locale: str
+    premium_type: int
+    email: str
+    verified: bool
 
 
 @interface
 class TDiscordInviteData(TypedDict):  # type: ignore [type-var]
     type: int
     code: str
-    inviter: TInviterData
+    inviter: TBaseUserData
     expires_at: TAwareDatetime | None  # ISO format (UTC)
     guild: TGuildData
     guild_id: str
