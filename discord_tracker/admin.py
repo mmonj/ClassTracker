@@ -91,6 +91,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
         "get_subject_count",
         "datetime_last_synced",
         "added_by",
+        "datetime_established",
     ]
     list_filter = [
         "privacy_level",
@@ -125,6 +126,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
                     "description",
                     "member_count",
                     "icon_url",
+                    "datetime_established",
                 ]
             },
         ),

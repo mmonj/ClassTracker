@@ -32,6 +32,7 @@ _DiscordServerPick = Pick[
         "courses.title",
         "instructors.id",
         "instructors.name",
+        "datetime_established",
     ],
 ]
 

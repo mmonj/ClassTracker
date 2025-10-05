@@ -20,6 +20,7 @@ from server.util.typedefs import AuthenticatedRequest
 from ..util.discord_api import (
     extract_invite_code_from_url,
     get_discord_invite_info,
+    get_guild_creation_date,
     get_guild_icon_url,
 )
 
@@ -102,7 +103,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     if invite_info["expires_at"] is not None:
         return error_json_response(
             [
-                "Only permanent Discord invites are allowed. Please create a permanent invite that never expires"
+                "Only permanent Discord invites are allowed. Please submit a non-expiring invite URL."
             ],
             status=400,
         )
@@ -240,6 +241,7 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     )
     profile = invite_info.get("profile")
     member_count = profile["member_count"] if profile is not None else 0
+    datetime_established = get_guild_creation_date(invite_info["guild_id"])
 
     discord_server, _server_created = DiscordServer.objects.get_or_create(
         server_id=guild_id,
@@ -250,6 +252,7 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
             "icon_url": get_guild_icon_url(guild_id, invite_info["guild"]["icon"]),
             "privacy_level": privacy_level_enum,
             "added_by": discord_user,
+            "datetime_established": datetime_established,
         },
     )
 
@@ -452,7 +455,11 @@ def get_all_subjects(request: AuthenticatedRequest) -> HttpResponse:
     if discord_user.school is None:
         return error_json_response(["User has no associated school"], status=400)
 
-    subjects = list(discord_user.school.subjects.all().order_by("name"))
+    subjects = list(
+        discord_user.school.subjects.filter(discord_servers__isnull=False)
+        .distinct()
+        .order_by("name")
+    )
 
     return interfaces_response.GetSubjectsResponse(
         subjects=subjects,

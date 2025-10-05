@@ -61,15 +61,20 @@ export function randChoice<T>(items: T[]): T {
   return items[index];
 }
 
-export function formatDateTypical(dateString: string | null) {
+export function formatDateTypical(
+  dateString: string | null,
+  { showTime = true }: { showTime?: boolean } = {},
+) {
   if (dateString === null || dateString === "") return "n/a";
+
+  const timeDisplayFormat = showTime ? "2-digit" : undefined;
 
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    hour: timeDisplayFormat,
+    minute: timeDisplayFormat,
   });
 }
 
@@ -81,7 +86,7 @@ export function createDummyDiscordServer(
     server_id: "0",
     name: "Don't unblur me",
     icon_url: "",
-    member_count: 0,
+    member_count: 42,
     privacy_level_info: {
       value: "private",
       label: "Private",
@@ -92,6 +97,7 @@ export function createDummyDiscordServer(
     is_featured: false,
     display_name: "Don't unblur me",
     is_general_server: false,
+    datetime_established: "1970-01-01T00:00:00Z",
     subjects: [
       {
         id: 1,
@@ -102,8 +108,8 @@ export function createDummyDiscordServer(
       {
         id: 1,
         code: "CSCI",
-        level: "300",
-        title: "Comp Sci Course",
+        level: "381",
+        title: "Wax On, Wax Off",
       },
     ],
     instructors: [

@@ -125,6 +125,8 @@ class DiscordServer(CommonModel):
     name = models.CharField(max_length=255)  # Current server name from Discord API
     icon_url = models.URLField(blank=True)  # Server icon
     member_count = models.PositiveIntegerField(default=0)
+    # datetime server was established; default unix time 0 as datetime
+    datetime_established = models.DateTimeField(null=True, blank=True)
 
     privacy_level = models.CharField(
         max_length=20, choices=PrivacyLevel.choices, default=PrivacyLevel.PUBLIC

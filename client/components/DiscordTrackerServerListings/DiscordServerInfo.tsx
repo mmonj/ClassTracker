@@ -4,6 +4,8 @@ import { Badge, Card, Col, Row } from "react-bootstrap";
 
 import { templates } from "@reactivated";
 
+import { formatDateTypical } from "@client/utils";
+
 interface Props {
   server: templates.DiscordTrackerExploreAll["servers"][number];
   truncate_description?: boolean;
@@ -15,16 +17,16 @@ export function DiscordServerInfo({ server, className, truncate_description = fa
   const hasCourses = server.courses.length > 0;
   const hasInstructors = server.instructors.length > 0;
   const isGeneralServer = server.is_general_server;
-  const hasMemberCount = server.member_count > 0;
   const hasDescription = server.description.trim().length > 0;
+  const hasEstablishedDate = server.datetime_established !== null;
 
   if (
     !hasSubjects &&
     !hasCourses &&
     !hasInstructors &&
     !isGeneralServer &&
-    !hasMemberCount &&
-    !hasDescription
+    !hasDescription &&
+    !hasEstablishedDate
   ) {
     return null;
   }
@@ -56,12 +58,12 @@ export function DiscordServerInfo({ server, className, truncate_description = fa
             </Col>
           )}
 
-          {hasMemberCount && (
+          {hasEstablishedDate && (
             <Col xs={12} className="mt-0">
               <div className="mb-1">
-                <small className="text-muted fw-bold">Members: </small>
+                <small className="text-muted fw-bold">Established: </small>
                 <Badge bg="info" className="text-dark">
-                  {server.member_count.toLocaleString()}
+                  {formatDateTypical(server.datetime_established, { showTime: false })}
                 </Badge>
               </div>
             </Col>

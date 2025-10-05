@@ -103,7 +103,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
                   </small>
                 </div>
                 {server.member_count > 0 && (
-                  <div className="d-flex align-items-center">
+                  <div className="d-flex align-items-center" title="Member Count">
                     <FontAwesomeIcon icon={faUsers} className="me-1 text-muted" size="sm" />
                     <small className="text-muted">{server.member_count.toLocaleString()}</small>
                   </div>
@@ -126,7 +126,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               onClick={() => !isDummyServer && onShowInvites(server.id)}
               disabled={isDummyServer}
             >
-              View Info
+              Get Invite
             </Button>
           </div>
         </Card.Body>
