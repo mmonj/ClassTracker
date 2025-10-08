@@ -28,7 +28,7 @@ export function AddInviteModal({ show, onHide }: Props) {
   const [notes, setNotes] = useState("");
   const [selectedSchool, setSelectedSchool] = useState<SelectOption | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<SelectOption | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<SelectOption | null>(null);
+  const [selectedCourses, setSelectedCourses] = useState<SelectOption[]>([]);
   const [selectedInstructors, setSelectedInstructors] = useState<SelectOption[]>([]);
   const [showSchoolSelection, setShowSchoolSelection] = useState(false);
   const [guildInfo, setGuildInfo] = useState<{ name: string; id: string } | null>(null);
@@ -90,10 +90,10 @@ export function AddInviteModal({ show, onHide }: Props) {
       formData.append("subject_id", existingServerInfo.subjects[0].id.toString());
     }
 
-    // add course if exists
-    if (existingServerInfo.courses.length > 0) {
-      formData.append("course_id", existingServerInfo.courses[0].id.toString());
-    }
+    // add all existing courses (use new multiple courses approach)
+    existingServerInfo.courses.forEach((course) => {
+      formData.append("course_ids", course.id.toString());
+    });
 
     const result = await submitInviteFetcher.fetchData(() =>
       fetchByReactivated(
@@ -196,9 +196,10 @@ export function AddInviteModal({ show, onHide }: Props) {
       formData.append("subject_id", selectedSubject.value.toString());
     }
 
-    if (selectedCourse) {
-      formData.append("course_id", selectedCourse.value.toString());
-    }
+    // add course ids if any are selected (new multiple courses approach)
+    selectedCourses.forEach((course) => {
+      formData.append("course_ids", course.value.toString());
+    });
 
     // add instructor ids if any are selected
     selectedInstructors.forEach((instructor) => {
@@ -227,7 +228,7 @@ export function AddInviteModal({ show, onHide }: Props) {
   async function handleSchoolChange(option: SelectOption | null) {
     setSelectedSchool(option);
     setSelectedSubject(null);
-    setSelectedCourse(null);
+    setSelectedCourses([]);
 
     if (option === null) return;
 
@@ -242,7 +243,7 @@ export function AddInviteModal({ show, onHide }: Props) {
 
   async function handleSubjectChange(option: SelectOption | null) {
     setSelectedSubject(option);
-    setSelectedCourse(null);
+    setSelectedCourses([]);
     setSelectedInstructors([]);
 
     if (option === null || selectedSchool === null) return;
@@ -272,8 +273,8 @@ export function AddInviteModal({ show, onHide }: Props) {
     ]);
   }
 
-  function handleCourseChange(option: SelectOption | null) {
-    setSelectedCourse(option);
+  function handleCoursesChange(options: readonly SelectOption[]) {
+    setSelectedCourses([...options]);
   }
 
   function handleInstructorsChange(options: readonly SelectOption[]) {
@@ -285,7 +286,7 @@ export function AddInviteModal({ show, onHide }: Props) {
     setNotes("");
     setSelectedSchool(null);
     setSelectedSubject(null);
-    setSelectedCourse(null);
+    setSelectedCourses([]);
     setSelectedInstructors([]);
     setShowSchoolSelection(false);
     setGuildInfo(null);
@@ -440,18 +441,22 @@ export function AddInviteModal({ show, onHide }: Props) {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Course (Optional)</Form.Label>
+              <Form.Label>Course(s) (Optional)</Form.Label>
               <Select
-                value={selectedCourse}
-                onChange={handleCourseChange}
+                isMulti
+                value={selectedCourses}
+                onChange={handleCoursesChange}
                 options={courseOptions}
-                placeholder="Select a course..."
+                placeholder="Select course(s)..."
                 isSearchable
                 isClearable
                 isDisabled={!selectedSubject}
                 isLoading={coursesFetcher.isLoading}
                 classNamePrefix="react-select"
               />
+              <Form.Text className="text-muted">
+                Select one or more courses related to this server (optional)
+              </Form.Text>
             </Form.Group>
 
             <Form.Group className="mb-3">

@@ -148,7 +148,7 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     guild_id = request.POST.get("guild_id", "").strip()
     school_id = request.POST.get("school_id")
     subject_id = request.POST.get("subject_id")
-    course_id = request.POST.get("course_id")
+    course_ids = request.POST.getlist("course_ids")  # can be multiple courses
     instructor_ids = request.POST.getlist("instructor_ids")  # can be multiple instructors
     privacy_level = request.POST.get("privacy_level", "private").strip()
 
@@ -218,9 +218,13 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     if subject_id is not None:
         subject = Subject.objects.filter(id=int(subject_id), schools=school).first()
 
-    course: Course | None = None
-    if course_id is not None:
-        course = Course.objects.filter(id=int(course_id), subject=subject).first()
+    courses: list[Course] = []
+    if course_ids:
+        courses = list(
+            Course.objects.filter(
+                id__in=[int(course_id) for course_id in course_ids], subject=subject, school=school
+            )
+        )
 
     # get instructors if provided
     instructors: list[Instructor] = []
@@ -307,8 +311,9 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     if subject is not None:
         discord_server.subjects.add(subject)
 
-    if course is not None:
-        discord_server.courses.add(course)
+    # add course associations
+    if courses:
+        discord_server.courses.add(*courses)
 
     # add instructor associations
     if instructors:
