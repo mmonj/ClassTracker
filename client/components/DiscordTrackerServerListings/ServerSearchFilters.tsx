@@ -16,6 +16,11 @@ interface SelectOption {
   label: string;
 }
 
+const natsortCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
+
 interface ServerSearchFiltersProps {
   subjectId?: number | null;
   courseId?: number | null;
@@ -88,6 +93,8 @@ export function ServerSearchFilters({ subjectId, courseId }: ServerSearchFilters
         value: course.id,
         label: `${course.code} ${course.level} - ${course.title}`,
       }));
+
+      courseOptions.sort((a, b) => natsortCollator.compare(a.label, b.label));
       setCourses(courseOptions);
     }
 
