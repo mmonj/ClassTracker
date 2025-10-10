@@ -135,7 +135,7 @@ class Course(CommonModel):
         unique_together = ("code", "level", "school")
 
     def __str__(self) -> str:
-        return f"{self.level} - {self.title}"
+        return f"{self.code} {self.level} - {self.title}"
 
     def __repr__(self) -> str:
         return f"<Course(id={self.id}, code='{self.code}', level='{self.level}', title='{self.title}')>"

@@ -1,5 +1,9 @@
+from typing import Any
+
 from django.contrib import admin
 from django.http import HttpRequest
+
+from class_tracker.models import Course, Instructor
 
 from .models import (
     DiscordInvite,
@@ -104,7 +108,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
     search_fields = ["name", "custom_title", "description", "server_id"]
     readonly_fields = []
     list_editable = ["is_active", "is_disabled"]
-    filter_horizontal = ["schools", "subjects"]
+    filter_horizontal = ["schools", "subjects", "courses", "instructors"]
     inlines = [DiscordInviteInline]
 
     def get_readonly_fields(
@@ -147,6 +151,8 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
                 "fields": [
                     "schools",
                     "subjects",
+                    "courses",
+                    "instructors",
                 ]
             },
         ),
@@ -159,6 +165,55 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
             },
         ),
     ]
+
+    def formfield_for_manytomany(self, db_field: Any, request: HttpRequest, **kwargs: Any) -> Any:
+        """Filter courses and instructors based on selected schools/subjects/courses"""
+        obj_id = request.resolver_match.kwargs.get("object_id") if request.resolver_match else None
+        if not obj_id:
+            return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+        obj = DiscordServer.objects.filter(pk=obj_id).first()
+        if obj is None:
+            return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+        if db_field.name == "courses":
+            self._filter_courses_queryset(obj, kwargs)
+        elif db_field.name == "instructors":
+            self._filter_instructors_queryset(obj, kwargs)
+
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def _filter_courses_queryset(self, obj: DiscordServer, kwargs: dict[str, Any]) -> None:
+        """Filter courses based on selected schools and subjects (subjects must be associated with schools)"""
+        selected_schools = obj.schools.all()
+        selected_subjects = obj.subjects.all()
+
+        if not selected_schools.exists() or not selected_subjects.exists():
+            kwargs["queryset"] = Course.objects.none()
+            return
+
+        queryset = Course.objects.filter(school__in=selected_schools, subject__in=selected_subjects)
+        kwargs["queryset"] = queryset
+
+    def _filter_instructors_queryset(self, obj: DiscordServer, kwargs: dict[str, Any]) -> None:
+        """Filter instructors based on selected subjects."""
+        selected_schools = obj.schools.all()
+        selected_subjects = obj.subjects.all()
+
+        if not selected_schools.exists() or not selected_subjects.exists():
+            kwargs["queryset"] = Instructor.objects.none()
+            return
+
+        instructors = (
+            Instructor.objects.filter(
+                instruction_entries__course_section__course__subject__in=selected_subjects,
+                instruction_entries__course_section__course__school__in=selected_schools,
+            )
+            .distinct()
+            .order_by("name")
+        )
+
+        kwargs["queryset"] = instructors
 
     def get_school_count(self, obj: DiscordServer) -> int:
         """Get the number of associated schools."""

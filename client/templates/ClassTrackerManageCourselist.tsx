@@ -357,7 +357,7 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
                   }
                   isLoadingState={refreshClassesFetcher.isLoading}
                 >
-                  Fetch new Course sections for{" "}
+                  Fetch {selectedSubject.name} sections for{" "}
                   <b>
                     {selectedSchool.name}, {selectedTerm.full_term_name}
                   </b>
