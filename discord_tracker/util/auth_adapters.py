@@ -8,6 +8,7 @@ from allauth.socialaccount.adapter import (  # type: ignore [import-untyped]
 )
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -234,16 +235,19 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         if referral_code is None:
             return Failure("You need a referral to create a new account on this website")
 
-        referral_to_redeem = UserReferral.objects.filter(code=referral_code).first()
+        try:
+            referral_to_redeem = UserReferral.objects.filter(code=referral_code).first()
+        except ValidationError:
+            return Failure("Your referral code is invalid")
 
         if referral_to_redeem is None:
-            return Failure("Your referral is invalid")
+            return Failure("Your referral code is invalid")
 
         if referral_to_redeem.is_expired():
-            return Failure("Your referral has expired")
+            return Failure("Your referral code has expired")
 
         if not referral_to_redeem.is_valid():
-            return Failure("Your referral has exceeded its usage limit")
+            return Failure("Your referral code has exceeded its usage limit")
 
         return Success(referral_to_redeem)
 

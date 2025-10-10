@@ -25,6 +25,11 @@ logger = logging.getLogger("main")
 
 @school_required(is_api=False)
 def welcome(request: HttpRequest) -> HttpResponse:
+    referral_code = request.GET.get("referral")
+
+    if referral_code and not request.user.is_authenticated:
+        request.session["referral_code"] = referral_code
+
     prefetches = ("subjects", "courses", "instructors", "schools")
     page_size = 10
 

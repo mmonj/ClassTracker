@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -490,15 +490,3 @@ def get_all_courses(request: AuthenticatedRequest, subject_id: int) -> HttpRespo
         courses=courses,
         message="Courses fetched successfully.",
     ).render(request)
-
-
-@require_http_methods(["GET"])
-def referral_redeem(request: HttpRequest) -> HttpResponse:
-    """Store referral code in session for later use during login"""
-    referral_code = request.GET.get("referral")
-
-    if referral_code:
-        request.session["referral_code"] = referral_code
-        return interfaces_response.BlankResponse().render(request)
-
-    return error_json_response(["No referral code provided."], status=400)

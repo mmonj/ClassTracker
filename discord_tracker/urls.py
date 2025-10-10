@@ -52,7 +52,6 @@ ajax_patterns = [
     ),
     path("ajax/subjects/", ajax.get_all_subjects, name="get_all_subjects"),
     path("ajax/subjects/<int:subject_id>/courses/", ajax.get_all_courses, name="get_all_courses"),
-    path("ajax/referral-redeem/", ajax.referral_redeem, name="ajax_referral_redeem"),
 ]
 
 urlpatterns = ssr_patterns + ajax_patterns
