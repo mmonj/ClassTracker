@@ -1,25 +1,17 @@
-"""Utility functions for site-wide operations and alerts"""
-
 import logging
-from typing import TYPE_CHECKING
 
-from discord_tracker.models import AlertRecipient, TUserRoleValue
+from django.db.models import QuerySet
 
-if TYPE_CHECKING:
-    from django.db.models import QuerySet
-
-    from discord_tracker.models import Alert, DiscordUser
+from discord_tracker.models import Alert, AlertRecipient, DiscordUser, TUserRoleValue
 
 logger = logging.getLogger("main")
 
 
 def send_alert_to_users(
-    users: list["DiscordUser"],
+    users: list[DiscordUser],
     title: str,
     message: str,
-) -> "Alert":
-    from discord_tracker.models import Alert, AlertRecipient
-
+) -> Alert:
     alert = Alert.objects.create(
         title=title,
         message=message,
@@ -28,7 +20,7 @@ def send_alert_to_users(
     recipients = [AlertRecipient(alert=alert, user=user, is_read=False) for user in users]
     AlertRecipient.objects.bulk_create(recipients, ignore_conflicts=True)
 
-    logger.info(f"Alert sent to {len(users)} users: {title}")
+    logger.info("Alert sent to %d users: %s", len(users), title)
     return alert
 
 
@@ -37,7 +29,6 @@ def send_alert_to_role(
     title: str,
     message: str,
 ) -> Alert:
-    # Get all users with the specified role
     users = DiscordUser.objects.filter(role=role, is_disabled=False)
 
     alert = Alert.objects.create(
@@ -49,24 +40,25 @@ def send_alert_to_role(
     AlertRecipient.objects.bulk_create(recipients, ignore_conflicts=True)
 
     user_count = len(recipients)
-    logger.info(f"Alert sent to {user_count} users with role '{role}': {title}")
+    logger.info(
+        "Alert sent to %d users with role '%s': %s",
+        user_count,
+        role,
+        title,
+    )
     return alert
 
 
-def mark_alert_as_read(alert: Alert, user: DiscordUser) -> bool:
+def mark_alert_as_read(alert: Alert, user: DiscordUser) -> None:
     try:
         recipient = AlertRecipient.objects.get(alert=alert, user=user)
         recipient.is_read = True
         recipient.save(update_fields=["is_read"])
-        return True
     except AlertRecipient.DoesNotExist:
-        logger.warning(f"AlertRecipient not found for alert {alert.id} and user {user.id}")
-        return False
+        logger.warning("AlertRecipient not found for alert %s and user %s", alert.id, user.id)
 
 
 def get_unread_alerts_for_user(user: DiscordUser) -> list[Alert]:
-    """Get all unread alerts for a specific user"""
-
     unread_recipients = AlertRecipient.objects.filter(user=user, is_read=False).select_related(
         "alert"
     )
