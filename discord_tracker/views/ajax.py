@@ -11,18 +11,24 @@ from django.views.decorators.http import require_http_methods
 
 from class_tracker.models import Course, Instructor, School, Subject
 from discord_tracker.decorators import require_roles
-from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, InviteUsage
-from discord_tracker.views import interfaces_response
-from discord_tracker.views.forms import SchoolSelectionForm
-from server.util import error_json_response
-from server.util.typedefs import AuthenticatedRequest
-
-from ..util.discord_api import (
+from discord_tracker.models import (
+    AlertRecipient,
+    DiscordInvite,
+    DiscordServer,
+    DiscordUser,
+    InviteUsage,
+)
+from discord_tracker.util.discord_api import (
     extract_invite_code_from_url,
     get_discord_invite_info,
     get_guild_creation_date,
     get_guild_icon_url,
 )
+from discord_tracker.util.site import get_unread_alerts_for_user
+from discord_tracker.views import interfaces_response
+from discord_tracker.views.forms import SchoolSelectionForm
+from server.util import error_json_response
+from server.util.typedefs import AuthenticatedRequest
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -489,4 +495,31 @@ def get_all_courses(request: AuthenticatedRequest, subject_id: int) -> HttpRespo
     return interfaces_response.GetCoursesResponse(
         courses=courses,
         message="Courses fetched successfully.",
+    ).render(request)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_unread_alerts_count(request: AuthenticatedRequest) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+    unread_alerts = get_unread_alerts_for_user(discord_user)
+
+    return interfaces_response.UnreadAlertsCountResponse(
+        unread_count=len(unread_alerts),
+    ).render(request)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_alert_details(request: AuthenticatedRequest, alert_id: int) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+
+    alert_recipient = AlertRecipient.objects.filter(alert_id=alert_id, user=discord_user).first()
+    if alert_recipient is None:
+        return error_json_response(["Alert not found or access denied"], status=404)
+
+    alert = alert_recipient.alert
+
+    return interfaces_response.GetAlertDetailsResponse(
+        alert=alert,
     ).render(request)

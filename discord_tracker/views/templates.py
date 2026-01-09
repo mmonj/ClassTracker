@@ -3,7 +3,7 @@ from typing import Literal, NamedTuple
 from reactivated import Pick, template
 
 from class_tracker.models import School
-from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, UserReferral
+from discord_tracker.models import Alert, DiscordInvite, DiscordServer, DiscordUser, UserReferral
 from discord_tracker.views.forms import ReferralCreationForm, SchoolSelectionForm
 from server.util.typedefs import TPaginationData
 
@@ -87,6 +87,15 @@ _UserReferralPick = Pick[
     ],
 ]
 
+_AlertPick = Pick[
+    Alert,
+    Literal[
+        "id",
+        "title",
+        "datetime_created",
+    ],
+]
+
 
 @template
 class DiscordTrackerWelcome(NamedTuple):
@@ -127,3 +136,8 @@ class DiscordTrackerReferralManagement(NamedTuple):
     referral_form: ReferralCreationForm
     referrals: list[_UserReferralPick]
     pagination: TPaginationData
+
+
+@template
+class DiscordTrackerAlerts(NamedTuple):
+    alerts: list[_AlertPick]

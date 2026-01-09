@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods
 
 from discord_tracker.decorators import require_roles, school_required
 from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, UserReferral
+from discord_tracker.util.site import get_user_alerts
 from discord_tracker.views import templates
 from discord_tracker.views.forms import ReferralCreationForm, SchoolSelectionForm
 from server.util import get_pagination_data
@@ -280,3 +281,16 @@ def referral_redeem(request: HttpRequest, referral_code: str) -> HttpResponse:
 
     messages.error(request, "You are already logged in")
     return redirect("discord_tracker:welcome")
+
+
+@login_required
+def alerts(request: AuthenticatedRequest) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+
+    # Get all alerts for the user, ordered by most recent
+    alert_recipients = get_user_alerts(discord_user)
+    alerts_list = [recipient.alert for recipient in alert_recipients]
+
+    return templates.DiscordTrackerAlerts(
+        alerts=alerts_list,
+    ).render(request)

@@ -3,7 +3,7 @@ from typing import Literal, NamedTuple, TypedDict
 from reactivated import Pick, interface
 
 from class_tracker.models import Course, Instructor, School, Subject
-from discord_tracker.models import DiscordInvite, DiscordServer
+from discord_tracker.models import Alert, DiscordInvite, DiscordServer
 
 _DiscordInvitePick = Pick[
     DiscordInvite,
@@ -49,6 +49,15 @@ _SchoolPick = Pick[School, Literal["id", "name"]]
 _SubjectPick = Pick[Subject, Literal["id", "name"]]
 _CoursePick = Pick[Course, Literal["id", "code", "level", "title"]]
 _InstructorPick = Pick[Instructor, Literal["id", "name"]]
+
+_AlertDetailsPick = Pick[
+    Alert,
+    Literal[
+        "title",
+        "message",
+        "datetime_created",
+    ],
+]
 
 
 @interface
@@ -102,3 +111,13 @@ class GetCoursesResponse(NamedTuple):
 class GetInstructorsResponse(NamedTuple):
     instructors: list[_InstructorPick]
     message: str
+
+
+@interface
+class UnreadAlertsCountResponse(NamedTuple):
+    unread_count: int
+
+
+@interface
+class GetAlertDetailsResponse(NamedTuple):
+    alert: _AlertDetailsPick

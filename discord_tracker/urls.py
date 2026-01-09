@@ -8,6 +8,7 @@ ssr_patterns = [
     path("login/", ssr.login, name="login"),
     path("login-success/", ssr.login_success, name="login_success"),
     path("profile/", ssr.profile, name="profile"),
+    path("alerts/", ssr.alerts, name="alerts"),
     path("", ssr.welcome, name="welcome"),
     path("all/", ssr.explore_all_listings, name="explore_all_listings"),
     path("unapproved-invites/", ssr.unapproved_invites, name="unapproved_invites"),
@@ -52,6 +53,7 @@ ajax_patterns = [
     ),
     path("ajax/subjects/", ajax.get_all_subjects, name="get_all_subjects"),
     path("ajax/subjects/<int:subject_id>/courses/", ajax.get_all_courses, name="get_all_courses"),
+    path("ajax/alerts/<int:alert_id>/", ajax.get_alert_details, name="get_alert_details"),
 ]
 
 urlpatterns = ssr_patterns + ajax_patterns

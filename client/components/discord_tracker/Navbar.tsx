@@ -31,6 +31,10 @@ export function Navbar() {
         name: "Referrals",
         href: reverse("discord_tracker:referral_management"),
       },
+      {
+        name: "Alerts",
+        href: reverse("discord_tracker:alerts"),
+      },
     ] satisfies TRoute[];
   }
 
