@@ -428,3 +428,41 @@ class UserReferralRedemption(CommonModel):
 
     def __str__(self) -> str:
         return f"Referral Redemption: {self.referral.code} by {self.redeemed_by.display_name} at {self.datetime_redeemed}"
+
+
+class Alert(CommonModel):
+    """System alerts for users"""
+
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+
+    class Meta:
+        ordering = ["-datetime_created"]
+        indexes = [
+            models.Index(fields=["-datetime_created"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Alert: {self.title}"
+
+
+class AlertRecipient(CommonModel):
+    alert = models.ForeignKey(Alert, on_delete=models.CASCADE, related_name="recipients")
+    user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE, related_name="received_alerts")
+    is_read = models.BooleanField(default=False)
+    datetime_read = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-datetime_created"]
+        indexes = [
+            models.Index(fields=["user", "-datetime_created"]),
+            models.Index(fields=["user", "is_read"]),
+            models.Index(fields=["alert", "is_read"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=["alert", "user"], name="unique_alert_recipient"),
+        ]
+
+    def __str__(self) -> str:
+        status = "Read" if self.is_read else "Unread"
+        return f"{self.user.display_name} - {self.alert.title} ({status})"
