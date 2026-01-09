@@ -1,5 +1,5 @@
 import uuid
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal, NamedTuple, cast
 
 from django.contrib.auth.models import User
@@ -148,6 +148,8 @@ class DiscordServer(CommonModel):
 
     datetime_last_synced = models.DateTimeField(auto_now_add=True, editable=False)  # last API sync
     is_featured = models.BooleanField(default=False)
+    # last date when server info was checked for validity (valid invites)
+    last_checked = models.DateField(null=True, blank=True, default=datetime(1970, 1, 1, tzinfo=UTC))
 
     # should be `initially_added_by`
     added_by = models.ForeignKey(
