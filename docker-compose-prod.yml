@@ -43,7 +43,7 @@ services:
 
   class_tracker_redis:
     image: redis
-    container_name: redis-class-tracker-prod
+    container_name: mm-class-tracker-redis-prod
     command: sh -c "redis-server --port ${REDIS_PORT} --requirepass ${REDIS_PASSWORD}"
     env_file:
       - ${ENV_FILE}
@@ -69,7 +69,7 @@ services:
 
   class_tracker_scheduler_worker_default:
     image: mm-class-tracker-image
-    container_name: class-tracker-scheduler-worker-default-prod
+    container_name: mm-class-tracker-scheduler-worker-default-prod
     command: uv run python manage.py scheduler_worker
     user: "${UID}"
     volumes:

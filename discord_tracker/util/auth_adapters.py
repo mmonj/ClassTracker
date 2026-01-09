@@ -233,8 +233,9 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
         # check if referral code is correct
 
         if referral_code is None:
-            return Failure("You need a referral to create a new account on this website")
+            return Failure("Unable to sign up. You must get a referral code from another user.")
 
+        # this try catch is in case the referral code is not a valid UUID
         try:
             referral_to_redeem = UserReferral.objects.filter(code=referral_code).first()
         except ValidationError:

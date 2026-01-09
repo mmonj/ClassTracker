@@ -17,8 +17,8 @@ export function Template(_props: templates.DiscordTrackerLogin) {
 
   return (
     <Layout
-      title="Discord Login"
-      description="Log in to your Discord account - Class Cords"
+      title="Discord Tracker Login"
+      description="Find and join Discord servers for your college classes"
       Navbar={Navbar}
     >
       <Container className="d-flex align-items-center justify-content-center min-vh-100 px-0">
@@ -49,7 +49,7 @@ export function Template(_props: templates.DiscordTrackerLogin) {
                 </form>
                 <div className="text-center">
                   <small className="text-muted">
-                    In order to be able to sign up, you must get a referral from another user.
+                    In order to be able to sign up, you must get a referral code from another user.
                   </small>
                 </div>
               </Card.Body>
