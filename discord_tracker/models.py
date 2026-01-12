@@ -434,7 +434,7 @@ class Alert(CommonModel):
     """System alerts for users"""
 
     title = models.CharField(max_length=255)
-    message = models.TextField()
+    md_message = models.TextField()
 
     class Meta:
         ordering = ["-datetime_created"]

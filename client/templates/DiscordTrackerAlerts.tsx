@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 
 import { Alert as BootstrapAlert, Card, Container, Modal } from "react-bootstrap";
+import Markdown from "react-markdown";
 
 import { Context, interfaces, reverse, templates } from "@reactivated";
 
@@ -29,23 +30,30 @@ export function Template(props: templates.DiscordTrackerAlerts) {
 
   return (
     <Layout title="Alerts" description="View your notifications and alerts" Navbar={Navbar}>
-      <Container className="py-4">
-        <h1 className="mb-4 text-center">Alerts</h1>
+      <Container className="py-5">
+        <div className="text-center mb-5">
+          <h1 className="display-5 fw-bold mb-2">Alerts</h1>
+        </div>
 
         {props.alerts.length === 0 ? (
-          <BootstrapAlert variant="info">No alerts available.</BootstrapAlert>
+          <div className="d-flex justify-content-center">
+            <BootstrapAlert variant="info" className="w-100" style={{ maxWidth: "500px" }}>
+              No alerts available.
+            </BootstrapAlert>
+          </div>
         ) : (
-          <div className="alerts-list">
+          <div className="alerts-list mx-auto" style={{ maxWidth: "800px" }}>
             {props.alerts.map((alert) => (
               <Card
                 key={alert.id}
-                className="mb-3"
-                style={{ cursor: "pointer" }}
+                className="mb-3 border shadow-sm"
+                role="button"
+                tabIndex={0}
                 onClick={() => handleAlertClick(alert.id)}
               >
                 <Card.Body>
-                  <Card.Title>{alert.title}</Card.Title>
-                  <Card.Subtitle className="mb-2 text-muted">
+                  <Card.Title className="h5">{alert.title}</Card.Title>
+                  <Card.Subtitle className="text-muted small">
                     {formatDateTypical(alert.datetime_created)}
                   </Card.Subtitle>
                 </Card.Body>
@@ -55,25 +63,18 @@ export function Template(props: templates.DiscordTrackerAlerts) {
         )}
       </Container>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+      <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
         {alertFetcher.data && (
           <>
             <Modal.Header closeButton>
-              <Modal.Title>{alertFetcher.data.alert.title}</Modal.Title>
+              <Modal.Title className="fw-bold">{alertFetcher.data.alert.title}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
+              <p className="text-muted small mb-4">
+                {formatDateTypical(alertFetcher.data.alert.datetime_created)}
+              </p>
               <div>
-                <p className="text-muted">
-                  {formatDateTypical(alertFetcher.data.alert.datetime_created)}
-                </p>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    wordWrap: "break-word",
-                  }}
-                >
-                  {alertFetcher.data.alert.message}
-                </div>
+                <Markdown>{alertFetcher.data.alert.md_message}</Markdown>
               </div>
             </Modal.Body>
           </>

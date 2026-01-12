@@ -54,7 +54,7 @@ _AlertDetailsPick = Pick[
     Alert,
     Literal[
         "title",
-        "message",
+        "md_message",
         "datetime_created",
     ],
 ]

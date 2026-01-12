@@ -18,8 +18,6 @@ from discord_tracker.models import DiscordUser, UserReferral
 from discord_tracker.typedefs.discord_api import TAllauthExtraData
 from server.util.typedefs import Failure, Success, TResult
 
-from .discord_api import check_user_in_trusted_servers
-
 logger = logging.getLogger("main")
 
 # django's base user `username` field has a max length of 150 chars
@@ -202,32 +200,6 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             return ""
 
         return f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png"
-
-    def _validate_trusted_server_membership(
-        self, sociallogin: Any, discord_data: dict[str, Any]
-    ) -> TResult[bool, str]:
-        """Return Success(True) if user is in a trusted server, Failure with error message otherwise"""
-        access_token = getattr(sociallogin.token, "token", "")
-        if not access_token:
-            return Failure("No Discord access token available for server membership check")
-
-        trusted_membership_result = check_user_in_trusted_servers(access_token)
-        if not trusted_membership_result.ok:
-            logger.warning(
-                "Failed to check trusted server membership for user %s: %s",
-                discord_data.get("username", "unknown"),
-                trusted_membership_result.err,
-            )
-            return Failure(f"Failed to verify server membership: {trusted_membership_result.err}")
-
-        if trusted_membership_result.val:
-            logger.info(
-                "User %s allowed signup via trusted server membership",
-                discord_data.get("username", "unknown"),
-            )
-            return Success(True)
-
-        return Failure("User is not a member of any trusted Discord servers")
 
     def _validate_referral(self, referral_code: str | None) -> TResult[UserReferral, str]:
         # check if referral code is correct
