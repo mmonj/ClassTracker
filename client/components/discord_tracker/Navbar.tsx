@@ -89,7 +89,9 @@ export function Navbar() {
                   {djangoContext.user.is_superuser && (
                     <>
                       <NavDropdown.Item href={reverse("index")}>Home</NavDropdown.Item>
-                      <NavDropdown.Item href={"/admin"}>Admin</NavDropdown.Item>
+                      <NavDropdown.Item href={"/admin"} target="_blank">
+                        Admin
+                      </NavDropdown.Item>
                       <NavDropdown.Divider />
                     </>
                   )}

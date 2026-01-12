@@ -172,7 +172,7 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
         if not obj_id:
             return super().formfield_for_manytomany(db_field, request, **kwargs)
 
-        obj = DiscordServer.objects.filter(pk=obj_id).first()
+        obj = DiscordServer.all_objects.filter(pk=obj_id).first()
         if obj is None:
             return super().formfield_for_manytomany(db_field, request, **kwargs)
 

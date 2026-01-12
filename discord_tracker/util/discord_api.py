@@ -10,7 +10,7 @@ import requests
 from django.conf import settings
 from django.utils import timezone
 
-from discord_tracker.models import DiscordServer, DiscordUser
+from discord_tracker.models import DiscordUser
 from discord_tracker.typedefs.discord_api import TDiscordInviteData, TGuildData
 from discord_tracker.typedefs.discord_partials import (
     TBaseGuildData,
@@ -337,33 +337,6 @@ def fetch_user_guilds(access_token: str) -> TResult[list[TBaseGuildData], str]:
     except requests.RequestException:
         logger.exception("Failed to fetch user guilds")
         return Failure("Failed to fetch Discord guilds")
-
-
-def check_user_in_trusted_servers(access_token: str) -> TResult[bool, str]:
-    """
-    Check if the user is a member of any Discord servers that are marked as required for trust.
-    Returns True if user is in any trusted server, False otherwise.
-    """
-    guilds_result = fetch_user_guilds(access_token)
-    if not guilds_result.ok:
-        return Failure(guilds_result.err)
-
-    user_guild_ids = {guild["id"] for guild in guilds_result.val}
-
-    trusted_server_ids = set(
-        DiscordServer.objects.filter(is_featured=True).values_list("server_id", flat=True)
-    )
-
-    has_trusted_membership = bool(user_guild_ids.intersection(trusted_server_ids))
-
-    logger.info(
-        "User guild info: %d user guilds, %d trusted servers, is in trusted guilds: %s",
-        len(user_guild_ids),
-        len(trusted_server_ids),
-        has_trusted_membership,
-    )
-
-    return Success(has_trusted_membership)
 
 
 def get_guild_creation_date(guild_id: str) -> datetime.datetime:

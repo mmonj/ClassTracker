@@ -119,7 +119,7 @@ def validate_discord_invite(request: AuthenticatedRequest) -> HttpResponse:
     guild_icon_url = get_guild_icon_url(guild_id, invite_info["guild"]["icon"])
 
     # check if server already exists in database
-    existing_server = DiscordServer.objects.filter(server_id=guild_id).first()
+    existing_server = DiscordServer.all_objects.filter(server_id=guild_id).first()
 
     # get available schools
     available_schools: list[School] = []
@@ -253,7 +253,7 @@ def submit_invite(request: AuthenticatedRequest) -> HttpResponse:  # noqa: PLR09
     member_count = profile["member_count"] if profile is not None else 0
     datetime_established = get_guild_creation_date(invite_info["guild_id"])
 
-    discord_server, _server_created = DiscordServer.objects.get_or_create(
+    discord_server, _server_created = DiscordServer.all_objects.get_or_create(
         server_id=guild_id,
         defaults={
             "name": guild_name,

@@ -32,9 +32,9 @@ def init_http_retrier(
 
 
 def get_pagination_data(
-    referrals_queryset: models.QuerySet[TModelSubclass], *, page: int, page_size: int
+    queryset: models.QuerySet[TModelSubclass], *, page: int, page_size: int
 ) -> tuple[Page[TModelSubclass], TPaginationData]:
-    paginator = Paginator(referrals_queryset, page_size)
+    paginator = Paginator(queryset, page_size)
     page_number = page
     page_obj = paginator.get_page(page_number)
 
