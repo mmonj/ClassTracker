@@ -10,11 +10,11 @@ logger = logging.getLogger("main")
 def send_alert_to_users(
     users: list[DiscordUser],
     title: str,
-    message: str,
+    md_message: str,
 ) -> Alert:
     alert = Alert.objects.create(
         title=title,
-        message=message,
+        md_message=md_message,
     )
 
     recipients = [AlertRecipient(alert=alert, user=user, is_read=False) for user in users]
@@ -27,13 +27,13 @@ def send_alert_to_users(
 def send_alert_to_role(
     role: TUserRoleValue,
     title: str,
-    message: str,
+    md_message: str,
 ) -> Alert:
     users = DiscordUser.objects.filter(role=role, is_disabled=False)
 
     alert = Alert.objects.create(
         title=title,
-        message=message,
+        md_message=md_message,
     )
 
     recipients = [AlertRecipient(alert=alert, user=user, is_read=False) for user in users]

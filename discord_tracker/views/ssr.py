@@ -46,7 +46,8 @@ def welcome(request: HttpRequest) -> HttpResponse:
             queryset_school_args["schools"] = user_school
 
     base_queryset = (
-        DiscordServer.objects.filter(invites__approved_by__isnull=False, **queryset_school_args)
+        DiscordServer.objects.enabled()
+        .filter(invites__approved_by__isnull=False, **queryset_school_args)
         .distinct()
         .prefetch_related(*prefetches)
     )
@@ -106,7 +107,8 @@ def explore_all_listings(request: HttpRequest) -> HttpResponse:
             queryset_school_args["schools"] = user_school
 
     base_queryset = (
-        DiscordServer.objects.filter(invites__approved_by__isnull=False, **queryset_school_args)
+        DiscordServer.objects.enabled()
+        .filter(invites__approved_by__isnull=False, **queryset_school_args)
         .distinct()
         .prefetch_related(*prefetches)
     )

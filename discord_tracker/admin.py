@@ -1,6 +1,7 @@
 from typing import Any
 
 from django.contrib import admin
+from django.db.models import QuerySet
 from django.http import HttpRequest
 
 from class_tracker.models import Course, Instructor
@@ -111,14 +112,6 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
     filter_horizontal = ["schools", "subjects", "courses", "instructors"]
     inlines = [DiscordInviteInline]
 
-    def get_readonly_fields(
-        self, _request: HttpRequest, obj: DiscordServer | None = None
-    ) -> list[str]:
-        """Make server_id readonly only for existing objects."""
-        if obj is not None:  # when existing record
-            return ["server_id"]
-        return []  # when creating new record
-
     fieldsets = [
         (
             "Server Information",
@@ -166,6 +159,9 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
         ),
     ]
 
+    def get_queryset(self, _request: HttpRequest) -> QuerySet[DiscordServer]:
+        return DiscordServer.all_objects.all()
+
     def formfield_for_manytomany(self, db_field: Any, request: HttpRequest, **kwargs: Any) -> Any:
         """Filter courses and instructors based on selected schools/subjects/courses"""
         obj_id = request.resolver_match.kwargs.get("object_id") if request.resolver_match else None
@@ -182,6 +178,14 @@ class DiscordServerAdmin(admin.ModelAdmin[DiscordServer]):
             self._filter_instructors_queryset(obj, kwargs)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def get_readonly_fields(
+        self, _request: HttpRequest, obj: DiscordServer | None = None
+    ) -> list[str]:
+        """Make server_id readonly only for existing objects."""
+        if obj is not None:  # when existing record
+            return ["server_id"]
+        return []  # when creating new record
 
     def _filter_courses_queryset(self, obj: DiscordServer, kwargs: dict[str, Any]) -> None:
         """Filter courses based on selected schools and subjects (subjects must be associated with schools)"""

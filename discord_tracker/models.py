@@ -18,20 +18,6 @@ class DiscordServerQuerySet(QuerySet["DiscordServer"]):
         return self.filter(is_disabled=False)
 
 
-class DiscordServerManager(models.Manager["DiscordServer"]):
-    """Exclude servers that are disabled"""
-
-    def get_queryset(self) -> DiscordServerQuerySet:
-        return DiscordServerQuerySet(self.model, using=self._db).enabled()
-
-
-class AllDiscordServerManager(models.Manager["DiscordServer"]):
-    """Include all servers"""
-
-    def get_queryset(self) -> DiscordServerQuerySet:
-        return DiscordServerQuerySet(self.model, using=self._db)
-
-
 TUserRoleValue = Literal["regular", "manager"]
 
 
@@ -157,8 +143,8 @@ class DiscordServer(CommonModel):
     )
 
     # custom managers
-    objects = DiscordServerManager()  # excludes disabled servers
-    all_objects = AllDiscordServerManager()  # includes all servers
+    objects = DiscordServerQuerySet.as_manager()
+    all_objects = models.Manager()
 
     class Meta:
         indexes = [
