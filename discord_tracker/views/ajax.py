@@ -12,11 +12,11 @@ from django.views.decorators.http import require_http_methods
 from class_tracker.models import Course, Instructor, School, Subject
 from discord_tracker.decorators import require_roles
 from discord_tracker.models import (
-    AlertRecipient,
     DiscordInvite,
     DiscordServer,
     DiscordUser,
     InviteUsage,
+    UserAlert,
 )
 from discord_tracker.util.discord_api import (
     extract_invite_code_from_url,
@@ -514,12 +514,49 @@ def get_unread_alerts_count(request: AuthenticatedRequest) -> HttpResponse:
 def get_alert_details(request: AuthenticatedRequest, alert_id: int) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 
-    alert_recipient = AlertRecipient.objects.filter(alert_id=alert_id, user=discord_user).first()
-    if alert_recipient is None:
+    user_alert = (
+        UserAlert.objects.filter(alert_id=alert_id, user=discord_user)
+        .prefetch_related("alert")
+        .first()
+    )
+    if user_alert is None:
         return error_json_response(["Alert not found or access denied"], status=404)
 
-    alert = alert_recipient.alert
-
     return interfaces_response.GetAlertDetailsResponse(
-        alert=alert,
+        alert=user_alert.alert,
     ).render(request)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_user_alerts(request: AuthenticatedRequest, user_id: int, is_read: str) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+
+    if discord_user.id != user_id:
+        return error_json_response(["Unauthorized"], status=403)
+
+    is_read_bool = is_read.lower() in ("true", "1")
+
+    alerts = list(
+        UserAlert.objects.filter(user_id=user_id, is_read=is_read_bool).order_by(
+            "-datetime_created"
+        )
+    )
+
+    return interfaces_response.GetUserAlertsResponse(
+        alerts=alerts,
+    ).render(request)
+
+
+@login_required
+@require_http_methods(["PUT"])
+def mark_alert_as_read(request: AuthenticatedRequest, user_alert_id: int) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+
+    user_alert = get_object_or_404(UserAlert, id=user_alert_id, user=discord_user)
+
+    user_alert.is_read = True
+    user_alert.datetime_read = timezone.now()
+    user_alert.save(update_fields=["is_read", "datetime_read"])
+
+    return interfaces_response.MarkAlertAsReadResponse().render(request)

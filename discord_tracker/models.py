@@ -432,7 +432,7 @@ class Alert(CommonModel):
         return f"Alert: {self.title}"
 
 
-class AlertRecipient(CommonModel):
+class UserAlert(CommonModel):
     alert = models.ForeignKey(Alert, on_delete=models.CASCADE, related_name="recipients")
     user = models.ForeignKey(DiscordUser, on_delete=models.CASCADE, related_name="received_alerts")
     is_read = models.BooleanField(default=False)

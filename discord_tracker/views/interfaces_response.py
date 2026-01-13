@@ -3,7 +3,7 @@ from typing import Literal, NamedTuple, TypedDict
 from reactivated import Pick, interface
 
 from class_tracker.models import Course, Instructor, School, Subject
-from discord_tracker.models import Alert, DiscordInvite, DiscordServer
+from discord_tracker.models import Alert, DiscordInvite, DiscordServer, UserAlert
 
 _DiscordInvitePick = Pick[
     DiscordInvite,
@@ -56,6 +56,16 @@ _AlertDetailsPick = Pick[
         "title",
         "md_message",
         "datetime_created",
+    ],
+]
+
+_UserAlertListPick = Pick[
+    UserAlert,
+    Literal[
+        "id",
+        "is_read",
+        "datetime_created",
+        "alert.title",
     ],
 ]
 
@@ -121,3 +131,13 @@ class UnreadAlertsCountResponse(NamedTuple):
 @interface
 class GetAlertDetailsResponse(NamedTuple):
     alert: _AlertDetailsPick
+
+
+@interface
+class GetUserAlertsResponse(NamedTuple):
+    alerts: list[_UserAlertListPick]
+
+
+@interface
+class MarkAlertAsReadResponse(NamedTuple):
+    pass

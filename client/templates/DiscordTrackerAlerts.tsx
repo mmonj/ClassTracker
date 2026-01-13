@@ -19,13 +19,22 @@ export function Template(props: templates.DiscordTrackerAlerts) {
   async function handleAlertClick(alertId: number) {
     setShowModal(true);
 
-    await alertFetcher.fetchData(() =>
+    const result = await alertFetcher.fetchData(() =>
       fetchByReactivated(
         reverse("discord_tracker:get_alert_details", { alert_id: alertId }),
         context.csrf_token,
         "GET",
       ),
     );
+
+    // mark alert as read
+    if (result.ok) {
+      await fetchByReactivated(
+        reverse("discord_tracker:mark_alert_as_read", { user_alert_id: alertId }),
+        context.csrf_token,
+        "PUT",
+      );
+    }
   }
 
   return (
@@ -52,9 +61,9 @@ export function Template(props: templates.DiscordTrackerAlerts) {
                 onClick={() => handleAlertClick(alert.id)}
               >
                 <Card.Body>
-                  <Card.Title className="h5">{alert.title}</Card.Title>
+                  <Card.Title className="h5">{alert.alert.title}</Card.Title>
                   <Card.Subtitle className="text-muted small">
-                    {formatDateTypical(alert.datetime_created)}
+                    {formatDateTypical(alert.alert.datetime_created)}
                   </Card.Subtitle>
                 </Card.Body>
               </Card>

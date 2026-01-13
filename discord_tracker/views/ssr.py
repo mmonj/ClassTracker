@@ -11,8 +11,13 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from discord_tracker.decorators import require_roles, school_required
-from discord_tracker.models import DiscordInvite, DiscordServer, DiscordUser, UserReferral
-from discord_tracker.util.site import get_user_alerts
+from discord_tracker.models import (
+    DiscordInvite,
+    DiscordServer,
+    DiscordUser,
+    UserAlert,
+    UserReferral,
+)
 from discord_tracker.views import templates
 from discord_tracker.views.forms import ReferralCreationForm, SchoolSelectionForm
 from server.util import get_pagination_data
@@ -289,10 +294,12 @@ def referral_redeem(request: HttpRequest, referral_code: str) -> HttpResponse:
 def alerts(request: AuthenticatedRequest) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 
-    # Get all alerts for the user, ordered by most recent
-    alert_recipients = get_user_alerts(discord_user)
-    alerts_list = [recipient.alert for recipient in alert_recipients]
+    user_alerts = list(
+        UserAlert.objects.filter(user=discord_user)
+        .prefetch_related("alert")
+        .order_by("-datetime_created")
+    )
 
     return templates.DiscordTrackerAlerts(
-        alerts=alerts_list,
+        alerts=user_alerts,
     ).render(request)

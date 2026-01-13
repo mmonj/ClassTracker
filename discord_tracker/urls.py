@@ -54,6 +54,16 @@ ajax_patterns = [
     path("ajax/subjects/", ajax.get_all_subjects, name="get_all_subjects"),
     path("ajax/subjects/<int:subject_id>/courses/", ajax.get_all_courses, name="get_all_courses"),
     path("ajax/alerts/<int:alert_id>/", ajax.get_alert_details, name="get_alert_details"),
+    path(
+        "ajax/users/<int:user_id>/alerts/<str:is_read>/",
+        ajax.get_user_alerts,
+        name="get_user_alerts",
+    ),
+    path(
+        "ajax/alerts/<int:user_alert_id>/mark-as-read/",
+        ajax.mark_alert_as_read,
+        name="mark_alert_as_read",
+    ),
 ]
 
 urlpatterns = ssr_patterns + ajax_patterns
