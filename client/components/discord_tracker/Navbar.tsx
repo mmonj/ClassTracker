@@ -188,7 +188,7 @@ function AlertsBellIcon() {
       });
   }, []);
 
-  const unreadCount = alertsFetcher.data?.alerts.length ?? 0;
+  const unreadCount = alertsFetcher.data?.user_alerts.length ?? 0;
 
   return (
     <NavLink

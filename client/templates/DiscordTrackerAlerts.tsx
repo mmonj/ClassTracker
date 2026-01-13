@@ -10,31 +10,34 @@ import { useFetch } from "@client/hooks/useFetch";
 import { Layout } from "@client/layouts/Layout";
 import { fetchByReactivated, formatDateTypical } from "@client/utils";
 
+import classNames from "classnames";
+
 export function Template(props: templates.DiscordTrackerAlerts) {
   const [showModal, setShowModal] = useState(false);
   const context = useContext(Context);
 
   const alertFetcher = useFetch<interfaces.GetAlertDetailsResponse>();
 
-  async function handleAlertClick(alertId: number) {
+  async function handleAlertClick(userAlertId: number) {
     setShowModal(true);
 
     const result = await alertFetcher.fetchData(() =>
       fetchByReactivated(
-        reverse("discord_tracker:get_alert_details", { alert_id: alertId }),
+        reverse("discord_tracker:get_alert_details", { user_alert_id: userAlertId }),
         context.csrf_token,
         "GET",
       ),
     );
 
-    // mark alert as read
-    if (result.ok) {
-      await fetchByReactivated(
-        reverse("discord_tracker:mark_alert_as_read", { user_alert_id: alertId }),
-        context.csrf_token,
-        "PUT",
-      );
-    }
+    const currentAlert = props.user_alerts.find((userAlert) => userAlert.alert.id === userAlertId);
+    if (!result.ok || currentAlert === undefined || currentAlert.is_read) return;
+
+    // mark alert read if not already read
+    await fetchByReactivated(
+      reverse("discord_tracker:mark_alert_as_read", { user_alert_id: userAlertId }),
+      context.csrf_token,
+      "PUT",
+    );
   }
 
   return (
@@ -44,7 +47,7 @@ export function Template(props: templates.DiscordTrackerAlerts) {
           <h1 className="display-5 fw-bold mb-2">Alerts</h1>
         </div>
 
-        {props.alerts.length === 0 ? (
+        {props.user_alerts.length === 0 ? (
           <div className="d-flex justify-content-center">
             <BootstrapAlert variant="info" className="w-100" style={{ maxWidth: "500px" }}>
               No alerts available.
@@ -52,19 +55,37 @@ export function Template(props: templates.DiscordTrackerAlerts) {
           </div>
         ) : (
           <div className="alerts-list mx-auto" style={{ maxWidth: "800px" }}>
-            {props.alerts.map((alert) => (
+            {props.user_alerts.map((user_alert) => (
               <Card
-                key={alert.id}
-                className="mb-3 border shadow-sm"
+                key={user_alert.id}
+                className={classNames("mb-3 border shadow-sm", {
+                  "border-primary": !user_alert.is_read,
+                })}
+                style={{
+                  opacity: user_alert.is_read ? 0.7 : 1,
+                  backgroundColor: !user_alert.is_read ? "rgba(13, 110, 253, 0.05)" : undefined,
+                }}
                 role="button"
                 tabIndex={0}
-                onClick={() => handleAlertClick(alert.id)}
+                onClick={() => handleAlertClick(user_alert.id)}
               >
                 <Card.Body>
-                  <Card.Title className="h5">{alert.alert.title}</Card.Title>
-                  <Card.Subtitle className="text-muted small">
-                    {formatDateTypical(alert.alert.datetime_created)}
-                  </Card.Subtitle>
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div>
+                      <Card.Title className="h5">{user_alert.alert.title}</Card.Title>
+                      <Card.Subtitle className="text-muted small">
+                        {formatDateTypical(user_alert.alert.datetime_created)}
+                      </Card.Subtitle>
+                    </div>
+                    {!user_alert.is_read && (
+                      <span
+                        className="badge bg-primary"
+                        style={{ whiteSpace: "nowrap", marginLeft: "0.5rem" }}
+                      >
+                        New
+                      </span>
+                    )}
+                  </div>
                 </Card.Body>
               </Card>
             ))}

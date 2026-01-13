@@ -511,11 +511,11 @@ def get_unread_alerts_count(request: AuthenticatedRequest) -> HttpResponse:
 
 @login_required
 @require_http_methods(["GET"])
-def get_alert_details(request: AuthenticatedRequest, alert_id: int) -> HttpResponse:
+def get_alert_details(request: AuthenticatedRequest, user_alert_id: int) -> HttpResponse:
     discord_user = get_object_or_404(DiscordUser, user=request.user)
 
     user_alert = (
-        UserAlert.objects.filter(alert_id=alert_id, user=discord_user)
+        UserAlert.objects.filter(id=user_alert_id, user=discord_user)
         .prefetch_related("alert")
         .first()
     )
@@ -537,14 +537,14 @@ def get_user_alerts(request: AuthenticatedRequest, user_id: int, is_read: str) -
 
     is_read_bool = is_read.lower() in ("true", "1")
 
-    alerts = list(
+    user_alerts = list(
         UserAlert.objects.filter(user_id=user_id, is_read=is_read_bool).order_by(
             "-datetime_created"
         )
     )
 
     return interfaces_response.GetUserAlertsResponse(
-        alerts=alerts,
+        user_alerts=user_alerts,
     ).render(request)
 
 

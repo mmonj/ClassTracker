@@ -108,6 +108,7 @@ _UserAlertPick = Pick[
     Literal[
         "id",
         "is_read",
+        "alert.id",
         "alert.title",
         "alert.datetime_created",
     ],
@@ -157,4 +158,4 @@ class DiscordTrackerReferralManagement(NamedTuple):
 
 @template
 class DiscordTrackerAlerts(NamedTuple):
-    alerts: list[_UserAlertPick]
+    user_alerts: list[_UserAlertPick]

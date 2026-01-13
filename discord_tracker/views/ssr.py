@@ -301,5 +301,5 @@ def alerts(request: AuthenticatedRequest) -> HttpResponse:
     )
 
     return templates.DiscordTrackerAlerts(
-        alerts=user_alerts,
+        user_alerts=user_alerts,
     ).render(request)

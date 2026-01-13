@@ -135,7 +135,7 @@ class GetAlertDetailsResponse(NamedTuple):
 
 @interface
 class GetUserAlertsResponse(NamedTuple):
-    alerts: list[_UserAlertListPick]
+    user_alerts: list[_UserAlertListPick]
 
 
 @interface
