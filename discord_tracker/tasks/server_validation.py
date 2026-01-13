@@ -1,10 +1,12 @@
 import logging
-from typing import TYPE_CHECKING, TypedDict
+import time
+from typing import TypedDict
 
 from django.db import transaction
 from django.utils import timezone
 
 from discord_tracker.models import DiscordInvite, DiscordServer
+from discord_tracker.typedefs.discord_api import TDiscordInviteData
 from discord_tracker.util.discord_api import (
     extract_invite_code_from_url,
     get_discord_invite_info,
@@ -12,9 +14,7 @@ from discord_tracker.util.discord_api import (
     get_guild_icon_url,
 )
 from discord_tracker.util.site import send_alert_to_role
-
-if TYPE_CHECKING:
-    from discord_tracker.typedefs.discord_api import TDiscordInviteData
+from server.util.typedefs import Failure, Success, TResult
 
 logger = logging.getLogger("main")
 
@@ -24,9 +24,31 @@ class TInvalidInvites(TypedDict):
     invalid_invites: list[DiscordInvite]
 
 
+def validate_invite_code(
+    invite_code: str,
+    invite_url: str | None = None,
+    retries: int = 2,
+    wait_seconds: int = 10,
+) -> TResult[TDiscordInviteData, str]:
+    for attempt in range(retries + 1):
+        result = get_discord_invite_info(invite_code)
+        if result.ok:
+            return Success(val=result.val)
+
+        logger.info(
+            "Invite validation failed for invite_url '%s' (attempt=%s). Retrying in %s seconds...",
+            invite_url,
+            attempt + 1,
+            wait_seconds,
+        )
+
+        time.sleep(wait_seconds)
+    return Failure(err="Invite code validation failed after all retries")
+
+
 def sync_discord_servers(
     server_ids: list[str] | None = None,
-    limit: int = 20,
+    limit: int = 15,
 ) -> list[TInvalidInvites]:
     servers_query = (
         DiscordServer.objects.enabled()
@@ -57,6 +79,8 @@ def sync_discord_servers(
         except Exception as e:
             error_msg = f"Error syncing server {server.display_name}: {e}"
             logger.exception(error_msg)
+        finally:
+            time.sleep(5)
 
     return invalid_invites_by_server
 
@@ -77,12 +101,12 @@ def _sync_single_server(server: DiscordServer) -> list[DiscordInvite]:
         invite_code = extract_invite_code_from_url(invite.invite_url)
         if not invite_code:
             logger.info(
-                "Invite has invalid format, marking as invalid",
-                extra={"invite_url": invite.invite_url},
+                "Invite has invalid format, marking as invalid [invite_url=%s]",
+                invite.invite_url,
             )
             continue
 
-        result = get_discord_invite_info(invite_code)
+        result = validate_invite_code(invite_code, invite.invite_url)
         if result.ok:
             first_valid_invite_info = result.val
         else:
@@ -101,8 +125,9 @@ def _sync_single_server(server: DiscordServer) -> list[DiscordInvite]:
         server.is_disabled = True
         server.save(update_fields=["is_disabled"])
         logger.warning(
-            "Server disabled due to all invites being invalid",
-            extra={"server_display_name": server.display_name, "server_id": server.server_id},
+            "Server disabled due to all invites being invalid [server_display_name=%s server_id=%s]",
+            server.display_name,
+            server.server_id,
         )
         send_alert_to_role(
             role="manager",
@@ -127,8 +152,9 @@ def _sync_single_server(server: DiscordServer) -> list[DiscordInvite]:
 
     if not (member_count_increased or icon_changed or not has_established_date):
         logger.info(
-            "Server skipped",
-            extra={"server_display_name": server.display_name, "server_id": server.server_id},
+            "Server skipped [server_display_name=%s server_id=%s]",
+            server.display_name,
+            server.server_id,
         )
         return invalid_invites
 
@@ -146,7 +172,8 @@ def _sync_single_server(server: DiscordServer) -> list[DiscordInvite]:
         server.save()
 
     logger.info(
-        "Server updated",
-        extra={"server_display_name": server.display_name, "server_id": server.server_id},
+        "Server updated [server_display_name=%s server_id=%s]",
+        server.display_name,
+        server.server_id,
     )
     return invalid_invites

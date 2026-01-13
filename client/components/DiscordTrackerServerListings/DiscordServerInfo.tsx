@@ -31,6 +31,11 @@ export function DiscordServerInfo({ server, className, truncate_description = fa
     return null;
   }
 
+  const courseBadgeListings =
+    server.courses.length <= 3
+      ? server.courses.map((course) => `${course.code} ${course.level} - ${course.title}`)
+      : server.courses.map((course) => `${course.code} ${course.level}`);
+
   function getFormattedDescription(description: string) {
     const maxLength = 100;
     description = description.trim();
@@ -100,9 +105,9 @@ export function DiscordServerInfo({ server, className, truncate_description = fa
               <div className="mb-1">
                 <small className="text-muted fw-bold">Course(s): </small>
                 <div className="mt-1">
-                  {server.courses.map((course) => (
+                  {server.courses.map((course, i) => (
                     <Badge key={course.id} bg="primary" className="me-1 mb-1 text-dark">
-                      {course.code} {course.level} - {course.title}
+                      {courseBadgeListings[i]}
                     </Badge>
                   ))}
                 </div>
