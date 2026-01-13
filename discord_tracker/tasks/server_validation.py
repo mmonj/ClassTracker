@@ -106,7 +106,7 @@ def _sync_single_server(server: DiscordServer) -> list[DiscordInvite]:
         )
         send_alert_to_role(
             role="manager",
-            title="Discord Server Disabled",
+            title=f"Discord Server Disabled: {server.display_name}",
             md_message=f"[Server '{server.display_name}'](/admin/discord_tracker/discordserver/{server.id}/) ({server.server_id}) has been disabled because all of its invites are no longer valid.",
         )
         return invalid_invites

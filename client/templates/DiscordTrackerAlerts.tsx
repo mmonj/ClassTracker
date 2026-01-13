@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 
-import { Alert as BootstrapAlert, Card, Container, Modal } from "react-bootstrap";
+import { Alert as BootstrapAlert, Card, Container, Modal, Spinner } from "react-bootstrap";
 import Markdown from "react-markdown";
 
 import { Context, interfaces, reverse, templates } from "@reactivated";
@@ -30,7 +30,15 @@ export function Template(props: templates.DiscordTrackerAlerts) {
     );
 
     const currentAlert = props.user_alerts.find((userAlert) => userAlert.alert.id === userAlertId);
-    if (!result.ok || currentAlert === undefined || currentAlert.is_read) return;
+    if (!result.ok) {
+      console.error(
+        "Failed to fetch alert details for alert:",
+        currentAlert,
+        "Errors:",
+        result.errors,
+      );
+      return;
+    }
 
     // mark alert read if not already read
     await fetchByReactivated(
@@ -94,7 +102,18 @@ export function Template(props: templates.DiscordTrackerAlerts) {
       </Container>
 
       <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" centered>
-        {alertFetcher.data && (
+        {alertFetcher.isLoading && (
+          <Modal.Body
+            className="d-flex justify-content-center align-items-center"
+            style={{ minHeight: "200px" }}
+          >
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </Modal.Body>
+        )}
+
+        {alertFetcher.data !== null && (
           <>
             <Modal.Header closeButton>
               <Modal.Title className="fw-bold">{alertFetcher.data.alert.title}</Modal.Title>
