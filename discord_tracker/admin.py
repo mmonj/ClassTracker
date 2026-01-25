@@ -61,6 +61,14 @@ class DiscordUserAdmin(admin.ModelAdmin[DiscordUser]):
                 ]
             },
         ),
+        (
+            "Management",
+            {
+                "fields": [
+                    "is_disabled",
+                ]
+            },
+        ),
     ]
 
     def get_user_username(self, obj: DiscordUser) -> str:

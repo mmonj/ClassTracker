@@ -69,6 +69,14 @@ class DiscordSocialAccountAdapter(DefaultSocialAccountAdapter):  # type: ignore[
             DiscordUser.objects.filter(discord_id=discord_id).select_related("user").first()
         )
 
+        if existing_discord_user and existing_discord_user.is_disabled:
+            logger.warning(
+                "Disabled user %s (id=%s) attempted login",
+                existing_discord_user.display_name,
+                existing_discord_user.discord_id,
+            )
+            raise ImmediateHttpResponse(redirect("discord_tracker:login"))
+
         if request.user.is_authenticated:
             # make sure this discord account isn't already linked to someone else
             if existing_discord_user is not None and existing_discord_user.user != request.user:

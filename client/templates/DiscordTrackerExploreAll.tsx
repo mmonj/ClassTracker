@@ -127,7 +127,7 @@ export function Template(props: templates.DiscordTrackerExploreAll) {
         {/* no servers msg */}
         {props.servers.length === 0 && (
           <Alert variant="info" className="text-center">
-            <h4>No Discord servers found</h4>
+            <h4 className="text-light">No Discord servers found</h4>
             <p className="mb-0">
               {props.is_search_active
                 ? "Try adjusting your search criteria."

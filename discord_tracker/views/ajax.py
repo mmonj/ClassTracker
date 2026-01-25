@@ -77,6 +77,15 @@ def server_invites(request: AuthenticatedRequest, server_id: int) -> HttpRespons
     if not request.user.is_authenticated:
         return error_json_response(["You must log in to view server invites."], status=401)
 
+    discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
+
+    logger.info(
+        "User %s (id: %s) is viewing invites for server %s",
+        discord_user.discord_id,
+        discord_user.discriminator,
+        server_id,
+    )
+
     return interfaces_response.ServerInvitesResponse(
         invites=list(invites),
     ).render(request)

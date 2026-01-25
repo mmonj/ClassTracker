@@ -79,7 +79,7 @@ export function ServerSectionsDisplay({
   if (servers.length === 0) {
     return (
       <Alert variant="info" className="text-center">
-        <h4>No Discord servers found</h4>
+        <h4 className="text-light">No Discord servers found</h4>
         <p className="mb-0">Check back later for new servers or contact an administrator.</p>
       </Alert>
     );
