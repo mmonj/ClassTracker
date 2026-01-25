@@ -1,6 +1,6 @@
 import React, { useContext, useEffect } from "react";
 
-import { Alert, Badge, Button, Card, Modal, Spinner } from "react-bootstrap";
+import { Alert, Button, ListGroup, Modal, Spinner } from "react-bootstrap";
 
 import { Context, interfaces, reverse, templates } from "@reactivated";
 
@@ -11,12 +11,66 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useFetch } from "@client/hooks/useFetch";
 import { fetchByReactivated, formatDateTypical } from "@client/utils";
 
+import { ButtonWithSpinner } from "../ButtonWithSpinner";
 import { DiscordServerInfo } from "./DiscordServerInfo";
 
 interface Props {
   show: boolean;
   onHide: () => void;
   server: templates.DiscordTrackerExploreAll["servers"][number] | null;
+}
+
+interface InviteJoinButtonProps {
+  invite: interfaces.ServerInvitesResponse["invites"][number];
+}
+
+function InviteJoinButton({ invite }: InviteJoinButtonProps) {
+  const context = useContext(Context);
+  const urlFetcher = useFetch<interfaces.ServerInviteUrlResponse>();
+
+  async function handleClick() {
+    console.log("Fetching invite URL for invite ID:", invite.id);
+
+    const result = await urlFetcher.fetchData(() =>
+      fetchByReactivated(
+        reverse("discord_tracker:invite_url", { invite_id: invite.id }),
+        context.csrf_token,
+        "GET",
+      ),
+    );
+
+    if (!result.ok) {
+      console.error("Failed to fetch invite URL for invite ID:", invite.id);
+      return;
+    }
+
+    const inviteUrl = result.data.invite.invite_url;
+
+    void fetchByReactivated(
+      reverse("discord_tracker:track_invite_usage", { invite_id: invite.id }),
+      context.csrf_token,
+      "PUT",
+    ).catch((error) => {
+      console.warn("Failed to track invite usage:", error);
+    });
+
+    window.open(inviteUrl, "_blank");
+  }
+
+  return (
+    <ButtonWithSpinner
+      type="button"
+      spinnerSize="sm"
+      onClick={handleClick}
+      disabled={urlFetcher.isLoading}
+      isLoadingState={urlFetcher.isLoading}
+      className="btn btn-primary btn-sm my-2"
+      style={{ minWidth: "5rem" }}
+    >
+      <FontAwesomeIcon icon={faExternalLinkAlt} className="me-1" />
+      Join Server
+    </ButtonWithSpinner>
+  );
 }
 
 const ICON_VERTICAL_OFFSET = 45;
@@ -39,21 +93,6 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
         "GET",
       ),
     );
-  }
-
-  function handleInviteClick(
-    event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>,
-    inviteId: number,
-  ) {
-    void fetchByReactivated(
-      reverse("discord_tracker:track_invite_usage", { invite_id: inviteId }),
-      context.csrf_token,
-      "PUT",
-    ).catch((error) => {
-      console.warn("Failed to track invite usage:", error);
-    });
-
-    // anchor link navigation happens once function exits
   }
 
   return (
@@ -144,33 +183,18 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
         )}
 
         {/* invites list */}
-        {invitesFetcher.data !== null && invitesFetcher.data.invites.length > 0 && (
-          <div className="d-grid gap-2">
-            {invitesFetcher.data.invites.map((invite) => {
-              const bgClass = !invite.is_valid ? "bg-light" : "";
-              const borderLeftStyles = invite.is_valid ? "4px solid #0d6efd" : "4px solid #dc3545";
-
-              return (
-                <Card
-                  key={invite.id}
-                  className={`border-0 shadow-sm ${bgClass}`}
-                  style={{
-                    borderLeft: borderLeftStyles,
-                  }}
-                >
-                  <Card.Body className="p-3">
-                    <div className="d-flex justify-content-between align-items-start mb-3">
+        {invitesFetcher.data !== null &&
+          invitesFetcher.data.invites.filter((invite) => invite.is_valid).length > 0 && (
+            <ListGroup>
+              {invitesFetcher.data.invites
+                .filter((invite) => invite.is_valid)
+                .map((invite) => {
+                  return (
+                    <ListGroup.Item
+                      key={invite.id}
+                      className="d-flex justify-content-between align-items-center gap-4"
+                    >
                       <div className="flex-grow-1">
-                        <div className="d-flex align-items-center mb-2">
-                          <code className="bg-light px-2 py-1 rounded text-break me-2 flex-grow-1">
-                            {invite.invite_url}
-                          </code>
-                          {!invite.is_valid && (
-                            <Badge bg="danger" className="ms-2">
-                              Invalid
-                            </Badge>
-                          )}
-                        </div>
                         {invite.notes_md && (
                           <>
                             <b>Notes:</b>
@@ -184,62 +208,35 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
                             </div>
                           </>
                         )}
-                      </div>
-                      {invite.is_valid ? (
-                        <Button
-                          as="a"
-                          href={invite.invite_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          variant="primary"
-                          size="sm"
-                          className="ms-3 flex-shrink-0 text-decoration-none"
-                          onClick={(e) => handleInviteClick(e, invite.id)}
-                        >
-                          <FontAwesomeIcon icon={faExternalLinkAlt} className="me-1" />
-                          Join
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          className="ms-3 flex-shrink-0"
-                          disabled
-                        >
-                          <FontAwesomeIcon icon={faExternalLinkAlt} className="me-1" />
-                          Invalid
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div className="d-flex gap-3 text-muted small">
-                        <span className="d-flex align-items-center">
-                          <i className="bi bi-people me-1"></i>
-                          Uses: <span className="fw-bold ms-1">{invite.uses_count}</span>
-                        </span>
-
-                        {invite.is_unlimited && (
-                          <span className="text-success ms-1">Non-Expiring Invite</span>
-                        )}
-
-                        {invite.expires_at !== null && (
-                          <span className="d-flex align-items-center">
-                            <i className="bi bi-clock me-1"></i>
-                            Expires:{" "}
-                            <span className="fw-bold ms-1">
-                              {formatDateTypical(invite.expires_at)}
+                        <div className="d-flex gap-3 text-muted small mt-3">
+                          {context.user.discord_user?.is_manager === true && (
+                            <span className="d-flex align-items-center">
+                              <i className="bi bi-people me-1"></i>
+                              Uses: <span className="fw-bold ms-1">{invite.uses_count}</span>
                             </span>
-                          </span>
-                        )}
+                          )}
+
+                          {invite.is_unlimited && (
+                            <span className="text-success ms-1">Non-Expiring Invite</span>
+                          )}
+
+                          {invite.expires_at !== null && (
+                            <span className="d-flex align-items-center">
+                              <i className="bi bi-clock me-1"></i>
+                              Expires:{" "}
+                              <span className="fw-bold ms-1">
+                                {formatDateTypical(invite.expires_at)}
+                              </span>
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                      <InviteJoinButton invite={invite} />
+                    </ListGroup.Item>
+                  );
+                })}
+            </ListGroup>
+          )}
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={onHide}>

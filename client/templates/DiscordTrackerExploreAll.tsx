@@ -124,18 +124,6 @@ export function Template(props: templates.DiscordTrackerExploreAll) {
           initialGrouped={false}
         />
 
-        {/* no servers msg */}
-        {props.servers.length === 0 && (
-          <Alert variant="info" className="text-center">
-            <h4 className="text-light">No Discord servers found</h4>
-            <p className="mb-0">
-              {props.is_search_active
-                ? "Try adjusting your search criteria."
-                : "Check back later for new servers or contact an administrator."}
-            </p>
-          </Alert>
-        )}
-
         {/* pagination */}
         {props.pagination && props.pagination.total_pages > 1 && (
           <nav aria-label="Discord servers pagination">

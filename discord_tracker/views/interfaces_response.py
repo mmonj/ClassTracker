@@ -5,19 +5,6 @@ from reactivated import Pick, interface
 from class_tracker.models import Course, Instructor, School, Subject
 from discord_tracker.models import Alert, DiscordInvite, DiscordServer, UserAlert
 
-_DiscordInvitePick = Pick[
-    DiscordInvite,
-    Literal[
-        "id",
-        "invite_url",
-        "notes_md",
-        "expires_at",
-        "uses_count",
-        "is_valid",
-        "is_unlimited",
-    ],
-]
-
 _DiscordServerPick = Pick[
     DiscordServer,
     Literal[
@@ -97,7 +84,30 @@ class ValidateDiscordInviteResponse(NamedTuple):
 
 @interface
 class ServerInvitesResponse(NamedTuple):
-    invites: list[_DiscordInvitePick]
+    invites: list[
+        Pick[
+            DiscordInvite,
+            Literal[
+                "id",
+                "notes_md",
+                "expires_at",
+                "uses_count",
+                "is_valid",
+                "is_unlimited",
+            ],
+        ]
+    ]
+
+
+@interface
+class ServerInviteUrlResponse(NamedTuple):
+    invite: Pick[
+        DiscordInvite,
+        Literal[
+            "id",
+            "invite_url",
+        ],
+    ]
 
 
 @interface

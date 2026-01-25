@@ -417,6 +417,18 @@ def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpRes
     return interfaces_response.BlankResponse().render(request)
 
 
+@require_http_methods(["GET"])
+def invite_url(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
+    invite = get_object_or_404(DiscordInvite, id=invite_id)
+
+    if not invite.is_valid or not invite.is_approved:
+        return error_json_response(["This invite is no longer valid"], status=400)
+
+    return interfaces_response.ServerInviteUrlResponse(
+        invite=invite,
+    ).render(request)
+
+
 @require_roles(required_roles=["manager"], is_api=True)
 @require_http_methods(["POST"])
 def approve_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
