@@ -37,11 +37,6 @@ ajax_patterns = [
         name="get_instructors",
     ),
     path(
-        "ajax/invites/<int:invite_id>/track-usage/",
-        ajax.track_invite_usage,
-        name="track_invite_usage",
-    ),
-    path(
         "ajax/invites/<int:invite_id>/url/",
         ajax.invite_url,
         name="invite_url",

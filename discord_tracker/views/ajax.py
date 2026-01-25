@@ -388,41 +388,42 @@ def get_instructors(request: AuthenticatedRequest, school_id: int, subject_id: i
     ).render(request)
 
 
-@require_roles(required_roles=None, is_api=True)
-@require_http_methods(["PUT"])
-def track_invite_usage(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
-    invite = get_object_or_404(DiscordInvite, id=invite_id)
-
-    if not request.user.is_authenticated:
-        return error_json_response(["You must log in to track invite usage"], status=401)
-
-    discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
-
-    # check if invite is valid
-    if not invite.is_valid or not invite.is_approved:
-        return error_json_response(["This invite is no longer valid"], status=400)
-
-    user_ip = request.META.get("HTTP_CF_CONNECTING_IP") or request.META.get("HTTP_USER_AGENT", "")
-
-    InviteUsage.objects.create(
-        invite=invite,
-        used_by=discord_user,
-        ip_address=request.META.get("REMOTE_ADDR"),
-        user_agent=user_ip,
-    )
-
-    invite.uses_count += 1
-    invite.save(update_fields=["uses_count"])
-
-    return interfaces_response.BlankResponse().render(request)
-
-
 @require_http_methods(["GET"])
 def invite_url(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
-    invite = get_object_or_404(DiscordInvite, id=invite_id)
+    invite = DiscordInvite.objects.filter(id=invite_id).prefetch_related("discord_server").first()
+    if invite is None:
+        return error_json_response(["Invite not found"], status=404)
 
     if not invite.is_valid or not invite.is_approved:
         return error_json_response(["This invite is no longer valid"], status=400)
+
+    # track invite usage separately from checking permissions to view the invite
+    if request.user.is_authenticated:
+        user_ip = request.META.get("HTTP_CF_CONNECTING_IP") or request.META.get(
+            "HTTP_USER_AGENT", ""
+        )
+
+        discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined]
+
+        InviteUsage.objects.create(
+            invite=invite,
+            used_by=discord_user,
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=user_ip,
+        )
+
+        invite.uses_count += 1
+        invite.save(update_fields=["uses_count"])
+
+    # check access permissions for this invite
+
+    if invite.discord_server.privacy_level_info.value == "public":
+        return interfaces_response.ServerInviteUrlResponse(
+            invite=invite,
+        ).render(request)
+
+    if not request.user.is_authenticated:
+        return error_json_response(["You must log in to use this invite."], status=401)
 
     return interfaces_response.ServerInviteUrlResponse(
         invite=invite,

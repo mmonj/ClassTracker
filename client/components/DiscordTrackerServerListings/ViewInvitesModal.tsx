@@ -29,8 +29,6 @@ function InviteJoinButton({ invite }: InviteJoinButtonProps) {
   const urlFetcher = useFetch<interfaces.ServerInviteUrlResponse>();
 
   async function handleClick() {
-    console.log("Fetching invite URL for invite ID:", invite.id);
-
     const result = await urlFetcher.fetchData(() =>
       fetchByReactivated(
         reverse("discord_tracker:invite_url", { invite_id: invite.id }),
@@ -45,15 +43,6 @@ function InviteJoinButton({ invite }: InviteJoinButtonProps) {
     }
 
     const inviteUrl = result.data.invite.invite_url;
-
-    void fetchByReactivated(
-      reverse("discord_tracker:track_invite_usage", { invite_id: invite.id }),
-      context.csrf_token,
-      "PUT",
-    ).catch((error) => {
-      console.warn("Failed to track invite usage:", error);
-    });
-
     window.open(inviteUrl, "_blank");
   }
 
