@@ -1,5 +1,7 @@
 import React, { type JSX } from "react";
 
+import { Toaster } from "react-hot-toast";
+
 import { Context } from "@reactivated";
 
 import { ContribMessages } from "@client/components/ContribMessages";
@@ -91,6 +93,7 @@ export function Layout({
         ))}
       </head>
       <body className="px-0">
+        <Toaster position="top-right" />
         {Navbar && (
           <header>
             <Navbar />

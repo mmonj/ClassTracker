@@ -1,6 +1,7 @@
 import React, { useContext, useEffect } from "react";
 
 import { Alert, Button, ListGroup, Modal, Spinner } from "react-bootstrap";
+import toast from "react-hot-toast";
 
 import { Context, interfaces, reverse, templates } from "@reactivated";
 
@@ -38,12 +39,15 @@ function InviteJoinButton({ invite }: InviteJoinButtonProps) {
     );
 
     if (!result.ok) {
-      console.error("Failed to fetch invite URL for invite ID:", invite.id);
+      result.errors.forEach((error) => {
+        toast.error(error);
+      });
       return;
     }
 
     const inviteUrl = result.data.invite.invite_url;
     window.open(inviteUrl, "_blank");
+    toast.success("Opening invite link...");
   }
 
   return (
