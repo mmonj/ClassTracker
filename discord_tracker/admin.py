@@ -9,6 +9,7 @@ from class_tracker.models import Course, Instructor
 from .models import (
     DiscordInvite,
     DiscordServer,
+    DiscordTrackerSettings,
     DiscordUser,
     InviteUsage,
     UserReferral,
@@ -503,3 +504,34 @@ class UserReferralRedemptionAdmin(admin.ModelAdmin[UserReferralRedemption]):
         return "Active"
 
     get_referral_status.short_description = "Referral Status"  # type: ignore[attr-defined]
+
+
+@admin.register(DiscordTrackerSettings)
+class DiscordTrackerSettingsAdmin(admin.ModelAdmin[DiscordTrackerSettings]):
+    list_display = [
+        "get_global_settings",
+        "weekly_invite_accesses",
+        "datetime_modified",
+    ]
+    fieldsets = [
+        (
+            "Invite Access Settings",
+            {
+                "fields": [
+                    "weekly_invite_accesses",
+                ]
+            },
+        ),
+    ]
+
+    def has_add_permission(self, _request: HttpRequest) -> bool:
+        # prevent adding more recorrds if one already exists
+        return not DiscordTrackerSettings.objects.exists()
+
+    def has_delete_permission(self, _request: HttpRequest, _obj: Any = None) -> bool:
+        return False
+
+    def get_global_settings(self, _obj: DiscordTrackerSettings) -> str:
+        return "Global Settings"
+
+    get_global_settings.short_description = "Settings"  # type: ignore[attr-defined]

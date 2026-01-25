@@ -452,3 +452,23 @@ class UserAlert(CommonModel):
     def __str__(self) -> str:
         status = "Read" if self.is_read else "Unread"
         return f"{self.user.display_name} - {self.alert.title} ({status})"
+
+
+class DiscordTrackerSettings(CommonModel):
+    id = models.PositiveIntegerField(primary_key=True, default=1, editable=False)
+    weekly_invite_accesses = models.PositiveIntegerField(
+        default=6,
+        help_text="Maximum number of invite accesses allowed per user per week",
+    )
+
+    def __str__(self) -> str:
+        return f"Discord Tracker Settings"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self.id = 1  # enforce singleton pk
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get(cls) -> "DiscordTrackerSettings":
+        obj, _ = cls.objects.get_or_create(id=1)
+        return obj

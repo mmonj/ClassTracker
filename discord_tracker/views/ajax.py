@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from django.contrib import messages
@@ -14,6 +15,7 @@ from discord_tracker.decorators import require_roles
 from discord_tracker.models import (
     DiscordInvite,
     DiscordServer,
+    DiscordTrackerSettings,
     DiscordUser,
     InviteUsage,
     UserAlert,
@@ -24,7 +26,7 @@ from discord_tracker.util.discord_api import (
     get_guild_creation_date,
     get_guild_icon_url,
 )
-from discord_tracker.util.site import get_unread_alerts_for_user
+from discord_tracker.util.site import get_unread_alerts_for_user, track_invite_usage
 from discord_tracker.views import interfaces_response
 from discord_tracker.views.forms import SchoolSelectionForm
 from server.util import error_json_response
@@ -399,21 +401,26 @@ def invite_url(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
 
     # track invite usage separately from checking permissions to view the invite
     if request.user.is_authenticated:
-        user_ip = request.META.get("HTTP_CF_CONNECTING_IP") or request.META.get(
-            "HTTP_USER_AGENT", ""
-        )
-
         discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined]
 
-        InviteUsage.objects.create(
-            invite=invite,
-            used_by=discord_user,
-            ip_address=request.META.get("REMOTE_ADDR"),
-            user_agent=user_ip,
-        )
+        if not discord_user.is_manager:
+            settings = DiscordTrackerSettings.get()
+            weekly_limit = settings.weekly_invite_accesses
 
-        invite.uses_count += 1
-        invite.save(update_fields=["uses_count"])
+            recent_accesses = InviteUsage.objects.filter(
+                used_by=discord_user,
+                datetime_created__gte=timezone.now() - timedelta(days=7),
+            ).count()
+
+            if recent_accesses >= weekly_limit:
+                return error_json_response(
+                    [
+                        f"You've reached your weekly limit of {weekly_limit} invites. Try again next week."
+                    ],
+                    status=429,
+                )
+
+        track_invite_usage(invite, discord_user, request)
 
     # check access permissions for this invite
 

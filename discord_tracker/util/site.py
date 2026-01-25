@@ -1,8 +1,16 @@
 import logging
 
 from django.db.models import QuerySet
+from django.http import HttpRequest
 
-from discord_tracker.models import Alert, DiscordUser, TUserRoleValue, UserAlert
+from discord_tracker.models import (
+    Alert,
+    DiscordInvite,
+    DiscordUser,
+    InviteUsage,
+    TUserRoleValue,
+    UserAlert,
+)
 
 logger = logging.getLogger("main")
 
@@ -70,3 +78,23 @@ def get_user_alerts(user: DiscordUser, unread_only: bool = False) -> QuerySet[Us
         recipients = recipients.filter(is_read=False)
 
     return recipients.select_related("alert").order_by("-alert__datetime_created")
+
+
+def track_invite_usage(
+    invite: DiscordInvite, discord_user: DiscordUser, request: HttpRequest
+) -> None:
+    user_ip = request.META.get("HTTP_CF_CONNECTING_IP") or request.META.get("HTTP_USER_AGENT", "")
+
+    InviteUsage.objects.create(
+        invite=invite,
+        used_by=discord_user,
+        ip_address=request.META.get("REMOTE_ADDR"),
+        user_agent=user_ip,
+    )
+
+    invite.uses_count += 1
+    invite.save(update_fields=["uses_count"])
+
+    logger.info(
+        "Invite usage updated for user %s on invite %s", discord_user.display_name, invite.id
+    )
