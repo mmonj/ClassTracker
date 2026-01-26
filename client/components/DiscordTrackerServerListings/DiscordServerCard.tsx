@@ -53,9 +53,10 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
               <img
                 src={server.icon_url}
                 alt={`${server.display_name} icon`}
-                className="rounded-circle me-3"
+                className="me-3"
                 width="40"
                 height="40"
+                style={{ borderRadius: "25%" }}
                 onError={(e) => {
                   // fallback if image fails to load
                   const target = e.target as HTMLImageElement;
@@ -66,7 +67,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
             ) : null}
             <div
               className={classNames(
-                "rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3 text-white fw-bold",
+                "bg-secondary d-flex align-items-center justify-content-center me-3 text-white fw-bold",
                 { "d-none": server.icon_url },
               )}
               style={{
@@ -74,6 +75,7 @@ export function DiscordServerCard({ server, onShowInvites }: Props) {
                 height: 40,
                 minWidth: 40,
                 minHeight: 40,
+                borderRadius: "25%",
               }}
             >
               {server.display_name.charAt(0).toUpperCase()}

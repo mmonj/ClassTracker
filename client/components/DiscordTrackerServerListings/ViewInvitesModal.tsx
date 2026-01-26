@@ -93,7 +93,7 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
       {/* floating server icon right above modal header */}
       {server && (
         <div
-          className="position-absolute start-50 translate-middle-x bg-white rounded-circle shadow-lg border"
+          className="position-absolute start-50 translate-middle-x bg-white shadow-lg border"
           style={{
             top: `-${ICON_VERTICAL_OFFSET}px`,
             zIndex: 1060,
@@ -103,17 +103,18 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
             alignItems: "center",
             justifyContent: "center",
             padding: "4px",
+            borderRadius: "30%",
           }}
         >
           {server.icon_url ? (
             <img
               src={server.icon_url}
               alt={`${server.display_name} icon`}
-              className="rounded-circle"
               style={{
                 width: `${ICON_VERTICAL_OFFSET * 2 - 10}px`,
                 height: `${ICON_VERTICAL_OFFSET * 2 - 10}px`,
                 objectFit: "cover",
+                borderRadius: "25%",
               }}
             />
           ) : (
