@@ -1,7 +1,9 @@
 import logging
+from datetime import timedelta
 
 from django.db.models import QuerySet
 from django.http import HttpRequest
+from django.utils import timezone
 
 from discord_tracker.models import (
     Alert,
@@ -85,12 +87,17 @@ def track_invite_usage(
 ) -> None:
     user_ip = request.META.get("HTTP_CF_CONNECTING_IP") or request.META.get("HTTP_USER_AGENT", "")
 
-    InviteUsage.objects.create(
-        invite=invite,
-        used_by=discord_user,
-        ip_address=request.META.get("REMOTE_ADDR"),
-        user_agent=user_ip,
-    )
+    last_invite_usage = InviteUsage.objects.filter(used_by=discord_user, invite=invite).first()
+
+    if last_invite_usage is None or timezone.now() - last_invite_usage.datetime_created > timedelta(
+        days=7
+    ):
+        InviteUsage.objects.create(
+            invite=invite,
+            used_by=discord_user,
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=user_ip,
+        )
 
     invite.uses_count += 1
     invite.save(update_fields=["uses_count"])

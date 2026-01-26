@@ -401,7 +401,7 @@ def invite_url(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
 
     # track invite usage separately from checking permissions to view the invite
     if request.user.is_authenticated:
-        discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined]
+        discord_user: DiscordUser = request.user.discord_user  # type: ignore [attr-defined, unused-ignore]
 
         if not discord_user.is_manager:
             settings = DiscordTrackerSettings.get()
