@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { Context, interfaces, reverse, templates } from "@reactivated";
 
 import { faDiscord } from "@fortawesome/free-brands-svg-icons";
-import { faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
+import { faExternalLinkAlt, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useFetch } from "@client/hooks/useFetch";
@@ -23,11 +23,13 @@ interface Props {
 
 interface InviteListingProps {
   invite: interfaces.ServerInvitesResponse["invites"][number];
+  onDeleted: () => void;
 }
 
-function InviteListing({ invite }: InviteListingProps) {
+function InviteListing({ invite, onDeleted }: InviteListingProps) {
   const context = useContext(Context);
   const urlFetcher = useFetch<interfaces.ServerInviteUrlResponse>();
+  const deleteFetcher = useFetch<interfaces.BlankResponse>();
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
 
   async function handleRevealClick() {
@@ -51,6 +53,29 @@ function InviteListing({ invite }: InviteListingProps) {
     toast.success("Invite revealed!");
   }
 
+  async function handleDeleteClick() {
+    const confirmed = window.confirm("Are you sure you wish to delete this invite?");
+    if (!confirmed) return;
+
+    const result = await deleteFetcher.fetchData(() =>
+      fetchByReactivated(
+        reverse("discord_tracker:delete_invite", { invite_id: invite.id }),
+        context.csrf_token,
+        "POST",
+      ),
+    );
+
+    if (!result.ok) {
+      result.errors.forEach((error) => {
+        toast.error(error);
+      });
+      return;
+    }
+
+    toast.success("Invite deleted!");
+    onDeleted();
+  }
+
   return (
     <Card key={invite.id} className="border-0 shadow-sm mb-3">
       <Card.Body className="p-3">
@@ -68,29 +93,42 @@ function InviteListing({ invite }: InviteListingProps) {
           </>
         )}
 
-        <div className="d-flex gap-3 text-muted small">
+        <div className="d-flex justify-content-between text-muted small">
+          <div className="d-flex gap-3">
+            {context.user.discord_user?.is_manager === true && (
+              <span className="d-flex align-items-center">
+                <i className="bi bi-people me-1"></i>
+                Uses: <span className="fw-bold ms-1">{invite.uses_count}</span>
+              </span>
+            )}
+
+            {invite.is_unlimited && (
+              <span className="text-success ms-1 mt-1">Non-Expiring Invite</span>
+            )}
+
+            {invite.expires_at !== null && (
+              <span className="d-flex align-items-center">
+                <i className="bi bi-clock me-1"></i>
+                Expires:{" "}
+                <span className="fw-bold ms-1">{formatDateTypical(invite.expires_at)}</span>
+              </span>
+            )}
+          </div>
+
           {context.user.discord_user?.is_manager === true && (
-            <span className="d-flex align-items-center">
-              <i className="bi bi-people me-1"></i>
-              Uses: <span className="fw-bold ms-1">{invite.uses_count}</span>
-            </span>
-          )}
-
-          {invite.is_unlimited && (
-            <span className="text-success ms-1 mt-1">Non-Expiring Invite</span>
-          )}
-
-          {invite.expires_at !== null && (
-            <span className="d-flex align-items-center">
-              <i className="bi bi-clock me-1"></i>
-              Expires: <span className="fw-bold ms-1">{formatDateTypical(invite.expires_at)}</span>
-            </span>
+            <div className="d-flex align-items-center">
+              <span className="d-flex align-items-center">
+                <i className="bi bi-calendar-plus me-1"></i>
+                Added:{" "}
+                <span className="fw-bold ms-1">{formatDateTypical(invite.datetime_created)}</span>
+              </span>
+            </div>
           )}
         </div>
 
         <div className="my-2">
           {inviteUrl === null && (
-            <div className="mb-3">
+            <div className="mb-3 d-flex justify-content-between align-items-center gap-2">
               <ButtonWithSpinner
                 type="button"
                 spinnerSize="sm"
@@ -101,6 +139,20 @@ function InviteListing({ invite }: InviteListingProps) {
               >
                 Reveal Invite
               </ButtonWithSpinner>
+
+              {context.user.discord_user?.is_manager === true && (
+                <ButtonWithSpinner
+                  type="button"
+                  spinnerSize="sm"
+                  onClick={handleDeleteClick}
+                  disabled={deleteFetcher.isLoading}
+                  isLoadingState={deleteFetcher.isLoading}
+                  className="btn btn-outline-danger btn-sm"
+                  title="Delete invite"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </ButtonWithSpinner>
+              )}
             </div>
           )}
           {inviteUrl !== null && (
@@ -243,7 +295,13 @@ export function ViewInvitesModal({ show, onHide, server }: Props) {
               {invitesFetcher.data.invites
                 .filter((invite) => invite.is_valid)
                 .map((invite) => (
-                  <InviteListing key={invite.id} invite={invite} />
+                  <InviteListing
+                    key={invite.id}
+                    invite={invite}
+                    onDeleted={() => {
+                      if (server !== null) void fetchInvites(server.id);
+                    }}
+                  />
                 ))}
             </div>
           )}

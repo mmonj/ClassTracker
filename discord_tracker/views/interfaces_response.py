@@ -94,6 +94,7 @@ class ServerInvitesResponse(NamedTuple):
                 "uses_count",
                 "is_valid",
                 "is_unlimited",
+                "datetime_created",
             ],
         ]
     ]

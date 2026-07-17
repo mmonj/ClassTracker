@@ -51,6 +51,11 @@ ajax_patterns = [
         ajax.reject_invite,
         name="reject_invite",
     ),
+    path(
+        "ajax/invites/<int:invite_id>/delete/",
+        ajax.delete_invite,
+        name="delete_invite",
+    ),
     path("ajax/subjects/", ajax.get_all_subjects, name="get_all_subjects"),
     path("ajax/subjects/<int:subject_id>/courses/", ajax.get_all_courses, name="get_all_courses"),
     path("ajax/alerts/<int:user_alert_id>/", ajax.get_alert_details, name="get_alert_details"),

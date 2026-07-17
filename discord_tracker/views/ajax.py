@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -26,7 +27,11 @@ from discord_tracker.util.discord_api import (
     get_guild_creation_date,
     get_guild_icon_url,
 )
-from discord_tracker.util.site import get_unread_alerts_for_user, track_invite_usage
+from discord_tracker.util.site import (
+    get_unread_alerts_for_user,
+    send_alert_to_users,
+    track_invite_usage,
+)
 from discord_tracker.views import interfaces_response
 from discord_tracker.views.forms import SchoolSelectionForm
 from server.util import error_json_response
@@ -482,6 +487,39 @@ def reject_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse
     invite.save(
         update_fields=["rejected_by", "datetime_rejected", "approved_by", "datetime_approved"]
     )
+
+    return interfaces_response.BlankResponse().render(request)
+
+
+@require_roles(required_roles=["manager"], is_api=True)
+@require_http_methods(["POST"])
+def delete_invite(request: AuthenticatedRequest, invite_id: int) -> HttpResponse:
+    discord_user = get_object_or_404(DiscordUser, user=request.user)
+    invite = get_object_or_404(DiscordInvite, id=invite_id)
+
+    admin_managers = list(
+        DiscordUser.objects.filter(role=DiscordUser.UserRole.MANAGER, is_disabled=False).filter(
+            Q(user__is_superuser=True) | Q(user__is_staff=True)
+        )
+    )
+
+    course_names = ", ".join(str(course) for course in invite.discord_server.courses.all())
+    instructor_names = ", ".join(
+        instructor.name for instructor in invite.discord_server.instructors.all()
+    )
+
+    send_alert_to_users(
+        admin_managers,
+        title=f"Invite Deleted for {invite.discord_server.display_name}",
+        md_message=(
+            f"The invite `{invite.invite_url}` for **{invite.discord_server.display_name}** "
+            f"has been deleted by {discord_user.display_name}.\n\n"
+            f"**Courses:** {course_names or 'N/A'}\n"
+            f"**Instructors:** {instructor_names or 'N/A'}"
+        ),
+    )
+
+    invite.delete()
 
     return interfaces_response.BlankResponse().render(request)
 
