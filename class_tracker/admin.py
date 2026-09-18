@@ -117,7 +117,7 @@ class ContactInfoInline(admin.TabularInline[ContactInfo, Recipient]):
 class CourseSectionAdmin(admin.ModelAdmin[CourseSection]):
     list_display = ("course", "section", "status", "instruction_mode", "term")
     list_filter = ("status", "instruction_mode", "term", "course__school")
-    search_fields = ("section", "course__level", "course__title")
+    search_fields = ("section", "course__level", "course__title", "=number", "gs_unique_id")
     readonly_fields = ("datetime_created", "datetime_modified")
     ordering = ("course", "section")
 
