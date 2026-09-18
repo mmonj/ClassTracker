@@ -64,6 +64,7 @@ class ModelTests(TestCase):
     def test_course_section_creation(self) -> None:
         course_section = models.CourseSection.objects.create(
             course=self.course,
+            gs_unique_id="gs-id-1",
             number=12345,
             section="121-LEC Regular",
             status=models.CourseSection.StatusChoices.OPEN,
@@ -71,12 +72,14 @@ class ModelTests(TestCase):
             term=self.term1,
         )
 
-        with self.assertRaises(IntegrityError):
-            models.CourseSection.objects.create(
-                course=self.course,
-                number=12345,  # duplicate course number
-                section=course_section.section,
-                status=models.CourseSection.StatusChoices.CLOSED,
-                instruction_mode="Hybrid",
-                term=course_section.term,
-            )
+        duplicate_section = models.CourseSection.objects.create(
+            course=self.course,
+            gs_unique_id="gs-id-2",
+            number=12345,
+            section=course_section.section,
+            status=models.CourseSection.StatusChoices.CLOSED,
+            instruction_mode="Hybrid",
+            term=course_section.term,
+        )
+
+        self.assertNotEqual(course_section.id, duplicate_section.id)
