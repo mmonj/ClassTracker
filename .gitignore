@@ -43,3 +43,9 @@ class_tracker/tests/html
 static/styles/bs-dark/**/*.css
 static-collected/
 run-docker-compose.sh
+
+.claude/
+CLAUDE.md
+
+# Local markdown issue tracker (see docs/agents/issue-tracker.md)
+.scratch/
