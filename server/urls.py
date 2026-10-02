@@ -22,6 +22,7 @@ from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 
 from . import views
+from .api import public_api
 
 ACOUNT_PATHS_REDIRECT_EXCEPTIONS = r"(?:discord/login/|logout/)"
 
@@ -37,6 +38,7 @@ redirect_patterns = [
 urlpatterns = [
     path("", views.index, name="index"),
     path("admin/", admin.site.urls),
+    path("api/v1/", public_api.urls),
     *redirect_patterns,  # goes before allauth
     path("accounts/", include("allauth.urls")),
     path("class_tracker/", include("class_tracker.urls")),

@@ -25,6 +25,8 @@ dependencies = [
     "django-extensions>=4.1",
     "redis>=6.4.0",
     "uvicorn>=0.35.0",
+    "django-ninja>=1.7.1",
+    "django-cors-headers>=4.9.0",
 ]
 
 [dependency-groups]

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "corsheaders",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -60,6 +61,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # goes before CommonMiddleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -163,6 +165,11 @@ MEDIA_ROOT = BASE_DIR / os.environ["DJANGO_MEDIA_DIR"].strip("/")
 MEDIA_ROOT.mkdir(exist_ok=True)
 
 CSRF_TRUSTED_ORIGINS = os.environ["DJANGO_CSRF_TRUSTED_ORIGINS"].split()
+
+# CORS: only the public read-only api is open to other origins
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_URLS_REGEX = r"^/api/"
+CORS_ALLOW_METHODS = ("GET", "OPTIONS")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
