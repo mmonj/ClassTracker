@@ -1,6 +1,7 @@
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet
 from django.http import HttpRequest
 from ninja import ModelSchema, Router
+from ninja.errors import HttpError
 
 from .models import Course, CourseSection
 
@@ -38,3 +39,34 @@ def get_course_sections(
         .select_related("course")
         .order_by("id")
     )
+
+
+@router.get("/course-sections/variable-topic/", response=list[CourseSectionSchema])
+def get_variable_topic_sections(
+    request: HttpRequest,  # noqa: ARG001
+    term_code: int,
+    school_code: str,
+    course_code: str | None = None,
+    course_level: str | None = None,
+) -> QuerySet[CourseSection]:
+    # an empty value is treated the same as an omitted one
+    if course_level and not course_code:
+        raise HttpError(422, "course_code is required when course_level is provided")
+
+    variable_topic_sections = (
+        CourseSection.objects.filter(
+            term__globalsearch_key=str(term_code),
+            course__school__globalsearch_key=school_code.upper(),
+        )
+        .exclude(topic__iexact=F("course__title"))
+        .select_related("course")
+        .order_by("course__code", "course__level", "section", "id")
+    )
+
+    if course_code:
+        variable_topic_sections = variable_topic_sections.filter(course__code=course_code.upper())
+    if course_level:
+        # Course.level keeps any designation suffix (eg. "101W"), so no splitting is needed
+        variable_topic_sections = variable_topic_sections.filter(course__level=course_level.upper())
+
+    return variable_topic_sections
