@@ -15,3 +15,7 @@ _Avoid_: Slug, external id
 **Class Number**:
 The number Globalsearch assigns to a course section (eg. `43070`). It is only meaningful within a term and school; a different school may reuse the same number.
 _Avoid_: Section number, section id, class id
+
+**Variable-Topic Section**:
+A course section whose topic differs from its course's title. The course title is a generic name (eg. "Special Topics in Computer Sci") and the section's topic is the specialization actually being taught (eg. "Cryptography").
+_Avoid_: Special topics section, topic section
