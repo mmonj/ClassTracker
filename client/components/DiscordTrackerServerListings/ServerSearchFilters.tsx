@@ -91,7 +91,7 @@ export function ServerSearchFilters({ subjectId, courseId }: ServerSearchFilters
 
       const courseOptions = result.data.courses.map((course) => ({
         value: course.id,
-        label: `${course.code} ${course.level} - ${course.title}`,
+        label: `${course.prefix} ${course.level} - ${course.title}`,
       }));
 
       courseOptions.sort((a, b) => natsortCollator.compare(a.label, b.label));

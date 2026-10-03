@@ -107,7 +107,7 @@ export function createDummyDiscordServer(
     courses: [
       {
         id: 1,
-        code: "CSCI",
+        prefix: "CSCI",
         level: "381",
         title: "Wax On, Wax Off",
       },

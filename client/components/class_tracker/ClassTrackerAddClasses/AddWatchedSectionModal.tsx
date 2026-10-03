@@ -142,7 +142,7 @@ export function AddWatchedSectionModal({
 
           return {
             value: section.id,
-            label: `${section.course.code} ${section.course.level} (${section.number}) - ${section.topic} - ${instructionEntriesText}`,
+            label: `${section.course.prefix} ${section.course.level} (${section.number}) - ${section.topic} - ${instructionEntriesText}`,
           };
         }) satisfies SelectOption[];
 

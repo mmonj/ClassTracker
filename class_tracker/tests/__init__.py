@@ -31,7 +31,7 @@ class ModelTests(TestCase):
         self.instructor = models.Instructor.objects.create(name="John Doe", school=self.school1)
 
         self.course = models.Course.objects.create(
-            code="CSCI",
+            prefix="CSCI",
             level="316",
             title="Programming Languages",
             career=self.undergrad_course_career,

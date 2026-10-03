@@ -36,7 +36,7 @@ class PublicApiCourseSectionTests(TestCase):
 
     def _create_course(self, school: School, level: str, designation: str) -> Course:
         return Course.objects.create(
-            code="CSCI",
+            prefix="CSCI",
             level=level,
             title="Programming Languages",
             designation=designation,
@@ -77,7 +77,7 @@ class PublicApiCourseSectionTests(TestCase):
                     "topic": "Some Topic",
                     "instruction_mode": "In Person",
                     "course": {
-                        "code": "CSCI",
+                        "prefix": "CSCI",
                         "level": "316",
                         "title": "Programming Languages",
                         "designation": "",
@@ -194,18 +194,18 @@ class PublicApiVariableTopicSectionTests(TestCase):
         self.subject = Subject.objects.create(name="Computer Science", globalsearch_key="CMSC")
 
         self.special_topics_course = self._create_course(
-            self.queens_college, code="CSCI", level="381", title="VT: Special Topics in Comp Sci"
+            self.queens_college, prefix="CSCI", level="381", title="VT: Special Topics in Comp Sci"
         )
         self.fixed_topic_course = self._create_course(
-            self.queens_college, code="CSCI", level="316", title="Programming Languages"
+            self.queens_college, prefix="CSCI", level="316", title="Programming Languages"
         )
         self.queens_query_params: TQueryParams = {"term_code": 1259, "school_code": "QNS01"}
 
     def _create_course(
-        self, school: School, code: str, level: str, title: str, designation: str = ""
+        self, school: School, prefix: str, level: str, title: str, designation: str = ""
     ) -> Course:
         return Course.objects.create(
-            code=code,
+            prefix=prefix,
             level=level,
             title=title,
             designation=designation,
@@ -259,7 +259,7 @@ class PublicApiVariableTopicSectionTests(TestCase):
                     "topic": "Cryptography",
                     "instruction_mode": "In Person",
                     "course": {
-                        "code": "CSCI",
+                        "prefix": "CSCI",
                         "level": "381",
                         "title": "VT: Special Topics in Comp Sci",
                         "designation": "",
@@ -275,9 +275,9 @@ class PublicApiVariableTopicSectionTests(TestCase):
 
         self.assertEqual(self._get_topics(self.queens_query_params), [])
 
-    def test_narrows_to_course_code_regardless_of_letter_case(self) -> None:
+    def test_narrows_to_course_prefix_regardless_of_letter_case(self) -> None:
         math_studies_course = self._create_course(
-            self.queens_college, code="MATH", level="3903", title="Studies in Mathematics"
+            self.queens_college, prefix="MATH", level="3903", title="Studies in Mathematics"
         )
         self._create_section(
             self.special_topics_course, self.fall_term, number=43070, topic="Cryptography"
@@ -286,11 +286,11 @@ class PublicApiVariableTopicSectionTests(TestCase):
             math_studies_course, self.fall_term, number=43071, topic="Numerical Analysis I"
         )
 
-        for course_code in ("MATH", "math"):
-            with self.subTest(course_code=course_code):
+        for course_prefix in ("MATH", "math"):
+            with self.subTest(course_prefix=course_prefix):
                 query_params: TQueryParams = {
                     **self.queens_query_params,
-                    "course_code": course_code,
+                    "course_prefix": course_prefix,
                 }
 
                 self.assertEqual(self._get_topics(query_params), ["Numerical Analysis I"])
@@ -298,7 +298,7 @@ class PublicApiVariableTopicSectionTests(TestCase):
     def test_narrows_to_course_level_including_its_designation_suffix(self) -> None:
         writing_intensive_course = self._create_course(
             self.queens_college,
-            code="CSCI",
+            prefix="CSCI",
             level="381W",
             title="VT: Special Topics in Comp Sci",
             designation="W",
@@ -319,26 +319,26 @@ class PublicApiVariableTopicSectionTests(TestCase):
             with self.subTest(course_level=course_level):
                 query_params: TQueryParams = {
                     **self.queens_query_params,
-                    "course_code": "CSCI",
+                    "course_prefix": "CSCI",
                     "course_level": course_level,
                 }
 
                 self.assertEqual(self._get_topics(query_params), expected_topics)
 
-    def test_rejects_course_level_without_course_code(self) -> None:
+    def test_rejects_course_level_without_course_prefix(self) -> None:
         query_params: TQueryParams = {**self.queens_query_params, "course_level": "381"}
 
         response = self.client.get(VARIABLE_TOPIC_SECTIONS_URL, query_params)
 
         self.assertEqual(response.status_code, 422)
-        self.assertIn("course_code", response.json()["detail"])
+        self.assertIn("course_prefix", response.json()["detail"])
 
-    def test_orders_by_course_code_then_level_then_section(self) -> None:
+    def test_orders_by_course_prefix_then_level_then_section(self) -> None:
         math_studies_course = self._create_course(
-            self.queens_college, code="MATH", level="3903", title="Studies in Mathematics"
+            self.queens_college, prefix="MATH", level="3903", title="Studies in Mathematics"
         )
         graduate_topics_course = self._create_course(
-            self.queens_college, code="CSCI", level="780", title="Special Topics in Computer Sci"
+            self.queens_college, prefix="CSCI", level="780", title="Special Topics in Computer Sci"
         )
         # created in the reverse of the expected order
         self._create_section(
@@ -369,7 +369,7 @@ class PublicApiVariableTopicSectionTests(TestCase):
 
     def test_excludes_variable_topic_sections_of_other_terms_and_schools(self) -> None:
         baruch_topics_course = self._create_course(
-            self.baruch_college, code="CSCI", level="381", title="VT: Special Topics in Comp Sci"
+            self.baruch_college, prefix="CSCI", level="381", title="VT: Special Topics in Comp Sci"
         )
         self._create_section(
             self.special_topics_course, self.fall_term, number=43070, topic="Cryptography"
@@ -393,8 +393,8 @@ class PublicApiVariableTopicSectionTests(TestCase):
         unmatched_query_params: list[TQueryParams] = [
             {"term_code": 9999, "school_code": "QNS01"},
             {"term_code": 1259, "school_code": "NOPE"},
-            {"term_code": 1259, "school_code": "QNS01", "course_code": "NOPE"},
-            {"term_code": 1259, "school_code": "QNS01", "course_code": "CSCI", "course_level": "1"},
+            {"term_code": 1259, "school_code": "QNS01", "course_prefix": "NOPE"},
+            {"term_code": 1259, "school_code": "QNS01", "course_prefix": "CSCI", "course_level": "1"},
         ]
         for query_params in unmatched_query_params:
             with self.subTest(query_params=query_params):
@@ -413,13 +413,13 @@ class PublicApiVariableTopicSectionTests(TestCase):
 
                 self.assertEqual(response.status_code, 422)
 
-    def test_treats_empty_course_code_and_course_level_as_omitted(self) -> None:
+    def test_treats_empty_course_prefix_and_course_level_as_omitted(self) -> None:
         self._create_section(
             self.special_topics_course, self.fall_term, number=43070, topic="Cryptography"
         )
         query_params: TQueryParams = {
             **self.queens_query_params,
-            "course_code": "",
+            "course_prefix": "",
             "course_level": "",
         }
 

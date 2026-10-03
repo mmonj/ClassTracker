@@ -179,7 +179,7 @@ def fetch_new_semester_course_sections(
     logger.info("Completed fetching new semester course sections")
 
     return interfaces_response.RespRefreshCourseSections(
-        courses=natsorted(courses, key=lambda c: (c.code, c.level))
+        courses=natsorted(courses, key=lambda course: (course.prefix, course.level))
     ).render(request)
 
 
@@ -286,7 +286,7 @@ def add_watched_section(request: HttpRequest, recipient_id: int, section_id: int
     if recipient.watched_sections.filter(id=section_id).exists():
         return error_json_response(
             [
-                f"Section {section.course.code} {section.course.level} - {section.topic} is already being watched"
+                f"Section {section.course.prefix} {section.course.level} - {section.topic} is already being watched"
             ],
             status=400,
         )

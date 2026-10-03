@@ -58,7 +58,7 @@ export function AddInviteModal({ show, onHide }: Props) {
   const courseOptions: SelectOption[] =
     coursesFetcher.data?.courses.map((course) => ({
       value: course.id,
-      label: `${course.code} ${course.level} - ${course.title}`,
+      label: `${course.prefix} ${course.level} - ${course.title}`,
     })) ?? [];
 
   const instructorOptions: SelectOption[] =

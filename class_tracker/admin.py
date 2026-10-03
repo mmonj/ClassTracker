@@ -92,12 +92,12 @@ class InstructorAdmin(admin.ModelAdmin[Instructor]):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin[Course]):
-    list_display = ("code", "level", "title", "career", "school")
+    list_display = ("prefix", "level", "title", "career", "school")
     list_filter = ("career", "school", "terms")
-    search_fields = ("code", "level", "title")
+    search_fields = ("prefix", "level", "title")
     filter_horizontal = ("terms",)
     readonly_fields = ("datetime_created", "datetime_modified")
-    ordering = ("code", "level")
+    ordering = ("prefix", "level")
 
 
 class InstructionEntryInline(admin.TabularInline[InstructionEntry, CourseSection]):

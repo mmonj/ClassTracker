@@ -368,7 +368,7 @@ def get_courses(request: AuthenticatedRequest, school_id: int, subject_id: int) 
     school = get_object_or_404(School, id=school_id)
     subject = get_object_or_404(Subject, id=subject_id)
 
-    courses = list(Course.objects.filter(school=school, subject=subject).order_by("code", "level"))
+    courses = list(Course.objects.filter(school=school, subject=subject).order_by("prefix", "level"))
 
     return interfaces_response.GetCoursesResponse(
         courses=courses,
@@ -556,7 +556,7 @@ def get_all_courses(request: AuthenticatedRequest, subject_id: int) -> HttpRespo
 
     subject = get_object_or_404(Subject, id=subject_id)
     courses = list(
-        Course.objects.filter(school=discord_user.school, subject=subject).order_by("code", "level")
+        Course.objects.filter(school=discord_user.school, subject=subject).order_by("prefix", "level")
     )
 
     return interfaces_response.GetCoursesResponse(

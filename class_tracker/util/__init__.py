@@ -122,7 +122,7 @@ def create_db_courses(
             bulk_create_and_get(
                 Course,
                 [Course.from_gs_course(c, subject, career, school) for c in gs_courses],
-                fields=["code", "level", "school__id"],
+                fields=["prefix", "level", "school__id"],
             )
         )
     }

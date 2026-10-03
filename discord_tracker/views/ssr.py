@@ -126,7 +126,7 @@ def explore_all_listings(request: HttpRequest) -> HttpResponse:
 
     search_queryset = base_queryset.order_by(
         "-is_featured",
-        "courses__code",
+        "courses__prefix",
         "courses__level",
         "name",
     )

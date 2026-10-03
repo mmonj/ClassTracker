@@ -376,7 +376,7 @@ export function Template(props: templates.ClassTrackerManageCourselist) {
               {availableCourses.length > 0 &&
                 availableCourses.map((course) => (
                   <ListGroup.Item key={course.id} as="li">
-                    {course.code} - {course.level} - Sections:{" "}
+                    {course.prefix} - {course.level} - Sections:{" "}
                     {course.sections.map((section) => section.number).join(", ")}
                   </ListGroup.Item>
                 ))}

@@ -19,3 +19,7 @@ _Avoid_: Section number, section id, class id
 **Variable-Topic Section**:
 A course section whose topic differs from its course's title. The course title is a generic name (eg. "Special Topics in Computer Sci") and the section's topic is the specialization actually being taught (eg. "Cryptography").
 _Avoid_: Special topics section, topic section
+
+**Course Prefix**:
+The short letters that start a course's name as a school writes it (eg. `CSCI` in "CSCI 316"). Each school chooses its own, so different schools may use different prefixes for the same **Subject** (eg. Queens College `CSCI` vs Baruch `CIS`, both under Globalsearch subject `CMSC`). It is not a **Globalsearch Key**.
+_Avoid_: Course code, subject code

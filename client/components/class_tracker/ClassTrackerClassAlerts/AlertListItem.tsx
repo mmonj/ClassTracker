@@ -26,7 +26,7 @@ export function AlertListItem({ alert, getDaysAndTimesString, getInstructorsStri
         <div className="d-flex align-items-center gap-2">
           <FontAwesomeIcon icon={faBell} className="text-primary" />
           <h6 className="mb-0">
-            {alert.course_section.course.code} {alert.course_section.course.level}
+            {alert.course_section.course.prefix} {alert.course_section.course.level}
             <span className="text-muted ms-2">Section {alert.course_section.number}</span>
           </h6>
         </div>

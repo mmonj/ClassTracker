@@ -142,7 +142,7 @@ def _filter_sections_within_grace_period(
                     logger.debug(
                         "Skipping notification for %s - %s %s (recent alert within grace period)",
                         recipient.name,
-                        section.course.code,
+                        section.course.prefix,
                         section.course.level,
                     )
 
@@ -204,7 +204,7 @@ def get_formatted_course_sections_msg(course_sections: list[CourseSection]) -> s
         instructors_str = ", ".join(unique_instructors) if unique_instructors else "TBA"
 
         formatted_section = (
-            f"{section.course.code} {section.course.level} - {section.topic} ({instructors_str})"
+            f"{section.course.prefix} {section.course.level} - {section.topic} ({instructors_str})"
         )
         formatted_sections.append(formatted_section)
 

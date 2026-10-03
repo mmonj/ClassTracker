@@ -29,7 +29,7 @@ class GSCourseSection:
 
 
 class GSCourse:
-    code: str  # eg. CSCI
+    prefix: str  # eg. CSCI
     level: str  # eg. 331
     title: str  # eg. Database Systems
     sections: list[GSCourseSection]
@@ -45,9 +45,9 @@ class GSCourse:
                 f"{course_info_re} did not match course info str: {course_full_title!r}"
             )
 
-        self.code = match.group(1).strip()
+        self.prefix = match.group(1).strip()
         self.level = match.group(2).strip()
         self.title = match.group(3).strip()
 
     def get_name(self) -> str:
-        return f"{self.code} {self.level}"
+        return f"{self.prefix} {self.level}"

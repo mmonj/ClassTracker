@@ -120,8 +120,9 @@ class Subject(CommonModel):
 
 
 class Course(CommonModel):
-    # custom shortname (eg. CSCI, MAC, MATH), not associated with globalsearch_key (such as CMSC)
-    code = models.CharField(max_length=100, default="", verbose_name="Course Code")
+    # eg. CSCI. parsed out of the course name in globalsearch results (eg. "CSCI 343: Computer Architecture"),
+    # not read from a standalone field. differs from Subject.globalsearch_key (eg. CMSC)
+    prefix = models.CharField(max_length=100, default="", verbose_name="Course Prefix")
     level = models.CharField(max_length=10, default="")  # eg. "316"
     title = models.CharField(max_length=100)  # eg. "Principles of Programming Lang"
     designation = models.CharField(max_length=10, default="")  # eg. W (writing-intensive)
@@ -132,23 +133,23 @@ class Course(CommonModel):
     terms = models.ManyToManyField(Term, related_name="courses")
 
     class Meta:
-        unique_together = ("code", "level", "school")
+        unique_together = ("prefix", "level", "school")
 
     def __str__(self) -> str:
-        return f"{self.code} {self.level} - {self.title}"
+        return f"{self.prefix} {self.level} - {self.title}"
 
     def __repr__(self) -> str:
-        return f"<Course(id={self.id}, code='{self.code}', level='{self.level}', title='{self.title}')>"
+        return f"<Course(id={self.id}, prefix='{self.prefix}', level='{self.level}', title='{self.title}')>"
 
     def get_name(self) -> str:
-        return f"{self.code} {self.level}"
+        return f"{self.prefix} {self.level}"
 
     @classmethod
     def from_gs_course(
         cls, gs_course: GSCourse, subject: Subject, career: CourseCareer, school: School
     ) -> Self:
         course = cls(
-            code=gs_course.code,
+            prefix=gs_course.prefix,
             level=gs_course.level,
             title=gs_course.title,
             designation="W" if gs_course.level.endswith("W") else "",
@@ -188,9 +189,9 @@ class CourseSection(CommonModel):
         instruction_entries = self.instruction_entries.all()
         if len(instruction_entries) == 0:
             return (
-                f"{self.number}: {self.course.code} {self.course.level} - {instruction_entries[0]}"
+                f"{self.number}: {self.course.prefix} {self.course.level} - {instruction_entries[0]}"
             )
-        return f"{self.number}: {self.course.code} {self.course.level} - {len(instruction_entries)} instructors"
+        return f"{self.number}: {self.course.prefix} {self.course.level} - {len(instruction_entries)} instructors"
 
     def __repr__(self) -> str:
         return f"<CourseSection(id={self.id}, section='{self.section}', status='{self.status}', instruction mode='{self.instruction_mode}')>"

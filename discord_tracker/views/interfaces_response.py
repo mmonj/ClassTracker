@@ -24,7 +24,7 @@ _DiscordServerPick = Pick[
         "subjects.id",
         "subjects.name",
         "courses.id",
-        "courses.code",
+        "courses.prefix",
         "courses.level",
         "courses.title",
         "instructors.id",
@@ -34,7 +34,7 @@ _DiscordServerPick = Pick[
 
 _SchoolPick = Pick[School, Literal["id", "name"]]
 _SubjectPick = Pick[Subject, Literal["id", "name"]]
-_CoursePick = Pick[Course, Literal["id", "code", "level", "title"]]
+_CoursePick = Pick[Course, Literal["id", "prefix", "level", "title"]]
 _InstructorPick = Pick[Instructor, Literal["id", "name"]]
 
 _AlertDetailsPick = Pick[

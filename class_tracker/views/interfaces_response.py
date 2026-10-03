@@ -15,7 +15,7 @@ _SectionPick = Pick[
         "number",
         "topic",
         "course.id",
-        "course.code",
+        "course.prefix",
         "course.level",
     ],
 ]
@@ -27,7 +27,7 @@ _SectionWithInstructorsPick = Pick[
         "number",
         "topic",
         "course.id",
-        "course.code",
+        "course.prefix",
         "course.level",
         "instruction_entries.instructor.id",
         "instruction_entries.instructor.name",
@@ -78,7 +78,7 @@ class RespGetSubjects(NamedTuple):
 
 @interface
 class RespRefreshCourseSections(NamedTuple):
-    courses: List[Pick[Course, Literal["id", "code", "level", "sections.number"]]]
+    courses: List[Pick[Course, Literal["id", "prefix", "level", "sections.number"]]]
 
 
 @interface

@@ -61,7 +61,7 @@ export function Template(props: templates.ClassTrackerClassAlerts) {
         const searchText = debouncedFilterText.toLowerCase();
         const alertText = [
           alert.recipient.name,
-          alert.course_section.course.code,
+          alert.course_section.course.prefix,
           alert.course_section.course.level,
           alert.course_section.number.toString(),
           alert.course_section.course.subject.name,

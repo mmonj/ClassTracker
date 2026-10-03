@@ -28,7 +28,7 @@ export function WatchedSection({ section, recipientId, setRecipients }: Props) {
 
   async function handleRemoveSection() {
     const confirmed = window.confirm(
-      `Are you sure you want to remove "${section.course.code} ${section.course.level} - Section ${section.number} (${instructorNames})" from watched sections?`,
+      `Are you sure you want to remove "${section.course.prefix} ${section.course.level} - Section ${section.number} (${instructorNames})" from watched sections?`,
     );
 
     if (!confirmed) {
@@ -71,7 +71,7 @@ export function WatchedSection({ section, recipientId, setRecipients }: Props) {
         <div className="flex-grow-1">
           <div className="d-flex align-items-center gap-2 mb-1">
             <strong>
-              {section.course.code} {section.course.level}
+              {section.course.prefix} {section.course.level}
             </strong>
             <span className="badge bg-secondary">Section {section.number}</span>
           </div>
